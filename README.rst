@@ -1,2 +1,4 @@
-# loam
+loam
+====
+
 Configuration manager
