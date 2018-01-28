@@ -7,6 +7,8 @@ import pathlib
 from .import error
 
 
+ConfBareOpt = namedtuple('ConfBareOpt', ['default'])
+
 ConfOpt = namedtuple('ConfOpt',
                      ['default', 'cmd_arg', 'shortname', 'cmd_kwargs',
                       'conf_arg', 'help'])
