@@ -3,7 +3,7 @@ manager
 
 .. automodule:: loam.manager
    :members:
-   :exclude-members: ConfOpt, ConfBareOpt
+   :exclude-members: ConfOpt, Subcmd
 
    .. class:: ConfOpt
 
@@ -18,13 +18,6 @@ manager
         of the command line arguments parser.
       - **conf_arg** (*bool*): whether the option can be set in the config file.
       - **help** (*str*): short description of the option.
-
-   .. class:: ConfBareOpt
-
-      :class:`collections.namedtuple` whose instances hold metadata of
-      configuration options. It defines the following field:
-
-      - **default**: the default value of the configuration option.
 
    .. class:: Subcmd
 

@@ -4,10 +4,8 @@ import argparse
 import configparser
 import copy
 import pathlib
-from .import error
+from . import error
 
-
-ConfBareOpt = namedtuple('ConfBareOpt', ['default'])
 
 ConfOpt = namedtuple('ConfOpt',
                      ['default', 'cmd_arg', 'shortname', 'cmd_kwargs',
@@ -24,6 +22,11 @@ class Toggle(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         """set args attribute with True/False"""
         setattr(namespace, self.dest, bool('-+'.index(option_string[0])))
+
+
+def bare_opt(default):
+    """Define a ConfOpt with only a default value."""
+    return ConfOpt(default, False, None, {}, False, '')
 
 
 class _SubConfig:
