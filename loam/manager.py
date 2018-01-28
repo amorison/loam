@@ -376,7 +376,8 @@ class ConfigurationManager:
                 parent_parsers.append(xparsers[sub])
             kwargs.update(parents=parent_parsers)
             dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)
-            self[sub_cmd].add_to_parser_(dummy_parser)
+            if sub_cmd in self:
+                self[sub_cmd].add_to_parser_(dummy_parser)
             dummy_parser.set_defaults(**meta.defaults)
 
         self._parser = main_parser
@@ -394,7 +395,8 @@ class ConfigurationManager:
         if sub_cmd is None:
             return args, []
         subs = sub_cmds[None].extra_parsers + sub_cmds[sub_cmd].extra_parsers
-        subs.append(sub_cmd)
+        if sub_cmd in self:
+            subs.append(sub_cmd)
         for sub in subs:
             self[sub].update_from_cmd_args_(args)
         return args, subs
