@@ -49,5 +49,7 @@ configuration object with no config file nor argument parsing management.
     assert conf.sectionA.optionA == 'foo'
     # you can also reset entire sections at once
     del conf.sectionA
-    # or all configuration options
-    conf.reset()
+    # or even all configuration options (note that all methods of
+    # ConfigurationManager have a postfixed _ to minimize the risk of collision
+    # with your section or option names).
+    conf.reset_()

@@ -6,7 +6,7 @@ def test_get_subconfig(conf, conf_def):
         assert getattr(conf, sub) is conf[sub]
 
 def test_get_opt(conf):
-    for sub, opt in conf.options():
+    for sub, opt in conf.options_():
         assert getattr(conf[sub], opt) is conf[sub][opt]
 
 def test_get_invalid_subconfig(conf):
@@ -24,7 +24,7 @@ def test_get_invalid_opt(conf):
 
 def test_reset_all(conf):
     conf.sectionA.optA = 42
-    conf.reset()
+    conf.reset_()
     assert conf.sectionA.optA == 1
 
 def test_reset_subconfig(conf):
@@ -49,28 +49,28 @@ def test_reset_opt_item(conf):
 
 def test_config_iter_subs(conf, conf_def):
     raw_iter = set(iter(conf))
-    subs_iter = set(conf.subs())
+    subs_iter = set(conf.subs_())
     subs_expected = set(conf_def.keys())
     assert raw_iter == subs_iter == subs_expected
 
 def test_config_iter_options(conf, conf_def):
-    options_iter = set(conf.options())
+    options_iter = set(conf.options_())
     options_expected = set((sub, opt) for sub in conf_def
                            for opt in conf_def[sub])
     assert options_iter == options_expected
 
 def test_config_iter_default_val(conf):
-    vals_iter = set(conf.opt_vals())
-    vals_dflts = set((s, o, m.default) for s, o, m in conf.defaults())
+    vals_iter = set(conf.opt_vals_())
+    vals_dflts = set((s, o, m.default) for s, o, m in conf.defaults_())
     assert vals_iter == vals_dflts
 
 def test_config_iter_subconfig(conf, conf_def):
     raw_iter = set(iter(conf.sectionA))
-    opts_iter = set(conf.sectionA.options())
+    opts_iter = set(conf.sectionA.options_())
     opts_expected = set(conf_def['sectionA'].keys())
     assert raw_iter == opts_iter == opts_expected
 
 def test_config_iter_subconfig_default_val(conf):
-    vals_iter = set(conf.sectionA.opt_vals())
-    vals_dflts = set((o, m.default) for o, m in conf.sectionA.defaults())
+    vals_iter = set(conf.sectionA.opt_vals_())
+    vals_dflts = set((o, m.default) for o, m in conf.sectionA.defaults_())
     assert vals_iter == vals_dflts

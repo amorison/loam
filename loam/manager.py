@@ -34,7 +34,7 @@ class _SubConfig:
         self._parent = parent
         self._name = name
         self._def = defaults
-        for opt, meta in self.defaults():
+        for opt, meta in self.defaults_():
             self[opt] = meta.default
 
     def __getitem__(self, key):
@@ -56,7 +56,7 @@ class _SubConfig:
     def __iter__(self):
         return iter(self._def.keys())
 
-    def options(self):
+    def options_(self):
         """Iterator over configuration option names.
 
         Yields:
@@ -64,16 +64,16 @@ class _SubConfig:
         """
         return iter(self)
 
-    def opt_vals(self):
+    def opt_vals_(self):
         """Iterator over option names and option values.
 
         Yields:
             tuples with option names, and option values.
         """
-        for opt in self.options():
+        for opt in self.options_():
             yield opt, self[opt]
 
-    def defaults(self):
+    def defaults_(self):
         """Iterator over option names, and option metadata.
 
         Yields:
@@ -82,10 +82,10 @@ class _SubConfig:
         """
         return self._def.items()
 
-    def read_section(self, config_parser):
+    def read_section_(self, config_parser):
         """Read section of config parser and set options accordingly."""
         missing_opts = []
-        for opt, meta_opt in self.defaults():
+        for opt, meta_opt in self.defaults_():
             if not meta_opt.conf_arg:
                 continue
             if not config_parser.has_option(self._name, opt):
@@ -102,9 +102,9 @@ class _SubConfig:
             self[opt] = dflt
         return missing_opts
 
-    def add_to_parser(self, parser):
+    def add_to_parser_(self, parser):
         """Add arguments to a parser."""
-        for arg, meta in self.defaults():
+        for arg, meta in self.defaults_():
             if not meta.cmd_arg:
                 continue
             kwargs = copy.deepcopy(meta.cmd_kwargs)
@@ -123,11 +123,11 @@ class _SubConfig:
             kwargs.update(help=meta.help)
             parser.add_argument(*names, **kwargs)
         parser.set_defaults(**{a: self[a]
-                               for a, m in self.defaults() if m.cmd_arg})
+                               for a, m in self.defaults_() if m.cmd_arg})
 
-    def update_from_cmd_args(self, args):
+    def update_from_cmd_args_(self, args):
         """Set option values accordingly to cmd line args."""
-        for opt, meta in self.defaults():
+        for opt, meta in self.defaults_():
             if not meta.cmd_arg:
                 continue
             self[opt] = getattr(args, opt)
@@ -178,20 +178,20 @@ class ConfigurationManager:
         self._def = meta
         self._parser = None
         self._sub_cmds = None
-        for sub in self.subs():
+        for sub in self.subs_():
             self[sub] = _SubConfig(self, sub, self._def[sub])
-        self.config_file = config_file
+        self.config_file_ = config_file
 
     @property
-    def config_file(self):
+    def config_file_(self):
         """Path of config file.
 
         It is None or a pathlib.Path instance.
         """
         return self._config_file
 
-    @config_file.setter
-    def config_file(self, path):
+    @config_file_.setter
+    def config_file_(self, path):
         if path is not None:
             self._config_file = pathlib.Path(path)
         else:
@@ -216,7 +216,7 @@ class ConfigurationManager:
     def __iter__(self):
         return iter(self._def.keys())
 
-    def subs(self):
+    def subs_(self):
         """Iterator over configuration subsection names.
 
         Yields:
@@ -224,17 +224,17 @@ class ConfigurationManager:
         """
         return iter(self)
 
-    def options(self):
+    def options_(self):
         """Iterator over subsection and option names.
 
         This iterator is also implemented at the subsection level. The two
         loops produce the same output::
 
-            for sub, opt in conf.options():
+            for sub, opt in conf.options_():
                 print(sub, opt)
 
-            for sub in conf.subs():
-                for opt in conf[sub].options():
+            for sub in conf.subs_():
+                for opt in conf[sub].options_():
                     print(sub, opt)
 
         Yields:
@@ -244,99 +244,101 @@ class ConfigurationManager:
             for opt in self._def[sub]:
                 yield sub, opt
 
-    def opt_vals(self):
+    def opt_vals_(self):
         """Iterator over subsection, option names, and option values.
 
         This iterator is also implemented at the subsection level. The two
         loops produce the same output::
 
-            for sub, opt, val in conf.opt_vals():
+            for sub, opt, val in conf.opt_vals_():
                 print(sub, opt, val)
 
-            for sub in conf.subs():
-                for opt, val in conf[sub].opt_vals():
+            for sub in conf.subs_():
+                for opt, val in conf[sub].opt_vals_():
                     print(sub, opt, val)
 
         Yields:
             tuples with subsection, option names, and option values.
         """
-        for sub, opt in self.options():
+        for sub, opt in self.options_():
             yield sub, opt, self[sub][opt]
 
-    def defaults(self):
+    def defaults_(self):
         """Iterator over subsection, option names, and option metadata.
 
         This iterator is also implemented at the subsection level. The two
         loops produce the same output::
 
-            for sub, opt, meta in conf.defaults():
+            for sub, opt, meta in conf.defaults_():
                 print(sub, opt, meta.default)
 
-            for sub in conf.subs():
-                for opt, meta in conf[sub].defaults():
+            for sub in conf.subs_():
+                for opt, meta in conf[sub].defaults_():
                     print(sub, opt, meta.default)
 
         Yields:
             tuples with subsection, option names, and :class:`Conf`
             instances holding option metadata.
         """
-        for sub, opt in self.options():
+        for sub, opt in self.options_():
             yield sub, opt, self._def[sub][opt]
 
-    def reset(self):
+    def reset_(self):
         """Restore default values of all options."""
-        for sub, opt, meta in self.defaults():
+        for sub, opt, meta in self.defaults_():
             self[sub][opt] = meta.default
 
-    def create_config(self, update=False):
+    def create_config_(self, update=False):
         """Create config file.
 
-        Create a config file at path :attr:`config_file`.
+        Create a config file at path :attr:`config_file_`.
 
         Parameters:
-            update (bool): if set to True and :attr:`config_file` already
+            update (bool): if set to True and :attr:`config_file_` already
                 exists, its content is read and all the options it sets are
                 kept in the produced config file.
         """
-        if not self.config_file.parent.exists():
-            self.config_file.parent.mkdir(parents=True)
+        if not self.config_file_.parent.exists():
+            self.config_file_.parent.mkdir(parents=True)
         config_parser = configparser.ConfigParser()
-        for sub_cmd in self.subs():
+        for sub_cmd in self.subs_():
             config_parser.add_section(sub_cmd)
-            for opt, opt_meta in self[sub_cmd].defaults():
+            for opt, opt_meta in self[sub_cmd].defaults_():
                 if opt_meta.conf_arg:
                     if update:
                         val = str(self[sub_cmd][opt])
                     else:
                         val = str(opt_meta.default)
                     config_parser.set(sub_cmd, opt, val)
-        with self.config_file.open('w') as out_stream:
+        with self.config_file_.open('w') as out_stream:
             config_parser.write(out_stream)
 
-    def read_config(self):
+    def read_config_(self):
         """Read config file and set config values accordingly.
 
         Returns:
             missing_sections, missing_opts (list): list of section names and
             options names that were not present in the config file.
         """
-        if not self.config_file.is_file():
+        if self.config_file_ is None:
+            return [], {}
+        if not self.config_file_.is_file():
             return None, None
         config_parser = configparser.ConfigParser()
         try:
-            config_parser.read(str(self.config_file))
+            config_parser.read(str(self.config_file_))
         except configparser.Error:
             return None, None
         missing_sections = []
         missing_opts = {}
-        for sub in self.subs():
+        for sub in self.subs_():
             if not config_parser.has_section(sub):
                 missing_sections.append(sub)
                 continue
-            missing_opts[sub] = self[sub].read_section(config_parser)
+            missing_opts[sub] = self[sub].read_section_(config_parser)
         return missing_sections, missing_opts
 
-    def build_parser(self, description, sub_cmds):
+    def build_parser_(self, description, sub_cmds):
         """Return complete parser."""
         main_parser = argparse.ArgumentParser(description=description)
         main_parser.set_defaults(**sub_cmds[None].defaults)
@@ -347,7 +349,7 @@ class ConfigurationManager:
             if sub not in sub_cmds:
                 xparsers[sub] = argparse.ArgumentParser(add_help=False,
                                                         prefix_chars='-+')
-                self[sub].add_to_parser(xparsers[sub])
+                self[sub].add_to_parser_(xparsers[sub])
 
         for sub_cmd, meta in sub_cmds.items():
             if sub_cmd is None:
@@ -359,14 +361,14 @@ class ConfigurationManager:
                 parent_parsers.append(xparsers[sub])
             kwargs.update(parents=parent_parsers)
             dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)
-            self[sub_cmd].add_to_parser(dummy_parser)
+            self[sub_cmd].add_to_parser_(dummy_parser)
             dummy_parser.set_defaults(**meta.defaults)
 
         self._parser = main_parser
         self._sub_cmds = sub_cmds
         return main_parser
 
-    def parse_args(self, arglist=None):
+    def parse_args_(self, arglist=None):
         """Parse arguments and update options accordingly."""
         if self._parser is None:
             raise error.ParserNotBuiltError(
@@ -379,5 +381,5 @@ class ConfigurationManager:
         subs = sub_cmds[None].extra_parsers + sub_cmds[sub_cmd].extra_parsers
         subs.append(sub_cmd)
         for sub in subs:
-            self[sub].update_from_cmd_args(args)
+            self[sub].update_from_cmd_args_(args)
         return args, subs
