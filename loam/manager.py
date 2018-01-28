@@ -65,6 +65,9 @@ class _SubConfig:
     def __iter__(self):
         return iter(self._def.keys())
 
+    def __contains__(self, opt):
+        return opt in self._def
+
     def options_(self):
         """Iterator over configuration option names.
 
@@ -224,6 +227,9 @@ class ConfigurationManager:
 
     def __iter__(self):
         return iter(self._def.keys())
+
+    def __contains__(self, sub):
+        return sub in self._def
 
     def subs_(self):
         """Iterator over configuration subsection names.

@@ -22,6 +22,21 @@ def test_get_invalid_opt(conf):
             _ = conf[sub][invalid]
         assert err.value.option == invalid
 
+def test_contains_section(conf, conf_def):
+    for sub in conf_def:
+        assert sub in conf
+
+def test_contains_option(conf, conf_def):
+    for sub, opts in conf_def.items():
+        for opt in opts:
+            assert opt in conf[sub]
+
+def test_contains_invalid_section(conf):
+    assert 'invalidsubdummy' not in conf
+
+def test_contains_invalid_option(conf):
+    assert 'invalidoptdummy' not in conf.sectionA
+
 def test_reset_all(conf):
     conf.sectionA.optA = 42
     conf.reset_()
