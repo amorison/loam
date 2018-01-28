@@ -326,6 +326,8 @@ class ConfigurationManager:
 
     def build_parser_(self, description, sub_cmds):
         """Return complete parser."""
+        if None not in sub_cmds:
+            sub_cmds[None] = tools.Subcmd([], {}, None)
         main_parser = argparse.ArgumentParser(description=description)
         main_parser.set_defaults(**sub_cmds[None].defaults)
         subparsers = main_parser.add_subparsers(dest='loam_sub_name')
