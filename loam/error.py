@@ -40,3 +40,10 @@ class OptionError(LoamError):
         """
         self.option = option
         super().__init__('invalid option name: {}'.format(option))
+
+
+class ParserNotBuiltError(LoamError):
+
+    """Raised when parse_args is called before build_parser"""
+
+    pass

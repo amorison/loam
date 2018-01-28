@@ -1,13 +1,28 @@
 """Definition of configuration manager classes."""
 from collections import namedtuple
+import argparse
 import configparser
+import copy
 import pathlib
-from .error import SectionError, OptionError
+from .import error
 
 
 ConfOpt = namedtuple('ConfOpt',
                      ['default', 'cmd_arg', 'shortname', 'cmd_kwargs',
                       'conf_arg', 'help'])
+
+
+Subcmd = namedtuple('Subcmd', ['extra_parsers', 'defaults', 'help'])
+
+
+class Toggle(argparse.Action):
+
+    """argparse Action to store True/False to a +/-arg"""
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        """set args attribute with True/False"""
+        setattr(namespace, self.dest, bool('-+'.index(option_string[0])))
+
 
 class _SubConfig:
 
@@ -33,7 +48,7 @@ class _SubConfig:
         if option in self._def:
             self[option] = self._def[option].default
         else:
-            raise OptionError(option)
+            raise error.OptionError(option)
         return self[option]
 
     def __iter__(self):
@@ -85,6 +100,36 @@ class _SubConfig:
             self[opt] = dflt
         return missing_opts
 
+    def add_to_parser(self, parser):
+        """Add arguments to a parser."""
+        for arg, meta in self.defaults():
+            if not meta.cmd_arg:
+                continue
+            kwargs = copy.deepcopy(meta.cmd_kwargs)
+            if isinstance(meta.default, bool):
+                kwargs.update(action=Toggle, nargs=0)
+                names = ['-{}'.format(arg), '+{}'.format(arg)]
+                if meta.shortname is not None:
+                    names.append('-{}'.format(meta.shortname))
+                    names.append('+{}'.format(meta.shortname))
+            else:
+                if meta.default is not None:
+                    kwargs.setdefault('type', type(meta.default))
+                names = ['--{}'.format(arg)]
+                if meta.shortname is not None:
+                    names.append('-{}'.format(meta.shortname))
+            kwargs.update(help=meta.help)
+            parser.add_argument(*names, **kwargs)
+        parser.set_defaults(**{a: self[a]
+                               for a, m in self.defaults() if m.cmd_arg})
+
+    def update_from_cmd_args(self, args):
+        """Set option values accordingly to cmd line args."""
+        for opt, meta in self.defaults():
+            if not meta.cmd_arg:
+                continue
+            self[opt] = getattr(args, opt)
+
 
 class ConfigurationManager:
 
@@ -129,6 +174,8 @@ class ConfigurationManager:
             config_file (pathlike): path of config file.
         """
         self._def = meta
+        self._parser = None
+        self._sub_cmds = None
         for sub in self.subs():
             self[sub] = _SubConfig(self, sub, self._def[sub])
         self.config_file = config_file
@@ -161,7 +208,7 @@ class ConfigurationManager:
         if sub in self._def:
             self[sub] = _SubConfig(self, sub, self._def[sub])
         else:
-            raise SectionError(sub)
+            raise error.SectionError(sub)
         return self[sub]
 
     def __iter__(self):
@@ -286,3 +333,49 @@ class ConfigurationManager:
                 continue
             missing_opts[sub] = self[sub].read_section(config_parser)
         return missing_sections, missing_opts
+
+    def build_parser(self, description, sub_cmds):
+        """Return complete parser."""
+        main_parser = argparse.ArgumentParser(description=description)
+        main_parser.set_defaults(**sub_cmds[None].defaults)
+        subparsers = main_parser.add_subparsers(dest='loam_sub_name')
+
+        xparsers = {}
+        for sub in self:
+            if sub not in sub_cmds:
+                xparsers[sub] = argparse.ArgumentParser(add_help=False,
+                                                        prefix_chars='-+')
+                self[sub].add_to_parser(xparsers[sub])
+
+        for sub_cmd, meta in sub_cmds.items():
+            if sub_cmd is None:
+                continue
+            kwargs = {'prefix_chars': '+-', 'help': meta.help}
+            parent_parsers = [xparsers[sub]
+                              for sub in sub_cmds[None].extra_parsers]
+            for sub in meta.extra_parsers:
+                parent_parsers.append(xparsers[sub])
+            kwargs.update(parents=parent_parsers)
+            dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)
+            self[sub_cmd].add_to_parser(dummy_parser)
+            dummy_parser.set_defaults(**meta.defaults)
+
+        self._parser = main_parser
+        self._sub_cmds = sub_cmds
+        return main_parser
+
+    def parse_args(self, arglist=None):
+        """Parse arguments and update options accordingly."""
+        if self._parser is None:
+            raise error.ParserNotBuiltError(
+                'Please call build_parser before parse_args.')
+        args = self._parser.parse_args(args=arglist)
+        sub_cmd = args.loam_sub_name
+        sub_cmds = self._sub_cmds
+        if sub_cmd is None:
+            return args, []
+        subs = sub_cmds[None].extra_parsers + sub_cmds[sub_cmd].extra_parsers
+        subs.append(sub_cmd)
+        for sub in subs:
+            self[sub].update_from_cmd_args(args)
+        return args, subs
