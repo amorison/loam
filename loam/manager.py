@@ -1,38 +1,9 @@
 """Definition of configuration manager classes."""
-from collections import namedtuple
 import argparse
 import configparser
 import copy
 import pathlib
-from . import error
-
-
-ConfOpt = namedtuple('ConfOpt',
-                     ['default', 'cmd_arg', 'shortname', 'cmd_kwargs',
-                      'conf_arg', 'help'])
-
-
-Subcmd = namedtuple('Subcmd', ['extra_parsers', 'defaults', 'help'])
-
-
-class Switch(argparse.Action):
-
-    """argparse Action to store True/False to a +/-arg"""
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        """set args attribute with True/False"""
-        setattr(namespace, self.dest, bool('-+'.index(option_string[0])))
-
-
-def bare_opt(default):
-    """Define a ConfOpt with only a default value."""
-    return ConfOpt(default, False, None, {}, False, '')
-
-
-def switch_opt(default, shortname, help_msg):
-    """Define a ConfOpt with the Switch action."""
-    return ConfOpt(
-        bool(default), True, shortname, dict(action=Switch), True, help_msg)
+from . import error, tools
 
 
 class _SubConfig:
@@ -120,7 +91,7 @@ class _SubConfig:
             if not meta.cmd_arg:
                 continue
             kwargs = copy.deepcopy(meta.cmd_kwargs)
-            if kwargs.get('action') is Switch:
+            if kwargs.get('action') is tools.Switch:
                 kwargs.update(nargs=0)
                 names = ['-{}'.format(arg), '+{}'.format(arg)]
                 if meta.shortname is not None:

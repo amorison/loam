@@ -18,7 +18,8 @@ configuration object with no config file nor argument parsing management.
 
 ::
 
-    from loam.manager import ConfigurationManager, bare_opt
+    from loam.manager import ConfigurationManager
+    from loam.tools import bare_opt
 
     # A simple dictionary define all the options and their default values.
     # The first level of keys are the section names, the second level of keys

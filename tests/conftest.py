@@ -2,7 +2,7 @@ import pytest
 
 @pytest.fixture(scope='session', params=['confA'])
 def conf_def(request):
-    from loam.manager import ConfOpt
+    from loam.tools import ConfOpt
     metas = {}
     metas['confA'] = {
         'sectionA': {
