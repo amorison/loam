@@ -15,7 +15,7 @@ ConfOpt = namedtuple('ConfOpt',
 Subcmd = namedtuple('Subcmd', ['extra_parsers', 'defaults', 'help'])
 
 
-class Toggle(argparse.Action):
+class Switch(argparse.Action):
 
     """argparse Action to store True/False to a +/-arg"""
 
@@ -27,6 +27,12 @@ class Toggle(argparse.Action):
 def bare_opt(default):
     """Define a ConfOpt with only a default value."""
     return ConfOpt(default, False, None, {}, False, '')
+
+
+def switch_opt(default, shortname, help_msg):
+    """Define a ConfOpt with the Switch action."""
+    return ConfOpt(
+        bool(default), True, shortname, dict(action=Switch), True, help_msg)
 
 
 class _SubConfig:
@@ -111,8 +117,8 @@ class _SubConfig:
             if not meta.cmd_arg:
                 continue
             kwargs = copy.deepcopy(meta.cmd_kwargs)
-            if isinstance(meta.default, bool):
-                kwargs.update(action=Toggle, nargs=0)
+            if kwargs.get('action') is Switch:
+                kwargs.update(nargs=0)
                 names = ['-{}'.format(arg), '+{}'.format(arg)]
                 if meta.shortname is not None:
                     names.append('-{}'.format(meta.shortname))
