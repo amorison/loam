@@ -1,3 +1,11 @@
+.. image:: https://readthedocs.org/projects/loam/badge/?version=latest
+   :target: http://loam.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+
+.. image:: https://travis-ci.org/amorison/loam.svg?branch=master
+   :target: https://travis-ci.org/amorison/loam
+   :alt: Travis CI
+
 loam
 ====
 
