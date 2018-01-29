@@ -343,6 +343,8 @@ class ConfigurationManager:
                                                         prefix_chars='-+')
                 self[sub].add_to_parser_(xparsers[sub])
 
+        for sub in sub_cmds[None].extra_parsers:
+            self[sub].add_to_parser_(main_parser)
         for sub in sub_cmds[''].extra_parsers:
             self[sub].add_to_parser_(main_parser)
 
