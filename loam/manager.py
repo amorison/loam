@@ -414,7 +414,8 @@ class ConfigurationManager:
         already_consumed = set()
         for sub in subs:
             self[sub].update_from_cmd_args_(args)
-            already_consumed |= set(self[sub].options_())
+            already_consumed |= set(o for o, m in self[sub].defaults_()
+                                    if m.cmd_arg)
         # set sections implemented by empty subcommand with remaining options
         if sub_cmd != '':
             for sub in sub_cmds[''].extra_parsers:
