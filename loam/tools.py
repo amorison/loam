@@ -1,4 +1,7 @@
-"""Various helper functions and classes."""
+"""Various helper functions and classes.
+
+They are designed to help you use :class:`~loam.manager.ConfigurationManager`.
+"""
 
 from collections import namedtuple
 import argparse

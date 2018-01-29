@@ -1,9 +1,6 @@
 tools
 =====
 
-Various helper functions and class to help you use
-:class:`~loam.manager.ConfigurationManager`.
-
 .. automodule:: loam.tools
    :members:
    :exclude-members: ConfOpt, Subcmd
