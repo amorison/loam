@@ -108,10 +108,12 @@ class _SubConfig:
         parser.set_defaults(**{a: self[a]
                                for a, m in self.defaults_() if m.cmd_arg})
 
-    def update_from_cmd_args_(self, args):
+    def update_from_cmd_args_(self, args, exclude=None):
         """Set option values accordingly to cmd line args."""
+        if exclude is None:
+            exclude = set()
         for opt, meta in self.defaults_():
-            if not meta.cmd_arg:
+            if opt in exclude or not meta.cmd_arg:
                 continue
             self[opt] = getattr(args, opt)
 
@@ -379,6 +381,12 @@ class ConfigurationManager:
         subs = sub_cmds[None].extra_parsers + sub_cmds[sub_cmd].extra_parsers
         if sub_cmd in self:
             subs.append(sub_cmd)
+        already_consumed = set()
         for sub in subs:
             self[sub].update_from_cmd_args_(args)
+            already_consumed |= set(self[sub].options_())
+        # set sections implemented by empty subcommand with remaining options
+        if sub_cmd != '':
+            for sub in sub_cmds[''].extra_parsers:
+                self[sub].update_from_cmd_args_(args, already_consumed)
         return args, subs
