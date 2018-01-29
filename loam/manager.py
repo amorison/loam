@@ -324,11 +324,11 @@ class ConfigurationManager:
             missing_opts[sub] = self[sub].read_section_(config_parser)
         return missing_sections, missing_opts
 
-    def build_parser_(self, description, sub_cmds):
+    def build_parser_(self, sub_cmds):
         """Return complete parser."""
         if None not in sub_cmds:
             sub_cmds[None] = tools.Subcmd([], {}, None)
-        main_parser = argparse.ArgumentParser(description=description)
+        main_parser = argparse.ArgumentParser(description=sub_cmds[None].help)
         main_parser.set_defaults(**sub_cmds[None].defaults)
         subparsers = main_parser.add_subparsers(dest='loam_sub_name')
 
