@@ -8,7 +8,7 @@ def conf_def(request):
         'sectionA': {
             'optA': ConfOpt(1, True, None, {}, True, 'AA'),
             'optB': ConfOpt(2, True, None, {}, False, 'AB'),
-            'optC': ConfOpt(3, False, None, {}, True, 'AC'),
+            'optC': ConfOpt(3, True, None, {}, True, 'AC'),
         },
         'sectionB': {
             'optA': ConfOpt(4, True, None, {}, True, 'BA'),
@@ -22,3 +22,14 @@ def conf_def(request):
 def conf(conf_def):
     from loam.manager import ConfigurationManager
     return ConfigurationManager(conf_def)
+
+@pytest.fixture(params=['subsA'])
+def sub_cmds(request):
+    from loam.tools import Subcmd
+    subs = {}
+    subs['subsA'] = {
+        None: Subcmd([], {}, 'subsA loam test'),
+        '': Subcmd(['sectionA'], {}, None),
+        'sectionB': Subcmd([], {}, 'sectionB subcmd help'),
+    }
+    return subs[request.param]
