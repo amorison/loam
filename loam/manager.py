@@ -1,4 +1,10 @@
-"""Definition of configuration manager classes."""
+"""Definition of configuration manager classes.
+
+Note:
+    All methods and attributes are postfixed with an underscore to minimize the
+    risk of collision with the names of your configuration sections and
+    options.
+"""
 import argparse
 import configparser
 import copy
@@ -327,7 +333,18 @@ class ConfigurationManager:
         return missing_sections, missing_opts
 
     def build_parser_(self, sub_cmds):
-        """Return complete parser."""
+        """Build command line argument parser.
+
+        Args:
+            sub_cmds (dict of :class:`~loam.tools.Subcmd`): the sub commands
+                description.
+
+        Returns:
+            :class:`argparse.ArgumentParser`: the command line argument parser.
+            You probably won't need to use it directly. To parse command line
+            arguments and update the :class:`ConfigurationManager` instance
+            accordingly, use the :meth:`ConfigurationManager.parse_args_` method.
+        """
         if None not in sub_cmds:
             sub_cmds[None] = tools.Subcmd([], {}, None)
         if '' not in sub_cmds:
@@ -369,7 +386,20 @@ class ConfigurationManager:
         return main_parser
 
     def parse_args_(self, arglist=None):
-        """Parse arguments and update options accordingly."""
+        """Parse arguments and update options accordingly.
+
+        The :meth:`ConfigurationManager.build_parser_` method needs to be
+        called prior to this function.
+
+        Args:
+            arglist (list of str): list of arguments to parse. If set to None,
+                ``sys.argv[1:]`` is used.
+
+        Returns:
+            (:class:`Namespace`, list of str): the argument namespace returned
+            by the :class:`argparse.ArgumentParser` and the list of
+            configuration sections altered by the parsing.
+        """
         if self._parser is None:
             raise error.ParserNotBuiltError(
                 'Please call build_parser before parse_args.')
