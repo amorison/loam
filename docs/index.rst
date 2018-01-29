@@ -18,4 +18,5 @@ Welcome to loam's documentation!
 
    sources/api/manager
    sources/api/tools
+   sources/api/error
 
