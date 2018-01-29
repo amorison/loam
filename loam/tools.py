@@ -3,8 +3,10 @@
 They are designed to help you use :class:`~loam.manager.ConfigurationManager`.
 """
 
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
+from subprocess import call
 import argparse
+import shlex
 
 
 ConfOpt = namedtuple('ConfOpt',
@@ -54,3 +56,42 @@ def switch_opt(default, shortname, help_msg):
     """
     return ConfOpt(
         bool(default), True, shortname, dict(action=Switch), True, help_msg)
+
+
+def config_conf_section():
+    """Define a configuration section handling config file.
+
+    Returns:
+        dict of ConfOpt: it defines the 'create', 'update', 'edit' and 'editor'
+        configuration options.
+    """
+    config_dict = OrderedDict((
+        ('create',
+            ConfOpt(None, True, None, {'action': 'store_true'},
+                    False, 'create new config file')),
+        ('update',
+            ConfOpt(None, True, None, {'action': 'store_true'},
+                    False, 'add missing entries to config file')),
+        ('edit',
+            ConfOpt(None, True, None, {'action': 'store_true'},
+                    False, 'open config file in a text editor')),
+        ('editor',
+            ConfOpt('vim', False, None, {}, True, 'text editor')),
+    ))
+    return config_dict
+
+
+def config_cmd_handler(conf, config='config'):
+    """Implement the behavior of a subcmd using config_conf_section
+
+    Args:
+        conf (:class:`~loam.manager.ConfigurationManager`): it should contain a
+            section created with :func:`config_conf_section` function.
+        config (str): name of the configuration section created with
+            :func:`config_conf_section` function.
+    """
+    if conf[config].create or conf[config].update:
+        conf.create_config_(conf[config].update)
+    if conf[config].edit:
+        call(shlex.split('{} {}'.format(conf[config].editor,
+                                        conf.config_file_)))
