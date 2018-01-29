@@ -351,8 +351,8 @@ class ConfigurationManager:
             sub_cmds[''] = tools.Subcmd([], {}, None)
         main_parser = argparse.ArgumentParser(description=sub_cmds[None].help,
                                               prefix_chars='-+')
-        main_parser.set_defaults(**sub_cmds[None].defaults,
-                                 **sub_cmds[''].defaults)
+        main_parser.set_defaults(**sub_cmds[None].defaults)
+        main_parser.set_defaults(**sub_cmds[''].defaults)
         subparsers = main_parser.add_subparsers(dest='loam_sub_name')
 
         xparsers = {}
