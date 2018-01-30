@@ -97,14 +97,16 @@ class _SubConfig:
             if not meta.cmd_arg:
                 continue
             kwargs = copy.deepcopy(meta.cmd_kwargs)
-            if kwargs.get('action') is tools.Switch:
+            action = kwargs.get('action')
+            if action is tools.Switch:
                 kwargs.update(nargs=0)
                 names = ['-{}'.format(arg), '+{}'.format(arg)]
                 if meta.shortname is not None:
                     names.append('-{}'.format(meta.shortname))
                     names.append('+{}'.format(meta.shortname))
             else:
-                if meta.default is not None:
+                store_bool = action in ('store_true', 'store_false')
+                if meta.default is not None and not store_bool:
                     kwargs.setdefault('type', type(meta.default))
                 names = ['--{}'.format(arg)]
                 if meta.shortname is not None:
