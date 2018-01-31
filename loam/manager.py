@@ -349,13 +349,18 @@ class ConfigurationManager:
         """
         if None not in sub_cmds:
             sub_cmds[None] = tools.Subcmd([], {}, None)
-        if '' not in sub_cmds:
-            sub_cmds[''] = tools.Subcmd([], {}, None)
         main_parser = argparse.ArgumentParser(description=sub_cmds[None].help,
                                               prefix_chars='-+')
-        main_parser.set_defaults(**sub_cmds[None].defaults)
-        main_parser.set_defaults(**sub_cmds[''].defaults)
-        subparsers = main_parser.add_subparsers(dest='loam_sub_name')
+
+        if '' in sub_cmds:
+            main_parser.set_defaults(**sub_cmds[None].defaults)
+            main_parser.set_defaults(**sub_cmds[''].defaults)
+            for sub in sub_cmds[None].extra_parsers:
+                self[sub].add_to_parser_(main_parser)
+            for sub in sub_cmds[''].extra_parsers:
+                self[sub].add_to_parser_(main_parser)
+        else:
+            sub_cmds[''] = tools.Subcmd([], {}, None)
 
         xparsers = {}
         for sub in self:
@@ -364,11 +369,7 @@ class ConfigurationManager:
                                                         prefix_chars='-+')
                 self[sub].add_to_parser_(xparsers[sub])
 
-        for sub in sub_cmds[None].extra_parsers:
-            self[sub].add_to_parser_(main_parser)
-        for sub in sub_cmds[''].extra_parsers:
-            self[sub].add_to_parser_(main_parser)
-
+        subparsers = main_parser.add_subparsers(dest='loam_sub_name')
         for sub_cmd, meta in sub_cmds.items():
             if sub_cmd is None or sub_cmd == '':
                 continue
