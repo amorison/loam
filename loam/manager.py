@@ -123,7 +123,7 @@ class _SubConfig:
         for opt, meta in self.defaults_():
             if opt in exclude or not meta.cmd_arg:
                 continue
-            self[opt] = getattr(args, opt)
+            self[opt] = getattr(args, opt, None)
 
 
 class ConfigurationManager:
@@ -356,8 +356,8 @@ class ConfigurationManager:
         main_parser = argparse.ArgumentParser(description=sub_cmds[None].help,
                                               prefix_chars='-+')
 
+        main_parser.set_defaults(**sub_cmds[None].defaults)
         if '' in sub_cmds:
-            main_parser.set_defaults(**sub_cmds[None].defaults)
             main_parser.set_defaults(**sub_cmds[''].defaults)
             for sub in sub_cmds[None].extra_parsers:
                 self[sub].add_to_parser_(main_parser)
