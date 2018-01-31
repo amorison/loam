@@ -298,14 +298,16 @@ class ConfigurationManager:
             self.config_file_.parent.mkdir(parents=True)
         config_parser = configparser.ConfigParser()
         for sub_cmd in self.subs_():
-            config_parser.add_section(sub_cmd)
-            for opt, opt_meta in self[sub_cmd].defaults_():
-                if opt_meta.conf_arg:
-                    if update:
-                        val = str(self[sub_cmd][opt])
-                    else:
-                        val = str(opt_meta.default)
-                    config_parser.set(sub_cmd, opt, val)
+            conf_defaults = [(o, m) for o, m in self[sub_cmd].defaults_()
+                             if m.conf_arg]
+            if conf_defaults:
+                config_parser.add_section(sub_cmd)
+            for opt, opt_meta in conf_defaults:
+                if update:
+                    val = str(self[sub_cmd][opt])
+                else:
+                    val = str(opt_meta.default)
+                config_parser.set(sub_cmd, opt, val)
         with self.config_file_.open('w') as out_stream:
             config_parser.write(out_stream)
 
@@ -328,6 +330,8 @@ class ConfigurationManager:
         missing_sections = []
         missing_opts = {}
         for sub in self.subs_():
+            if not any(m.conf_arg for _, m in self[sub].defaults_()):
+                continue
             if not config_parser.has_section(sub):
                 missing_sections.append(sub)
                 continue
