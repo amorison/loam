@@ -7,6 +7,7 @@ from collections import namedtuple, OrderedDict
 from subprocess import call
 import argparse
 import shlex
+from . import error
 
 
 ConfOpt = namedtuple('ConfOpt',
@@ -79,6 +80,45 @@ def config_conf_section():
             ConfOpt('vim', False, None, {}, True, 'text editor')),
     ))
     return config_dict
+
+
+def set_conf_opt(shortname=None):
+    """Define a Confopt to set a config option.
+
+    You can feed the value of this option to :func:`set_conf_str`.
+
+    Args:
+        shortname (str): shortname for the option if relevant.
+
+    Returns:
+        :class:`ConfOpt`: the option definition.
+    """
+    return ConfOpt(None, True, None,
+                   dict(action='append', metavar='config.option=value'),
+                   False, 'set configuration options')
+
+
+def set_conf_str(conf, optstrs):
+    """Set options from a list of section.option=value string.
+
+    Args:
+        conf (:class:`~loam.manager.ConfigurationManager`): the conf to update.
+        optstrs (list of str): the list of 'section.option=value' formatted
+            string.
+    """
+    for optstr in optstrs:
+        opt, val = optstr.split('=', 1)
+        sec, opt = opt.split('.', 1)
+        if sec not in conf:
+            raise error.SectionError(sec)
+        if opt not in conf[sec]:
+            raise error.OptionError(opt)
+        meta = conf[sec]._def[opt]  # def should be public
+        if meta.default is None:
+            cast = meta.cmd_kwargs.get('type', str)
+        else:
+            cast = type(meta.default)
+        conf[sec][opt] = cast(val)
 
 
 def config_cmd_handler(conf, config='config'):
