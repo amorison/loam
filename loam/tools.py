@@ -107,6 +107,7 @@ def set_conf_str(conf, optstrs):
             string.
     """
     falsy = ['0', 'no', 'off', 'false', 'f']
+    bool_actions = ['store_true', 'store_false', Switch]
     for optstr in optstrs:
         opt, val = optstr.split('=', 1)
         sec, opt = opt.split('.', 1)
@@ -116,11 +117,15 @@ def set_conf_str(conf, optstrs):
             raise error.OptionError(opt)
         meta = conf[sec]._def[opt]  # def should be public
         if meta.default is None:
-            cast = meta.cmd_kwargs.get('type', str)
+            if 'type' in meta.cmd_kwargs:
+                cast = meta.cmd_kwargs['type']
+            else:
+                act = meta.cmd_kwargs.get('action')
+                cast = bool if act in bool_actions else str
         else:
             cast = type(meta.default)
-            if isinstance(meta.default, bool) and val.lower() in falsy:
-                val = ''
+        if cast is bool and val.lower() in falsy:
+            val = ''
         conf[sec][opt] = cast(val)
 
 
