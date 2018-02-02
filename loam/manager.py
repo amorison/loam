@@ -9,6 +9,7 @@ import argparse
 import configparser
 import copy
 import pathlib
+from types import MappingProxyType
 from . import error, tools
 
 
@@ -16,12 +17,15 @@ class _SubConfig:
 
     """Hold options for a single section."""
 
-    def __init__(self, parent, name, defaults):
+    def __init__(self, parent, name):
         self._parent = parent
         self._name = name
-        self._def = defaults
         for opt, meta in self.defaults_():
             self[opt] = meta.default
+
+    @property
+    def def_(self):
+        return self._parent.def_[self._name]
 
     def __getitem__(self, key):
         return getattr(self, key)
@@ -33,17 +37,17 @@ class _SubConfig:
         delattr(self, option)
 
     def __getattr__(self, option):
-        if option in self._def:
-            self[option] = self._def[option].default
+        if option in self.def_:
+            self[option] = self.def_[option].default
         else:
             raise error.OptionError(option)
         return self[option]
 
     def __iter__(self):
-        return iter(self._def.keys())
+        return iter(self.def_.keys())
 
     def __contains__(self, opt):
-        return opt in self._def
+        return opt in self.def_
 
     def options_(self):
         """Iterator over configuration option names.
@@ -69,7 +73,7 @@ class _SubConfig:
             tuples with option names, and :class:`Conf` instances holding
             option metadata.
         """
-        return self._def.items()
+        return self.def_.items()
 
     def read_section_(self, config_parser):
         """Read section of config parser and set options accordingly."""
@@ -167,12 +171,16 @@ class ConfigurationManager:
                   a configuration file option (config file only).
                 - help (str): help message describing the option.
             config_file (pathlike): path of config file.
+
+        Attributes:
+            def_ (:class:`types.MappingProxyType`): proxy of meta.
         """
-        self._def = meta
+        self.def_ = MappingProxyType({name: MappingProxyType(sub)
+                                      for name, sub in meta.items()})
         self._parser = None
         self._sub_cmds = None
         for sub in self.subs_():
-            self[sub] = _SubConfig(self, sub, self._def[sub])
+            self[sub] = _SubConfig(self, sub)
         self.config_file_ = config_file
 
     @property
@@ -200,17 +208,17 @@ class ConfigurationManager:
         delattr(self, sub)
 
     def __getattr__(self, sub):
-        if sub in self._def:
-            self[sub] = _SubConfig(self, sub, self._def[sub])
+        if sub in self.def_:
+            self[sub] = _SubConfig(self, sub)
         else:
             raise error.SectionError(sub)
         return self[sub]
 
     def __iter__(self):
-        return iter(self._def.keys())
+        return iter(self.def_.keys())
 
     def __contains__(self, sub):
-        return sub in self._def
+        return sub in self.def_
 
     def subs_(self):
         """Iterator over configuration subsection names.
@@ -237,7 +245,7 @@ class ConfigurationManager:
             tuples with subsection and options names.
         """
         for sub in self:
-            for opt in self._def[sub]:
+            for opt in self.def_[sub]:
                 yield sub, opt
 
     def opt_vals_(self):
@@ -277,7 +285,7 @@ class ConfigurationManager:
             instances holding option metadata.
         """
         for sub, opt in self.options_():
-            yield sub, opt, self._def[sub][opt]
+            yield sub, opt, self.def_[sub][opt]
 
     def reset_(self):
         """Restore default values of all options."""

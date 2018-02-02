@@ -115,7 +115,7 @@ def set_conf_str(conf, optstrs):
             raise error.SectionError(sec)
         if opt not in conf[sec]:
             raise error.OptionError(opt)
-        meta = conf[sec]._def[opt]  # def should be public
+        meta = conf[sec].def_[opt]
         if meta.default is None:
             if 'type' in meta.cmd_kwargs:
                 cast = meta.cmd_kwargs['type']
