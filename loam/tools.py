@@ -106,6 +106,7 @@ def set_conf_str(conf, optstrs):
         optstrs (list of str): the list of 'section.option=value' formatted
             string.
     """
+    falsy = ['0', 'no', 'off', 'false', 'f']
     for optstr in optstrs:
         opt, val = optstr.split('=', 1)
         sec, opt = opt.split('.', 1)
@@ -118,6 +119,8 @@ def set_conf_str(conf, optstrs):
             cast = meta.cmd_kwargs.get('type', str)
         else:
             cast = type(meta.default)
+            if isinstance(meta.default, bool) and val.lower() in falsy:
+                val = ''
         conf[sec][opt] = cast(val)
 
 
