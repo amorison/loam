@@ -171,17 +171,19 @@ class ConfigurationManager:
                   a configuration file option (config file only).
                 - help (str): help message describing the option.
             config_file (pathlike): path of config file.
-
-        Attributes:
-            def_ (:class:`types.MappingProxyType`): proxy of meta.
         """
-        self.def_ = MappingProxyType({name: MappingProxyType(sub)
+        self._def = MappingProxyType({name: MappingProxyType(sub)
                                       for name, sub in meta.items()})
         self._parser = None
         self._sub_cmds = None
         for sub in self.subs_():
             self[sub] = _SubConfig(self, sub)
         self.config_file_ = config_file
+
+    @property
+    def def_(self):
+        """Metadata describing the conf options."""
+        return self._def
 
     @property
     def config_file_(self):
