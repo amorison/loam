@@ -157,7 +157,7 @@ class ConfigurationManager:
     It will be set to its default value the next time you access it.
     """
 
-    def __init__(self, meta, config_file=None):
+    def __init__(self, meta, sub_cmds=None, config_file=None):
         """Initialization of instances.
 
         Args:
@@ -177,20 +177,36 @@ class ConfigurationManager:
                 - conf_arg (bool): whether the option should be considered as
                   a configuration file option (config file only).
                 - help (str): help message describing the option.
+            sub_cmds (dict of :class:`~loam.tools.Subcmd`): the sub commands
+                description.
             config_file (pathlike): path of config file.
         """
         self._def = MappingProxyType({name: MappingProxyType(sub)
                                       for name, sub in meta.items()})
         self._parser = None
-        self._sub_cmds = None
         for sub in self.subs_():
             self[sub] = _SubConfig(self, sub)
+        self._nosub_valid = False
+        self.sub_cmds_ = sub_cmds
         self.config_file_ = config_file
 
     @property
     def def_(self):
         """Metadata describing the conf options."""
         return self._def
+
+    @property
+    def sub_cmds_(self):
+        """Path of config file.
+
+        It is None or a pathlib.Path instance.
+        """
+        return self._sub_cmds
+
+    @sub_cmds_.setter
+    def sub_cmds_(self, sub_cmds):
+        self._sub_cmds = sub_cmds
+        self._nosub_valid = sub_cmds is not None and '' in sub_cmds
 
     @property
     def config_file_(self):
@@ -355,12 +371,10 @@ class ConfigurationManager:
             missing_opts[sub] = self[sub].read_section_(config_parser)
         return missing_sections, missing_opts
 
-    def build_parser_(self, sub_cmds):
+    def build_parser_(self):
         """Build command line argument parser.
 
-        Args:
-            sub_cmds (dict of :class:`~loam.tools.Subcmd`): the sub commands
-                description.
+        :attr:`sub_cmds_` must be set.
 
         Returns:
             :class:`argparse.ArgumentParser`: the command line argument parser.
@@ -368,13 +382,14 @@ class ConfigurationManager:
             arguments and update the :class:`ConfigurationManager` instance
             accordingly, use the :meth:`ConfigurationManager.parse_args_` method.
         """
+        sub_cmds = self.sub_cmds_
         if None not in sub_cmds:
             sub_cmds[None] = tools.Subcmd([], {}, None)
         main_parser = argparse.ArgumentParser(description=sub_cmds[None].help,
                                               prefix_chars='-+')
 
         main_parser.set_defaults(**sub_cmds[None].defaults)
-        if '' in sub_cmds:
+        if self._nosub_valid:
             main_parser.set_defaults(**sub_cmds[''].defaults)
             for sub in sub_cmds[None].extra_parsers:
                 self[sub].add_to_parser_(main_parser)
@@ -406,7 +421,6 @@ class ConfigurationManager:
             dummy_parser.set_defaults(**meta.defaults)
 
         self._parser = main_parser
-        self._sub_cmds = sub_cmds
         return main_parser
 
     def parse_args_(self, arglist=None):
