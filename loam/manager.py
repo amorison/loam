@@ -95,7 +95,7 @@ class _SubConfig:
             self[opt] = dflt
         return missing_opts
 
-    def _names(self, arg):
+    def names_(self, arg):
         """List of cli strings for a given option."""
         meta = self.def_[arg]
         action = meta.cmd_kwargs.get('action')
@@ -123,7 +123,7 @@ class _SubConfig:
             elif meta.default is not None and action not in store_bool:
                 kwargs.setdefault('type', type(meta.default))
             kwargs.update(help=meta.help)
-            parser.add_argument(*self._names(arg), **kwargs)
+            parser.add_argument(*self.names_(arg), **kwargs)
         parser.set_defaults(**{a: self[a]
                                for a, m in self.defaults_() if m.cmd_arg})
 
