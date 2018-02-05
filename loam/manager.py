@@ -13,6 +13,9 @@ from types import MappingProxyType
 from . import error, tools
 
 
+BLK = ' \\\n'  # cutting line in scripts
+
+
 class _SubConfig:
 
     """Hold options for a single section."""
@@ -459,3 +462,78 @@ class ConfigurationManager:
             for sub in sub_cmds[''].extra_parsers:
                 self[sub].update_from_cmd_args_(args, already_consumed)
         return args, subs
+
+    def _zsh_comp_sections(self, zcf, sections, add_help=True):
+        """Write zsh _arguments compdef for a list of sections.
+
+        Args:
+            zcf (file): zsh compdef file.
+            sections (list of str): list of sections.
+            add_help (help): add an help option.
+        """
+        if add_help:
+            print("+ '(help)'", end=BLK, file=zcf)
+            print("'--help[show help message]'", end=BLK, file=zcf)
+            print("'-h[show help message]'", end=BLK, file=zcf)
+        # could deal with duplicate by iterating in reverse and keep set of
+        # already defined opts.
+        for sec in sections:
+            for opt, meta in self[sec].defaults_():
+                if not meta.cmd_arg:
+                    continue
+                print("+ '({})'".format(opt), end=BLK, file=zcf)
+                for name in self[sec].names_(opt):
+                    print("'{}[{}]'".format(name, meta.help),
+                          end=BLK, file=zcf)
+
+    def zsh_compdef_(self, path, cmd, *cmds):
+        """Write zsh compdef script.
+
+        Args:
+            path (path-like): desired path of the compdef script.
+            cmd (str): command name that should be completed.
+            cmds (str): extra command names that should be completed.
+        """
+        if self._sub_cmds is None:
+            raise error.ParserNotBuiltError(
+                'Subcommand metadata not available, call buid_parser first.')
+        path = pathlib.Path(path)
+        firstline = ['#compdef', cmd]
+        firstline.extend(cmds)
+        mdum = tools.Subcmd([], {}, '')
+        subcmds = [sub for sub in self.sub_cmds_ if sub]
+        with path.open('w') as zcf:
+            print(*firstline, end='\n\n', file=zcf)
+            # main function
+            print('function _{} {{'.format(cmd), file=zcf)
+            print('local line', file=zcf)
+            print('_arguments -C', end=BLK, file=zcf)
+            if subcmds:
+                # list of subcommands and their description
+                substrs = ["{}\\:'{}'".format(sub, self.sub_cmds_[sub].help)
+                           for sub in subcmds]
+                print('"1:Commands:(({}))"'.format(' '.join(substrs)),
+                      end=BLK, file=zcf)
+            sections = []
+            if self._nosub_valid:
+                sections.extend(self.sub_cmds_.get(None, mdum).extra_parsers)
+                sections.extend(self.sub_cmds_.get('', mdum).extra_parsers)
+            self._zsh_comp_sections(zcf, sections)
+            if subcmds:
+                print("'*::arg:->args'", file=zcf)
+                print('case $line[1] in', file=zcf)
+                for sub in subcmds:
+                    print('{sub}) _{cmd}_{sub} ;;'.format(sub=sub, cmd=cmd),
+                          file=zcf)
+                print('esac', file=zcf)
+            print('}', file=zcf)
+            # all subcommand completion handlers
+            for sub in subcmds:
+                print('\nfunction _{}_{} {{'.format(cmd, sub), file=zcf)
+                print('_arguments', end=BLK, file=zcf)
+                sections = []
+                sections.extend(self.sub_cmds_[sub].extra_parsers)
+                if sub in self:
+                    sections.append(sub)
+                self._zsh_comp_sections(zcf, sections)
+                print('}', file=zcf)
