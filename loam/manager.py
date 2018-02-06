@@ -537,3 +537,75 @@ class ConfigurationManager:
                     sections.append(sub)
                 self._zsh_comp_sections(zcf, sections)
                 print('}', file=zcf)
+
+    def _bash_comp_sections(self, sections, add_help=True):
+        """Build a list of all options from a list of sections.
+
+        Args:
+            sections (list of str): list of sections.
+            add_help (bool): add an help option.
+
+        Returns:
+            list of str: list of CLI options strings.
+        """
+        out = ['-h', '--help'] if add_help else []
+        for sec in sections:
+            for opt, meta in self[sec].defaults_():
+                if not meta.cmd_arg:
+                    continue
+                out.extend(self[sec].names_(opt))
+        return out
+
+    def bash_complete_(self, path, cmd, *cmds):
+        """Write bash complete script.
+
+        Args:
+            path (path-like): desired path of the complete script.
+            cmd (str): command name that should be completed.
+            cmds (str): extra command names that should be completed.
+        """
+        if self._sub_cmds is None:
+            raise error.ParserNotBuiltError(
+                'Subcommand metadata not available, call buid_parser first.')
+        path = pathlib.Path(path)
+        mdum = tools.Subcmd([], {}, '')
+        subcmds = [sub for sub in self.sub_cmds_ if sub]
+        with path.open('w') as bcf:
+            # main function
+            print('_{}() {{'.format(cmd), file=bcf)
+            print('COMPREPLY=()', file=bcf)
+            print(r'local cur=${COMP_WORDS[COMP_CWORD]}', end='\n\n', file=bcf)
+            sections = []
+            if self._nosub_valid:
+                sections.extend(self.sub_cmds_.get(None, mdum).extra_parsers)
+                sections.extend(self.sub_cmds_.get('', mdum).extra_parsers)
+            optstr = ' '.join(self._bash_comp_sections(sections))
+            print(r'local options="{}"'.format(optstr), end='\n\n', file=bcf)
+            if subcmds:
+                print('local commands="{}"'.format(' '.join(subcmds)),
+                      file=bcf)
+                print('declare -A suboptions', file=bcf)
+            for sub in subcmds:
+                sections = []
+                sections.extend(self.sub_cmds_[sub].extra_parsers)
+                if sub in self:
+                    sections.append(sub)
+                optstr = ' '.join(self._bash_comp_sections(sections))
+                print('suboptions[{}]="{}"'.format(sub, optstr), file=bcf)
+            condstr = 'if'
+            for sub in subcmds:
+                print(condstr, r'[[ "${COMP_LINE}" == *"', sub, '"* ]] ; then',
+                      file=bcf)
+                print(r'COMPREPLY=( `compgen -W "${suboptions[', sub,
+                      r']}" -- ${cur}` )', sep='', file=bcf)
+                condstr = 'elif'
+            print(condstr, r'[[ ${cur} == -* ]] ; then', file=bcf)
+            print(r'COMPREPLY=( `compgen -W "${options}" -- ${cur}`)',
+                  file=bcf)
+            if subcmds:
+                print(r'else', file=bcf)
+                print(r'COMPREPLY=( `compgen -W "${commands}" -- ${cur}`)',
+                      file=bcf)
+            print('fi', file=bcf)
+            print('}', end='\n\n', file=bcf)
+            print('complete -F _{0} {0}'.format(cmd), *cmds, file=bcf)
