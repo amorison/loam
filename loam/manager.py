@@ -469,7 +469,7 @@ class ConfigurationManager:
         Args:
             zcf (file): zsh compdef file.
             sections (list of str): list of sections.
-            add_help (help): add an help option.
+            add_help (bool): add an help option.
         """
         if add_help:
             print("+ '(help)'", end=BLK, file=zcf)
