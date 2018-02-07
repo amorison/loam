@@ -491,13 +491,16 @@ class ConfigurationManager:
                                         meta.help.replace("'", "'\"'\"'")),
                           end=BLK, file=zcf)
 
-    def zsh_complete_(self, path, cmd, *cmds):
+    def zsh_complete_(self, path, cmd, *cmds, sourceable=False):
         """Write zsh compdef script.
 
         Args:
             path (path-like): desired path of the compdef script.
             cmd (str): command name that should be completed.
             cmds (str): extra command names that should be completed.
+            sourceable (bool): if True, the generated file will contain an
+                explicit call to ``compdef``, which means it can be sourced
+                to activate CLI completion.
         """
         if self._sub_cmds is None:
             raise error.ParserNotBuiltError(
@@ -543,6 +546,8 @@ class ConfigurationManager:
                     sections.append(sub)
                 self._zsh_comp_sections(zcf, sections)
                 print('}', file=zcf)
+            if sourceable:
+                print('\ncompdef _{0} {0}'.format(cmd), *cmds, file=zcf)
 
     def _bash_comp_sections(self, sections, add_help=True):
         """Build a list of all options from a list of sections.
