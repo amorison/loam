@@ -532,6 +532,7 @@ class ConfigurationManager:
                 print('\nfunction _{}_{} {{'.format(cmd, sub), file=zcf)
                 print('_arguments', end=BLK, file=zcf)
                 sections = []
+                sections.extend(self.sub_cmds_.get(None, mdum).extra_parsers)
                 sections.extend(self.sub_cmds_[sub].extra_parsers)
                 if sub in self:
                     sections.append(sub)
@@ -587,6 +588,7 @@ class ConfigurationManager:
                 print('declare -A suboptions', file=bcf)
             for sub in subcmds:
                 sections = []
+                sections.extend(self.sub_cmds_.get(None, mdum).extra_parsers)
                 sections.extend(self.sub_cmds_[sub].extra_parsers)
                 if sub in self:
                     sections.append(sub)
