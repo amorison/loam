@@ -487,7 +487,8 @@ class ConfigurationManager:
                     grpfmt, optfmt = "+ '({})'", "'{}[{}]'"
                 print(grpfmt.format(opt), end=BLK, file=zcf)
                 for name in self[sec].names_(opt):
-                    print(optfmt.format(name, meta.help))
+                    print(optfmt.format(name,
+                                        meta.help.replace("'", "'\"'\"'")),
                           end=BLK, file=zcf)
 
     def zsh_complete_(self, path, cmd, *cmds):
