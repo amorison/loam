@@ -486,7 +486,7 @@ class ConfigurationManager:
                     print("'{}[{}]'".format(name, meta.help),
                           end=BLK, file=zcf)
 
-    def zsh_compdef_(self, path, cmd, *cmds):
+    def zsh_complete_(self, path, cmd, *cmds):
         """Write zsh compdef script.
 
         Args:
