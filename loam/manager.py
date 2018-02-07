@@ -481,9 +481,13 @@ class ConfigurationManager:
             for opt, meta in self[sec].defaults_():
                 if not meta.cmd_arg:
                     continue
-                print("+ '({})'".format(opt), end=BLK, file=zcf)
+                if meta.cmd_kwargs.get('action') == 'append':
+                    grpfmt, optfmt = "+ '{}'", "'*{}[{}]'"
+                else:
+                    grpfmt, optfmt = "+ '({})'", "'{}[{}]'"
+                print(grpfmt.format(opt), end=BLK, file=zcf)
                 for name in self[sec].names_(opt):
-                    print("'{}[{}]'".format(name, meta.help),
+                    print(optfmt.format(name, meta.help))
                           end=BLK, file=zcf)
 
     def zsh_complete_(self, path, cmd, *cmds):
