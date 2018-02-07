@@ -200,9 +200,9 @@ class ConfigurationManager:
 
     @property
     def sub_cmds_(self):
-        """Path of config file.
+        """Subcommands description.
 
-        It is None or a pathlib.Path instance.
+        It is a dict of :class:`~loam.tools.Subcmd`.
         """
         return self._sub_cmds
 
