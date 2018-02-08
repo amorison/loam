@@ -10,12 +10,35 @@ import shlex
 from . import error
 
 
-ConfOpt = namedtuple('ConfOpt',
-                     ['default', 'cmd_arg', 'shortname', 'cmd_kwargs',
-                      'conf_arg', 'help'])
-
-
 Subcmd = namedtuple('Subcmd', ['extra_parsers', 'defaults', 'help'])
+
+
+class ConfOpt:
+
+    """Metadata of configuration options.
+
+    Attributes:
+        default: the default value of the configuration option.
+        cmd_arg (bool): whether the option is a command line argument.
+        shortname (str): short version of the command line argument.
+        cmd_kwargs (dict): keyword arguments fed to
+            :meth:`argparse.ArgumentParser.add_argument` during the
+            construction of the command line arguments parser.
+        conf_arg (bool): whether the option can be set in the config file.
+        help (str): short description of the option.
+        comprule (str): completion rule for ZSH shell.
+
+    """
+
+    def __init__(self, default, cmd_arg=False, shortname=None, cmd_kwargs=None,
+                 conf_arg=False, help_msg='', comprule=''):
+        self.default = default
+        self.cmd_arg = cmd_arg
+        self.shortname = shortname
+        self.cmd_kwargs = {} if cmd_kwargs is None else cmd_kwargs
+        self.conf_arg = False
+        self.help = help_msg
+        self.comprule = comprule
 
 
 class Switch(argparse.Action):
