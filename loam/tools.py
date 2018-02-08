@@ -78,8 +78,8 @@ def switch_opt(default, shortname, help_msg):
     Returns:
         :class:`ConfOpt`: a configuration option with the given properties.
     """
-    return ConfOpt(
-        bool(default), True, shortname, dict(action=Switch), True, help_msg)
+    return ConfOpt(bool(default), True, shortname, dict(action=Switch), True,
+                   help_msg, None)
 
 
 def config_conf_section():

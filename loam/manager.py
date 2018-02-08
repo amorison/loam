@@ -477,18 +477,35 @@ class ConfigurationManager:
             print("'-h[show help message]'", end=BLK, file=zcf)
         # could deal with duplicate by iterating in reverse and keep set of
         # already defined opts.
+        no_comp = ('store_true', 'store_false')
         for sec in sections:
             for opt, meta in self[sec].defaults_():
                 if not meta.cmd_arg:
                     continue
                 if meta.cmd_kwargs.get('action') == 'append':
-                    grpfmt, optfmt = "+ '{}'", "'*{}[{}]'"
+                    grpfmt, optfmt = "+ '{}'", "'*{}[{}]{}'"
+                    if meta.comprule is None:
+                        meta.comprule = ''
                 else:
-                    grpfmt, optfmt = "+ '({})'", "'{}[{}]'"
+                    grpfmt, optfmt = "+ '({})'", "'{}[{}]{}'"
+                if meta.cmd_kwargs.get('action') in no_comp \
+                   or meta.cmd_kwargs.get('nargs') == 0:
+                    meta.comprule = None
+                if meta.comprule is None:
+                    compstr = ''
+                elif meta.comprule == '':
+                    optfmt = optfmt.split('[')
+                    optfmt = optfmt[0] + '=-[' + optfmt[1]
+                    compstr = ': :( )'
+                else:
+                    optfmt = optfmt.split('[')
+                    optfmt = optfmt[0] + '=-[' + optfmt[1]
+                    compstr = ': :{}'.format(meta.comprule)
                 print(grpfmt.format(opt), end=BLK, file=zcf)
                 for name in self[sec].names_(opt):
                     print(optfmt.format(name,
-                                        meta.help.replace("'", "'\"'\"'")),
+                                        meta.help.replace("'", "'\"'\"'"),
+                                        compstr),
                           end=BLK, file=zcf)
 
     def zsh_complete_(self, path, cmd, *cmds, sourceable=False):
