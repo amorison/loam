@@ -19,18 +19,18 @@ configuration object with no config file nor argument parsing management.
 ::
 
     from loam.manager import ConfigurationManager
-    from loam.tools import bare_opt
+    from loam.tools import ConfOpt
 
     # A simple dictionary define all the options and their default values.
     # The first level of keys are the section names, the second level of keys
     # are the option names. Note that you can have the same option name living
     # in two different sections.
     conf_def = {
-        'sectionA': {'optionA': bare_opt('foo'),
-                     'optionB': bare_opt(42),
-                     'optionC': bare_opt('bar')},
-        'sectionB': {'optionD': bare_opt(None),
-                     'optionA': bare_opt(3.14156)}
+        'sectionA': {'optionA': ConfOpt('foo'),
+                     'optionB': ConfOpt(42),
+                     'optionC': ConfOpt('bar')},
+        'sectionB': {'optionD': ConfOpt(None),
+                     'optionA': ConfOpt(3.14156)}
     }
 
     conf = ConfigurationManager(conf_def)

@@ -54,18 +54,6 @@ class Switch(argparse.Action):
         setattr(namespace, self.dest, bool('-+'.index(option_string[0])))
 
 
-def bare_opt(default):
-    """Define a ConfOpt with only a default value.
-
-    Args:
-        default: the default value of the configuration option.
-
-    Returns:
-        :class:`ConfOpt`: a configuration option with the default value.
-    """
-    return ConfOpt(default, False, None, {}, False, '')
-
-
 def switch_opt(default, shortname, help_msg):
     """Define a ConfOpt with the Switch action.
 
