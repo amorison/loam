@@ -98,6 +98,15 @@ class _SubConfig:
             self[opt] = dflt
         return missing_opts
 
+    def update_(self, conf_dict):
+        """Update values of configuration section with dict.
+
+        Args:
+            conf_dict (dict): dict indexed with option names.
+        """
+        for option, value in secdict.items():
+            self[option] = value
+
     def names_(self, arg):
         """List of cli strings for a given option."""
         meta = self.def_[arg]
@@ -346,6 +355,16 @@ class ConfigurationManager:
                 config_parser.set(sub_cmd, opt, val)
         with self.config_file_.open('w') as out_stream:
             config_parser.write(out_stream)
+
+    def update_(self, conf_dict):
+        """Update values of configuration options with dict.
+
+        Args:
+            conf_dict (dict): dict of dict indexed with section and option
+            names.
+        """
+        for section, secdict in conf_dict.items():
+            self[section].update_(secdict)
 
     def read_config_(self):
         """Read config file and set config values accordingly.
