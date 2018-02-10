@@ -1,4 +1,3 @@
-from pathlib import Path
 import toml
 
 def test_config_files_setter(conf, cfile):
