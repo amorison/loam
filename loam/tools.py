@@ -104,7 +104,7 @@ def set_conf_opt(shortname=None):
     Returns:
         :class:`ConfOpt`: the option definition.
     """
-    return ConfOpt(None, True, None,
+    return ConfOpt(None, True, shortname,
                    dict(action='append', metavar='config.option=value'),
                    False, 'set configuration options')
 
