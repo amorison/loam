@@ -314,19 +314,20 @@ class ConfigurationManager:
         for sub, opt, meta in self.defaults_():
             self[sub][opt] = meta.default
 
-    def create_config_(self, update=False):
+    def create_config_(self, index=0, update=False):
         """Create config file.
 
-        Create a config file at the first path in :attr:`config_files_`.
+        Create config file in :attr:`config_files_[index]`.
 
         Parameters:
+            index(int): index of config file.
             update (bool): if set to True and :attr:`config_files_` already
                 exists, its content is read and all the options it sets are
                 kept in the produced config file.
         """
-        if not self.config_files_:
+        if not self.config_files_[index:]:
             return
-        path = self.config_files_[0]
+        path = self.config_files_[index]
         if not path.parent.exists():
             path.parent.mkdir(parents=True)
         conf_dict = {}

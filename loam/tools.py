@@ -80,7 +80,10 @@ def config_conf_section():
     config_dict = OrderedDict((
         ('create',
             ConfOpt(None, True, None, {'action': 'store_true'},
-                    False, 'create new config file')),
+                    False, 'create most global config file')),
+        ('create_local',
+            ConfOpt(None, True, None, {'action': 'store_true'},
+                    False, 'create most local config file')),
         ('update',
             ConfOpt(None, True, None, {'action': 'store_true'},
                     False, 'add missing entries to config file')),
@@ -150,9 +153,11 @@ def config_cmd_handler(conf, config='config'):
             :func:`config_conf_section` function.
     """
     if conf[config].create or conf[config].update:
-        conf.create_config_(conf[config].update)
+        conf.create_config_(update=conf[config].update)
+    if conf[config].create_local:
+        conf.create_config_(index=-1, update=conf[config].update)
     if conf[config].edit:
         if not conf.config_files_[0].is_file():
-            conf.create_config_(conf[config].update)
+            conf.create_config_(update=conf[config].update)
         call(shlex.split('{} {}'.format(conf[config].editor,
                                         conf.config_files_[0])))
