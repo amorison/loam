@@ -98,7 +98,7 @@ class _SubConfig:
             self[opt] = dflt
         return missing_opts
 
-    def update_(self, conf_dict, conf_arg=True):
+    def update_(self, secdict, conf_arg=True):
         """Update values of configuration section with dict.
 
         Args:
@@ -107,7 +107,7 @@ class _SubConfig:
             file are updated.
         """
         for option, value in secdict.items():
-            if not conf_arg or self.def_(option).conf_arg:
+            if not conf_arg or self.def_[option].conf_arg:
                 self[option] = value
 
     def names_(self, arg):
