@@ -37,17 +37,17 @@ def sub_cmds(request):
 @pytest.fixture
 def cfile(tmpdir):
     from pathlib import Path
-    return Path(tmpdir) / 'config.toml'
+    return Path(str(tmpdir)) / 'config.toml'
 
 @pytest.fixture
 def nonexistent_file(tmpdir):
     from pathlib import Path
-    return Path(tmpdir) / 'dummy.toml'
+    return Path(str(tmpdir)) / 'dummy.toml'
 
 @pytest.fixture
 def illtoml(tmpdir):
     from pathlib import Path
-    path = Path(tmpdir) / 'ill.toml'
+    path = Path(str(tmpdir)) / 'ill.toml'
     with path.open('w') as ift:
         ift.write('not}valid[toml\n')
     return path
