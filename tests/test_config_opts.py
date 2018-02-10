@@ -62,6 +62,27 @@ def test_reset_opt_item(conf):
     del conf.sectionA['optA']
     assert conf.sectionA.optA == 1
 
+def test_update_opt(conf):
+    conf.sectionA.update_({'optA': 42, 'optC': 43})
+    assert conf.sectionA.optA == 42 and conf.sectionA.optC == 43
+
+def test_update_section(conf):
+    conf.update_({'sectionA': {'optA': 42}, 'sectionB': {'optA': 43}})
+    assert conf.sectionA.optA == 42 and conf.sectionB.optA == 43
+
+def test_update_opt_conf_arg(conf):
+    conf.sectionA.update_({'optB': 42})
+    assert conf.sectionA.optB == 2
+    conf.sectionA.update_({'optB': 42}, conf_arg=False)
+    assert conf.sectionA.optB == 42
+
+def test_update_section_conf_arg(conf):
+    conf.update_({'sectionA': {'optB': 42}, 'sectionB': {'optB': 43}})
+    assert conf.sectionA.optB == 2 and conf.sectionB.optB == 5
+    conf.update_({'sectionA': {'optB': 42}, 'sectionB': {'optB': 43}},
+                 conf_arg=False)
+    assert conf.sectionA.optB == 42 and conf.sectionB.optB == 43
+
 def test_config_iter_subs(conf, conf_def):
     raw_iter = set(iter(conf))
     subs_iter = set(conf.subs_())
