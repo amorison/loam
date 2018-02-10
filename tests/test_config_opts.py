@@ -83,6 +83,14 @@ def test_update_section_conf_arg(conf):
                  conf_arg=False)
     assert conf.sectionA.optB == 42 and conf.sectionB.optB == 43
 
+def test_opt_def_values(conf, conf_def):
+    assert all(conf[s].def_[o] == conf_def[s][o]
+               for s in conf_def for o in conf_def[s])
+
+def test_section_def_values(conf, conf_def):
+    assert all(conf.def_[s][o] == conf_def[s][o]
+               for s in conf_def for o in conf_def[s])
+
 def test_config_iter_subs(conf, conf_def):
     raw_iter = set(iter(conf))
     subs_iter = set(conf.subs_())
