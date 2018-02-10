@@ -33,3 +33,21 @@ def sub_cmds(request):
         'sectionB': Subcmd([], {}, 'sectionB subcmd help'),
     }
     return subs[request.param]
+
+@pytest.fixture
+def cfile(tmpdir):
+    from pathlib import Path
+    return Path(tmpdir) / 'config.toml'
+
+@pytest.fixture
+def nonexistent_file(tmpdir):
+    from pathlib import Path
+    return Path(tmpdir) / 'dummy.toml'
+
+@pytest.fixture
+def illtoml(tmpdir):
+    from pathlib import Path
+    path = Path(tmpdir) / 'ill.toml'
+    with path.open('w') as ift:
+        ift.write('not}valid[toml\n')
+    return path
