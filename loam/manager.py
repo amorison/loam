@@ -401,7 +401,8 @@ class ConfigurationManager:
             :class:`argparse.ArgumentParser`: the command line argument parser.
             You probably won't need to use it directly. To parse command line
             arguments and update the :class:`ConfigurationManager` instance
-            accordingly, use the :meth:`ConfigurationManager.parse_args_` method.
+            accordingly, use the :meth:`ConfigurationManager.parse_args_`
+            method.
         """
         sub_cmds = self.sub_cmds_
         if None not in sub_cmds:
