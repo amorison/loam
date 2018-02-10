@@ -174,8 +174,8 @@ class ConfigurationManager:
                 - conf_arg (bool): whether the option should be considered as
                   a configuration file option (config file only).
                 - help (str): help message describing the option.
-            config_files (pathlike): path of config files, given in the order
-                of reading.
+            config_files (pathlike): list of path of config files, given in the
+                order of reading.
             sub_cmds (dict of :class:`~loam.tools.Subcmd`): the sub commands
                 description.
         """
@@ -211,7 +211,8 @@ class ConfigurationManager:
         """Path of config files.
 
         List of pathlib.Path instances. The config files are in the order of
-        reading.
+        reading. This means the most global config file is the first one on
+        this list while the most local config file is the last one.
         """
         return self._config_files
 
