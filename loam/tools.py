@@ -36,7 +36,7 @@ class ConfOpt:
         self.cmd_arg = cmd_arg
         self.shortname = shortname
         self.cmd_kwargs = {} if cmd_kwargs is None else cmd_kwargs
-        self.conf_arg = False
+        self.conf_arg = conf_arg
         self.help = help_msg
         self.comprule = comprule
 
