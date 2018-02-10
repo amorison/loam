@@ -28,5 +28,8 @@ setup(
 
     packages=['loam'],
     setup_requires=['setuptools_scm'],
-    install_requires=['setuptools_scm'],
+    install_requires=[
+        'setuptools_scm',
+        'toml>=0.9.4',
+    ],
 )

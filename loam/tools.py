@@ -152,7 +152,7 @@ def config_cmd_handler(conf, config='config'):
     if conf[config].create or conf[config].update:
         conf.create_config_(conf[config].update)
     if conf[config].edit:
-        if not conf.config_file_.is_file():
+        if not conf.config_files_[0].is_file():
             conf.create_config_(conf[config].update)
         call(shlex.split('{} {}'.format(conf[config].editor,
-                                        conf.config_file_)))
+                                        conf.config_files_[0])))
