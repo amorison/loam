@@ -6,6 +6,7 @@ They are designed to help you use :class:`~loam.manager.ConfigurationManager`.
 from collections import namedtuple, OrderedDict
 from subprocess import call
 import argparse
+import pathlib
 import shlex
 from . import error
 
@@ -161,3 +162,30 @@ def config_cmd_handler(conf, config='config'):
             conf.create_config_(update=conf[config].update)
         call(shlex.split('{} {}'.format(conf[config].editor,
                                         conf.config_files_[0])))
+
+
+def create_complete_files(conf, path, cmd, *cmds, zsh_sourceable=False):
+    """Create completion files for bash and zsh.
+
+    Args:
+        conf (:class:`~loam.manager.ConfigurationManager`): configuration
+            manager.
+        path (path-like): directory in which the config files should be
+            created. It is created if it doesn't exist.
+        cmd (str): command name that should be completed.
+        cmds (str): extra command names that should be completed.
+        zsh_sourceable (bool): if True, the generated file will contain an
+            explicit call to ``compdef``, which means it can be sourced
+            to activate CLI completion.
+    """
+    path = pathlib.Path(path)
+    zsh_dir = path / 'zsh'
+    if not zsh_dir.exists():
+        zsh_dir.mkdir(parents=True)
+    zsh_file = zsh_dir / '_{}.sh'.format(cmd)
+    bash_dir = path / 'bash'
+    if not bash_dir.exists():
+        bash_dir.mkdir(parents=True)
+    bash_file = bash_dir / '{}.sh'.format(cmd)
+    conf.zsh_complete_(zsh_file, cmd, *cmds, sourceable=zsh_sourceable)
+    conf.bash_complete_(bash_file, cmd, *cmds)
