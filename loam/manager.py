@@ -18,7 +18,7 @@ from . import error, tools
 BLK = ' \\\n'  # cutting line in scripts
 
 
-class _SubConfig:
+class _ConfigSection:
 
     """Hold options for a single section."""
 
@@ -32,21 +32,21 @@ class _SubConfig:
     def def_(self):
         return self._parent.def_[self._name]
 
-    def __getitem__(self, key):
-        return getattr(self, key)
+    def __getitem__(self, opt):
+        return getattr(self, opt)
 
-    def __setitem__(self, key, value):
-        setattr(self, key, value)
+    def __setitem__(self, opt, value):
+        setattr(self, opt, value)
 
-    def __delitem__(self, option):
-        delattr(self, option)
+    def __delitem__(self, opt):
+        delattr(self, opt)
 
-    def __getattr__(self, option):
-        if option in self.def_:
-            self[option] = self.def_[option].default
+    def __getattr__(self, opt):
+        if opt in self.def_:
+            self[opt] = self.def_[opt].default
         else:
-            raise error.OptionError(option)
-        return self[option]
+            raise error.OptionError(opt)
+        return self[opt]
 
     def __iter__(self):
         return iter(self.def_.keys())
@@ -80,17 +80,17 @@ class _SubConfig:
         """
         return self.def_.items()
 
-    def update_(self, secdict, conf_arg=True):
+    def update_(self, sct_dict, conf_arg=True):
         """Update values of configuration section with dict.
 
         Args:
-            conf_dict (dict): dict indexed with option names.
+            sct_dict (dict): dict indexed with option names.
             conf_arg (bool): if True, only options that can be set in a config
             file are updated.
         """
-        for option, value in secdict.items():
-            if not conf_arg or self.def_[option].conf_arg:
-                self[option] = value
+        for opt, val in sct_dict.items():
+            if not conf_arg or self.def_[opt].conf_arg:
+                self[opt] = val
 
     def names_(self, arg):
         """List of cli strings for a given option."""
@@ -179,11 +179,11 @@ class ConfigurationManager:
             sub_cmds (dict of :class:`~loam.tools.Subcmd`): the sub commands
                 description.
         """
-        self._def = MappingProxyType({name: MappingProxyType(sub)
-                                      for name, sub in meta.items()})
+        self._def = MappingProxyType({name: MappingProxyType(sct_dict)
+                                      for name, sct_dict in meta.items()})
         self._parser = None
-        for sub in self.subs_():
-            self[sub] = _SubConfig(self, sub)
+        for sct in self.sections_():
+            self[sct] = _ConfigSection(self, sct)
         self._nosub_valid = False
         self.sub_cmds_ = sub_cmds
         self.config_files_ = config_files
@@ -220,99 +220,99 @@ class ConfigurationManager:
     def config_files_(self, paths):
         self._config_files = [pathlib.Path(path) for path in paths]
 
-    def __getitem__(self, key):
-        return getattr(self, key)
+    def __getitem__(self, sct):
+        return getattr(self, sct)
 
-    def __setitem__(self, key, value):
-        setattr(self, key, value)
+    def __setitem__(self, sct, val):
+        setattr(self, sct, val)
 
-    def __delitem__(self, sub):
-        delattr(self, sub)
+    def __delitem__(self, sct):
+        delattr(self, sct)
 
-    def __getattr__(self, sub):
-        if sub in self.def_:
-            self[sub] = _SubConfig(self, sub)
+    def __getattr__(self, sct):
+        if sct in self.def_:
+            self[sct] = _ConfigSection(self, sct)
         else:
-            raise error.SectionError(sub)
-        return self[sub]
+            raise error.SectionError(sct)
+        return self[sct]
 
     def __iter__(self):
         return iter(self.def_.keys())
 
-    def __contains__(self, sub):
-        return sub in self.def_
+    def __contains__(self, sct):
+        return sct in self.def_
 
-    def subs_(self):
-        """Iterator over configuration subsection names.
+    def sections_(self):
+        """Iterator over configuration section names.
 
         Yields:
-            subsection names.
+            section names.
         """
         return iter(self)
 
     def options_(self):
-        """Iterator over subsection and option names.
+        """Iterator over section and option names.
 
-        This iterator is also implemented at the subsection level. The two
-        loops produce the same output::
+        This iterator is also implemented at the section level. The two loops
+        produce the same output::
 
-            for sub, opt in conf.options_():
-                print(sub, opt)
+            for sct, opt in conf.options_():
+                print(sct, opt)
 
-            for sub in conf.subs_():
-                for opt in conf[sub].options_():
-                    print(sub, opt)
+            for sct in conf.sections_():
+                for opt in conf[sct].options_():
+                    print(sct, opt)
 
         Yields:
             tuples with subsection and options names.
         """
-        for sub in self:
-            for opt in self.def_[sub]:
-                yield sub, opt
+        for sct in self:
+            for opt in self.def_[sct]:
+                yield sct, opt
 
     def opt_vals_(self):
-        """Iterator over subsection, option names, and option values.
+        """Iterator over sections, option names, and option values.
 
-        This iterator is also implemented at the subsection level. The two
-        loops produce the same output::
+        This iterator is also implemented at the section level. The two loops
+        produce the same output::
 
-            for sub, opt, val in conf.opt_vals_():
-                print(sub, opt, val)
+            for sct, opt, val in conf.opt_vals_():
+                print(sct, opt, val)
 
-            for sub in conf.subs_():
-                for opt, val in conf[sub].opt_vals_():
-                    print(sub, opt, val)
+            for sct in conf.sections_():
+                for opt, val in conf[sct].opt_vals_():
+                    print(sct, opt, val)
 
         Yields:
-            tuples with subsection, option names, and option values.
+            tuples with sections, option names, and option values.
         """
-        for sub, opt in self.options_():
-            yield sub, opt, self[sub][opt]
+        for sct, opt in self.options_():
+            yield sct, opt, self[sct][opt]
 
     def defaults_(self):
-        """Iterator over subsection, option names, and option metadata.
+        """Iterator over sections, option names, and option metadata.
 
-        This iterator is also implemented at the subsection level. The two
-        loops produce the same output::
+        This iterator is also implemented at the section level. The two loops
+        produce the same output::
 
-            for sub, opt, meta in conf.defaults_():
-                print(sub, opt, meta.default)
+            for sct, opt, meta in conf.defaults_():
+                print(sct, opt, meta.default)
 
-            for sub in conf.subs_():
-                for opt, meta in conf[sub].defaults_():
-                    print(sub, opt, meta.default)
+            for sct in conf.sections_():
+                for opt, meta in conf[sct].defaults_():
+                    print(sct, opt, meta.default)
 
         Yields:
-            tuples with subsection, option names, and :class:`Conf`
-            instances holding option metadata.
+            tuples with sections, option names, and :class:`Conf` instances
+            holding option metadata.
         """
-        for sub, opt in self.options_():
-            yield sub, opt, self.def_[sub][opt]
+        for sct, opt in self.options_():
+            yield sct, opt, self.def_[sct][opt]
 
     def reset_(self):
         """Restore default values of all options."""
-        for sub, opt, meta in self.defaults_():
-            self[sub][opt] = meta.default
+        for sct, opt, meta in self.defaults_():
+            self[sct][opt] = meta.default
 
     def create_config_(self, index=0, update=False):
         """Create config file.
@@ -331,7 +331,7 @@ class ConfigurationManager:
         if not path.parent.exists():
             path.parent.mkdir(parents=True)
         conf_dict = {}
-        for section in self.subs_():
+        for section in self.sections_():
             conf_opts = [o for o, m in self[section].defaults_() if m.conf_arg]
             if not conf_opts:
                 continue
@@ -415,29 +415,29 @@ class ConfigurationManager:
         main_parser.set_defaults(**sub_cmds[None].defaults)
         if self._nosub_valid:
             main_parser.set_defaults(**sub_cmds[''].defaults)
-            for sub in sub_cmds[None].extra_parsers:
-                self[sub].add_to_parser_(main_parser)
-            for sub in sub_cmds[''].extra_parsers:
-                self[sub].add_to_parser_(main_parser)
+            for sct in sub_cmds[None].extra_parsers:
+                self[sct].add_to_parser_(main_parser)
+            for sct in sub_cmds[''].extra_parsers:
+                self[sct].add_to_parser_(main_parser)
         else:
             sub_cmds[''] = tools.Subcmd([], {}, None)
 
         xparsers = {}
-        for sub in self:
-            if sub not in sub_cmds:
-                xparsers[sub] = argparse.ArgumentParser(add_help=False,
+        for sct in self:
+            if sct not in sub_cmds:
+                xparsers[sct] = argparse.ArgumentParser(add_help=False,
                                                         prefix_chars='-+')
-                self[sub].add_to_parser_(xparsers[sub])
+                self[sct].add_to_parser_(xparsers[sct])
 
         subparsers = main_parser.add_subparsers(dest='loam_sub_name')
         for sub_cmd, meta in sub_cmds.items():
             if sub_cmd is None or sub_cmd == '':
                 continue
             kwargs = {'prefix_chars': '+-', 'help': meta.help}
-            parent_parsers = [xparsers[sub]
-                              for sub in sub_cmds[None].extra_parsers]
-            for sub in meta.extra_parsers:
-                parent_parsers.append(xparsers[sub])
+            parent_parsers = [xparsers[sct]
+                              for sct in sub_cmds[None].extra_parsers]
+            for sct in meta.extra_parsers:
+                parent_parsers.append(xparsers[sct])
             kwargs.update(parents=parent_parsers)
             dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)
             if sub_cmd in self:
@@ -470,19 +470,19 @@ class ConfigurationManager:
         sub_cmds = self._sub_cmds
         if sub_cmd is None:
             sub_cmd = ''
-        subs = sub_cmds[None].extra_parsers + sub_cmds[sub_cmd].extra_parsers
+        scts = sub_cmds[None].extra_parsers + sub_cmds[sub_cmd].extra_parsers
         if sub_cmd in self:
-            subs.append(sub_cmd)
+            scts.append(sub_cmd)
         already_consumed = set()
-        for sub in subs:
-            self[sub].update_from_cmd_args_(args)
-            already_consumed |= set(o for o, m in self[sub].defaults_()
+        for sct in scts:
+            self[sct].update_from_cmd_args_(args)
+            already_consumed |= set(o for o, m in self[sct].defaults_()
                                     if m.cmd_arg)
         # set sections implemented by empty subcommand with remaining options
         if sub_cmd != '':
-            for sub in sub_cmds[''].extra_parsers:
-                self[sub].update_from_cmd_args_(args, already_consumed)
-        return args, subs
+            for sct in sub_cmds[''].extra_parsers:
+                self[sct].update_from_cmd_args_(args, already_consumed)
+        return args, scts
 
     def _zsh_comp_sections(self, zcf, sections, add_help=True):
         """Write zsh _arguments compdef for a list of sections.

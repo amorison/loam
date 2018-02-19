@@ -93,9 +93,9 @@ def test_section_def_values(conf, conf_def):
 
 def test_config_iter_subs(conf, conf_def):
     raw_iter = set(iter(conf))
-    subs_iter = set(conf.subs_())
-    subs_expected = set(conf_def.keys())
-    assert raw_iter == subs_iter == subs_expected
+    scts_iter = set(conf.sections_())
+    scts_expected = set(conf_def.keys())
+    assert raw_iter == scts_iter == scts_expected
 
 def test_config_iter_options(conf, conf_def):
     options_iter = set(conf.options_())
