@@ -84,11 +84,14 @@ class _ConfigSection:
         """Update values of configuration section with dict.
 
         Args:
-            sct_dict (dict): dict indexed with option names.
+            sct_dict (dict): dict indexed with option names. Undefined
+                options are discarded.
             conf_arg (bool): if True, only options that can be set in a config
             file are updated.
         """
         for opt, val in sct_dict.items():
+            if not opt in self.def_:
+                continue
             if not conf_arg or self.def_[opt].conf_arg:
                 self[opt] = val
 
