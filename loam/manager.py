@@ -90,7 +90,7 @@ class _ConfigSection:
             file are updated.
         """
         for opt, val in sct_dict.items():
-            if not opt in self.def_:
+            if opt not in self.def_:
                 continue
             if not conf_arg or self.def_[opt].conf_arg:
                 self[opt] = val
