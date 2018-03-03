@@ -3,16 +3,13 @@
 They are designed to help you use :class:`~loam.manager.ConfigurationManager`.
 """
 
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 from subprocess import call
 import argparse
 import pathlib
 import shlex
 
 from . import error
-
-
-Subcmd = namedtuple('Subcmd', ['extra_parsers', 'defaults', 'help'])
 
 
 class ConfOpt:
@@ -41,6 +38,23 @@ class ConfOpt:
         self.conf_arg = conf_arg
         self.help = help_msg
         self.comprule = comprule
+
+
+class Subcmd:
+
+    """Metadata of sub commands.
+
+    Attributes:
+        help (str): short description of the sub command.
+        extra_parsers (list of str): configuration sections used by the
+            subcommand.
+        defaults (dict): default value of options associated to the subcommand.
+    """
+
+    def __init__(self, help_msg, *extra_parsers, **defaults):
+        self.help = help_msg
+        self.extra_parsers = list(extra_parsers)
+        self.defaults = defaults
 
 
 class Switch(argparse.Action):

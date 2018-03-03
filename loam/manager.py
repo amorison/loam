@@ -411,7 +411,7 @@ class ConfigurationManager:
         """
         sub_cmds = self.sub_cmds_
         if None not in sub_cmds:
-            sub_cmds[None] = tools.Subcmd([], {}, None)
+            sub_cmds[None] = tools.Subcmd(None)
         main_parser = argparse.ArgumentParser(description=sub_cmds[None].help,
                                               prefix_chars='-+')
 
@@ -423,7 +423,7 @@ class ConfigurationManager:
             for sct in sub_cmds[''].extra_parsers:
                 self[sct].add_to_parser_(main_parser)
         else:
-            sub_cmds[''] = tools.Subcmd([], {}, None)
+            sub_cmds[''] = tools.Subcmd(None)
 
         xparsers = {}
         for sct in self:
@@ -549,7 +549,7 @@ class ConfigurationManager:
         path = pathlib.Path(path)
         firstline = ['#compdef', cmd]
         firstline.extend(cmds)
-        mdum = tools.Subcmd([], {}, '')
+        mdum = tools.Subcmd('')
         subcmds = [sub for sub in self.sub_cmds_ if sub]
         with path.open('w') as zcf:
             print(*firstline, end='\n\n', file=zcf)
@@ -620,7 +620,7 @@ class ConfigurationManager:
             raise error.ParserNotBuiltError(
                 'Subcommand metadata not available, call buid_parser first.')
         path = pathlib.Path(path)
-        mdum = tools.Subcmd([], {}, '')
+        mdum = tools.Subcmd('')
         subcmds = [sub for sub in self.sub_cmds_ if sub]
         with path.open('w') as bcf:
             # main function

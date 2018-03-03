@@ -28,9 +28,9 @@ def sub_cmds(request):
     from loam.tools import Subcmd
     subs = {}
     subs['subsA'] = {
-        None: Subcmd([], {}, 'subsA loam test'),
-        '': Subcmd(['sectionA'], {}, None),
-        'sectionB': Subcmd([], {}, 'sectionB subcmd help'),
+        None: Subcmd('subsA loam test'),
+        '': Subcmd(None, 'sectionA'),
+        'sectionB': Subcmd('sectionB subcmd help'),
     }
     return subs[request.param]
 
