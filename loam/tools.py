@@ -47,14 +47,14 @@ class Subcmd:
 
     Attributes:
         help (str): short description of the sub command.
-        extra_parsers (list of str): configuration sections used by the
+        extra_parsers (tuple of str): configuration sections used by the
             subcommand.
         defaults (dict): default value of options associated to the subcommand.
     """
 
     def __init__(self, help_msg, *extra_parsers, **defaults):
         self.help = help_msg
-        self.extra_parsers = list(extra_parsers)
+        self.extra_parsers = extra_parsers
         self.defaults = defaults
 
 

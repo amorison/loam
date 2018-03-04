@@ -473,7 +473,8 @@ class ConfigurationManager:
         sub_cmds = self._sub_cmds
         if sub_cmd is None:
             sub_cmd = ''
-        scts = sub_cmds[None].extra_parsers + sub_cmds[sub_cmd].extra_parsers
+        scts = list(sub_cmds[None].extra_parsers
+                    + sub_cmds[sub_cmd].extra_parsers)
         if sub_cmd in self:
             scts.append(sub_cmd)
         already_consumed = set()
