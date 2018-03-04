@@ -4,9 +4,9 @@ They are designed to help you use :class:`~loam.manager.ConfigurationManager`.
 """
 
 from collections import OrderedDict
-from subprocess import call
 import argparse
 import pathlib
+import subprocess
 import shlex
 
 from . import error
@@ -175,8 +175,8 @@ def config_cmd_handler(conf, config='config'):
     if conf[config].edit:
         if not conf.config_files_[0].is_file():
             conf.create_config_(update=conf[config].update)
-        call(shlex.split('{} {}'.format(conf[config].editor,
-                                        conf.config_files_[0])))
+        subprocess.call(shlex.split('{} {}'.format(conf[config].editor,
+                                                   conf.config_files_[0])))
 
 
 def create_complete_files(conf, path, cmd, *cmds, zsh_sourceable=False):
