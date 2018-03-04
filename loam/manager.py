@@ -487,16 +487,18 @@ class ConfigurationManager:
                 self[sct].update_from_cmd_args_(args, already_consumed)
         return args, scts
 
-    def _zsh_comp_sections(self, zcf, sections, add_help=True):
+    def _zsh_comp_sections(self, zcf, sections, grouping, add_help=True):
         """Write zsh _arguments compdef for a list of sections.
 
         Args:
             zcf (file): zsh compdef file.
             sections (list of str): list of sections.
+            grouping (bool): group options (zsh>=5.4).
             add_help (bool): add an help option.
         """
         if add_help:
-            print("+ '(help)'", end=BLK, file=zcf)
+            if grouping:
+                print("+ '(help)'", end=BLK, file=zcf)
             print("'--help[show help message]'", end=BLK, file=zcf)
             print("'-h[show help message]'", end=BLK, file=zcf)
         # could deal with duplicate by iterating in reverse and keep set of
@@ -525,7 +527,8 @@ class ConfigurationManager:
                     optfmt = optfmt.split('[')
                     optfmt = optfmt[0] + '=-[' + optfmt[1]
                     compstr = ': :{}'.format(meta.comprule)
-                print(grpfmt.format(opt), end=BLK, file=zcf)
+                if grouping:
+                    print(grpfmt.format(opt), end=BLK, file=zcf)
                 for name in self[sec].names_(opt):
                     print(optfmt.format(name,
                                         meta.help.replace("'", "'\"'\"'"),
@@ -546,6 +549,7 @@ class ConfigurationManager:
         if self._sub_cmds is None:
             raise error.ParserNotBuiltError(
                 'Subcommand metadata not available, call buid_parser first.')
+        grouping = tools._zsh_version() >= (5, 4)
         path = pathlib.Path(path)
         firstline = ['#compdef', cmd]
         firstline.extend(cmds)
@@ -567,7 +571,7 @@ class ConfigurationManager:
             if self._nosub_valid:
                 sections.extend(self.sub_cmds_.get(None, mdum).extra_parsers)
                 sections.extend(self.sub_cmds_.get('', mdum).extra_parsers)
-            self._zsh_comp_sections(zcf, sections)
+            self._zsh_comp_sections(zcf, sections, grouping)
             if subcmds:
                 print("'*::arg:->args'", file=zcf)
                 print('case $line[1] in', file=zcf)
@@ -585,7 +589,7 @@ class ConfigurationManager:
                 sections.extend(self.sub_cmds_[sub].extra_parsers)
                 if sub in self:
                     sections.append(sub)
-                self._zsh_comp_sections(zcf, sections)
+                self._zsh_comp_sections(zcf, sections, grouping)
                 print('}', file=zcf)
             if sourceable:
                 print('\ncompdef _{0} {0}'.format(cmd), *cmds, file=zcf)
