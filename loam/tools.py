@@ -137,7 +137,7 @@ def set_conf_str(conf, optstrs):
         optstrs (list of str): the list of 'section.option=value' formatted
             string.
     """
-    falsy = ['0', 'no', 'off', 'false', 'f']
+    falsy = ['0', 'no', 'n', 'off', 'false', 'f']
     bool_actions = ['store_true', 'store_false', Switch]
     for optstr in optstrs:
         opt, val = optstr.split('=', 1)
