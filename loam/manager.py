@@ -157,29 +157,17 @@ class ConfigurationManager:
     It will be set to its default value the next time you access it.
     """
 
-    def __init__(self, meta):
+    def __init__(self, **sections):
         """Initialization of instances.
 
         Args:
-            meta (dict): all the metadata describing the config options. It
-                should be a dictionary with section names as key. Its values
-                should be dictionaries as well, with option names as keys, and
-                option metadata as values. Option metadata should be objects
-                with the following attributes:
-
-                - default: the default value of the option.
-                - cmd_arg (bool): whether the option should be considered as
-                  a command line option (CLI parser only).
-                - shortname (str): short name of command line argument (CLI
-                  parser only).
-                - cmd_kwargs (dict): extra kwargs that should be passed on to
-                  argparser (CLI parser only).
-                - conf_arg (bool): whether the option should be considered as
-                  a configuration file option (config file only).
-                - help (str): help message describing the option.
+            sections (dict of :class:`~loam.tools.ConfOpt`): each *section* is
+                a dictionary with option names as keys, and option metadata as
+                values. The name of each *section* is the name of the keyword
+                argument passed on to this function.
         """
         self._def = MappingProxyType({name: MappingProxyType(sct_dict)
-                                      for name, sct_dict in meta.items()})
+                                      for name, sct_dict in sections.items()})
         self._parser = None
         for sct in self.sections_():
             self[sct] = _ConfigSection(self, sct)

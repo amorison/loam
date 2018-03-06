@@ -21,7 +21,7 @@ def conf_def(request):
 @pytest.fixture
 def conf(conf_def):
     from loam.manager import ConfigurationManager
-    return ConfigurationManager(conf_def)
+    return ConfigurationManager(**conf_def)
 
 @pytest.fixture(params=['subsA'])
 def sub_cmds(request):
