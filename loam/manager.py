@@ -157,7 +157,7 @@ class ConfigurationManager:
     It will be set to its default value the next time you access it.
     """
 
-    def __init__(self, meta, sub_cmds=None):
+    def __init__(self, meta):
         """Initialization of instances.
 
         Args:
@@ -177,8 +177,6 @@ class ConfigurationManager:
                 - conf_arg (bool): whether the option should be considered as
                   a configuration file option (config file only).
                 - help (str): help message describing the option.
-            sub_cmds (dict of :class:`~loam.tools.Subcmd`): the sub commands
-                description.
         """
         self._def = MappingProxyType({name: MappingProxyType(sct_dict)
                                       for name, sct_dict in meta.items()})
@@ -186,7 +184,7 @@ class ConfigurationManager:
         for sct in self.sections_():
             self[sct] = _ConfigSection(self, sct)
         self._nosub_valid = False
-        self.sub_cmds_ = sub_cmds
+        self.sub_cmds_ = {}
         self._config_files = ()
 
     @property
