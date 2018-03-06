@@ -157,7 +157,7 @@ class ConfigurationManager:
     It will be set to its default value the next time you access it.
     """
 
-    def __init__(self, meta, *config_files, sub_cmds=None):
+    def __init__(self, meta, sub_cmds=None):
         """Initialization of instances.
 
         Args:
@@ -177,8 +177,6 @@ class ConfigurationManager:
                 - conf_arg (bool): whether the option should be considered as
                   a configuration file option (config file only).
                 - help (str): help message describing the option.
-            config_files (pathlike): list of path of config files, given in the
-                order of reading.
             sub_cmds (dict of :class:`~loam.tools.Subcmd`): the sub commands
                 description.
         """
@@ -189,7 +187,7 @@ class ConfigurationManager:
             self[sct] = _ConfigSection(self, sct)
         self._nosub_valid = False
         self.sub_cmds_ = sub_cmds
-        self.config_files_ = config_files
+        self._config_files = ()
 
     @property
     def def_(self):
@@ -213,15 +211,20 @@ class ConfigurationManager:
     def config_files_(self):
         """Path of config files.
 
-        List of pathlib.Path instances. The config files are in the order of
+        Tuple of pathlib.Path instances. The config files are in the order of
         reading. This means the most global config file is the first one on
         this list while the most local config file is the last one.
         """
         return self._config_files
 
-    @config_files_.setter
-    def config_files_(self, paths):
-        self._config_files = [pathlib.Path(path) for path in paths]
+    def set_config_files_(self, *config_files):
+        """Set the list of config files.
+
+        Args:
+            config_files (pathlike): path of config files, given in the order
+                of reading.
+        """
+        self._config_files = tuple(pathlib.Path(path) for path in config_files)
 
     def __getitem__(self, sct):
         return getattr(self, sct)
