@@ -175,7 +175,7 @@ class ConfigurationManager:
                                       for name, sct_dict in sections.items()})
         self._parser = None
         for sct in self.sections_():
-            self[sct] = _ConfigSection(self, sct)
+            setattr(self, sct, _ConfigSection(self, sct))
         self._nosub_valid = False
         self.sub_cmds_ = {}
         self._config_files = ()
@@ -220,15 +220,12 @@ class ConfigurationManager:
     def __getitem__(self, sct):
         return getattr(self, sct)
 
-    def __setitem__(self, sct, val):
-        setattr(self, sct, val)
-
     def __delitem__(self, sct):
         delattr(self, sct)
 
     def __getattr__(self, sct):
         if sct in self.def_:
-            self[sct] = _ConfigSection(self, sct)
+            setattr(self, sct, _ConfigSection(self, sct))
         else:
             raise error.SectionError(sct)
         return self[sct]
