@@ -52,6 +52,11 @@ def test_reset_subconfig_item(conf):
     del conf['sectionA']
     assert conf.sectionA.optA == 1
 
+def test_reset_subconfig_func(conf):
+    conf.sectionA.optA = 42
+    conf.sectionA.reset_()
+    assert conf.sectionA.optA == 1
+
 def test_reset_opt(conf):
     conf.sectionA.optA = 42
     del conf.sectionA.optA

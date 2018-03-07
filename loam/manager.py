@@ -95,6 +95,11 @@ class _ConfigSection:
             if not conf_arg or self.def_[opt].conf_arg:
                 self[opt] = val
 
+    def reset_(self):
+        """Restore default values of options in this section."""
+        for opt, meta in self.defaults_():
+            self[opt] = meta.default
+
     def names_(self, arg):
         """List of cli strings for a given option."""
         meta = self.def_[arg]
