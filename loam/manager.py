@@ -18,19 +18,25 @@ from . import error, tools
 BLK = ' \\\n'  # cutting line in scripts
 
 
-class _ConfigSection:
+class Section:
 
     """Hold options for a single section."""
 
-    def __init__(self, parent, name):
-        self._parent = parent
-        self._name = name
+    def __init__(self, **options):
+        """Initialization of instances.
+
+        Args:
+            options (:class:`~loam.tools.ConfOpt`): option metadata. The name
+                of each *option* is the name of the keyword argument passed on
+                to this function.
+        """
+        self._def = options
         for opt, meta in self.defaults_():
             self[opt] = meta.default
 
     @property
     def def_(self):
-        return self._parent.def_[self._name]
+        return MappingProxyType(self._def)
 
     def __getitem__(self, opt):
         return getattr(self, opt)
@@ -166,16 +172,14 @@ class ConfigurationManager:
         """Initialization of instances.
 
         Args:
-            sections (dict of :class:`~loam.tools.ConfOpt`): each *section* is
-                a dictionary with option names as keys, and option metadata as
-                values. The name of each *section* is the name of the keyword
-                argument passed on to this function.
+            sections (:class:`~loam.manager.Section`): section metadata. The
+                name of each *section* is the name of the keyword argument
+                passed on to this function.
         """
-        self._def = MappingProxyType({name: MappingProxyType(sct_dict)
-                                      for name, sct_dict in sections.items()})
+        self._def = sections
         self._parser = None
-        for sct in self.sections_():
-            setattr(self, sct, _ConfigSection(self, sct))
+        for sct, opts in self._def.items():
+            setattr(self, sct, Section(**opts))
         self._nosub_valid = False
         self.sub_cmds_ = {}
         self._config_files = ()
@@ -183,7 +187,7 @@ class ConfigurationManager:
     @property
     def def_(self):
         """Metadata describing the conf options."""
-        return self._def
+        return MappingProxyType(self._def)
 
     @property
     def sub_cmds_(self):
@@ -225,7 +229,7 @@ class ConfigurationManager:
 
     def __getattr__(self, sct):
         if sct in self.def_:
-            setattr(self, sct, _ConfigSection(self, sct))
+            setattr(self, sct, Section(**self.def_[sct]))
         else:
             raise error.SectionError(sct)
         return self[sct]
