@@ -238,12 +238,11 @@ class ConfigurationManager:
     def __delitem__(self, sct):
         delattr(self, sct)
 
+    def __delattr__(self, sct):
+        self[sct].reset_()
+
     def __getattr__(self, sct):
-        if sct in self.def_:
-            setattr(self, sct, Section(**self.def_[sct]))
-        else:
-            raise error.SectionError(sct)
-        return self[sct]
+        raise error.SectionError(sct)
 
     def __iter__(self):
         return iter(self.def_.keys())
