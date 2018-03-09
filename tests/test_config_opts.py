@@ -102,11 +102,7 @@ def test_update_section_conf_arg(conf):
     assert conf.sectionA.optB == 42 and conf.sectionB.optB == 43
 
 def test_opt_def_values(conf, conf_def):
-    assert all(conf[s].def_[o] == conf_def[s][o]
-               for s in conf_def for o in conf_def[s])
-
-def test_section_def_values(conf, conf_def):
-    assert all(conf.def_[s][o] == conf_def[s][o]
+    assert all(conf[s].def_[o] == conf_def[s].def_[o]
                for s in conf_def for o in conf_def[s])
 
 def test_config_iter_subs(conf, conf_def):
@@ -129,7 +125,7 @@ def test_config_iter_default_val(conf):
 def test_config_iter_subconfig(conf, conf_def):
     raw_iter = set(iter(conf.sectionA))
     opts_iter = set(conf.sectionA.options_())
-    opts_expected = set(conf_def['sectionA'].keys())
+    opts_expected = set(conf_def['sectionA'])
     assert raw_iter == opts_iter == opts_expected
 
 def test_config_iter_subconfig_default_val(conf):

@@ -2,19 +2,20 @@ import pytest
 
 @pytest.fixture(scope='session', params=['confA'])
 def conf_def(request):
+    from loam.manager import Section
     from loam.tools import ConfOpt
     metas = {}
     metas['confA'] = {
-        'sectionA': {
-            'optA': ConfOpt(1, True, None, {}, True, 'AA'),
-            'optB': ConfOpt(2, True, None, {}, False, 'AB'),
-            'optC': ConfOpt(3, True, None, {}, True, 'AC'),
-        },
-        'sectionB': {
-            'optA': ConfOpt(4, True, None, {}, True, 'BA'),
-            'optB': ConfOpt(5, True, None, {}, False, 'BB'),
-            'optC': ConfOpt(6, False, None, {}, True, 'BC'),
-        },
+        'sectionA': Section(
+            optA=ConfOpt(1, True, None, {}, True, 'AA'),
+            optB=ConfOpt(2, True, None, {}, False, 'AB'),
+            optC=ConfOpt(3, True, None, {}, True, 'AC'),
+        ),
+        'sectionB': Section(
+            optA=ConfOpt(4, True, None, {}, True, 'BA'),
+            optB=ConfOpt(5, True, None, {}, False, 'BB'),
+            optC=ConfOpt(6, False, None, {}, True, 'BC'),
+        ),
     }
     return metas[request.param]
 

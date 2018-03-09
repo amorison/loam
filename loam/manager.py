@@ -183,22 +183,17 @@ class ConfigurationManager:
                 identifiers, otherwise a :class:`~loam.error.SectionError` is
                 raised.
         """
-        self._def = {}
+        self._sections = []
         for sct_name, sct_meta in sections.items():
             if sct_name.isidentifier():
-                self._def[sct_name] = sct_meta
-                setattr(self, sct_name, Section(**sct_meta))
+                setattr(self, sct_name, Section(**sct_meta.def_))
+                self._sections.append(sct_name)
             else:
                 raise error.SectionError(sct_name)
         self._parser = None
         self._nosub_valid = False
         self.sub_cmds_ = {}
         self._config_files = ()
-
-    @property
-    def def_(self):
-        """Metadata describing the conf options."""
-        return MappingProxyType(self._def)
 
     @property
     def sub_cmds_(self):
@@ -245,10 +240,10 @@ class ConfigurationManager:
         raise error.SectionError(sct)
 
     def __iter__(self):
-        return iter(self.def_.keys())
+        return iter(self._sections)
 
     def __contains__(self, sct):
-        return sct in self.def_
+        return sct in self._sections
 
     def sections_(self):
         """Iterator over configuration section names.
@@ -275,7 +270,7 @@ class ConfigurationManager:
             tuples with subsection and options names.
         """
         for sct in self:
-            for opt in self.def_[sct]:
+            for opt in self[sct]:
                 yield sct, opt
 
     def opt_vals_(self):
@@ -315,7 +310,7 @@ class ConfigurationManager:
             holding option metadata.
         """
         for sct, opt in self.options_():
-            yield sct, opt, self.def_[sct][opt]
+            yield sct, opt, self[sct].def_[opt]
 
     def reset_(self):
         """Restore default values of all options."""
@@ -346,7 +341,7 @@ class ConfigurationManager:
             conf_dict[section] = {}
             for opt in conf_opts:
                 conf_dict[section][opt] = (self[section][opt] if update else
-                                           self.def_[section][opt].default)
+                                           self[section].def_[opt].default)
         with path.open('w') as cfile:
             toml.dump(conf_dict, cfile)
 
