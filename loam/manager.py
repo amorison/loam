@@ -52,12 +52,13 @@ class Section:
     def __delitem__(self, opt):
         delattr(self, opt)
 
-    def __getattr__(self, opt):
-        if opt in self.def_:
-            self[opt] = self.def_[opt].default
-        else:
+    def __delattr__(self, opt):
+        if not opt in self:
             raise error.OptionError(opt)
-        return self[opt]
+        self[opt] = self.def_[opt].default
+
+    def __getattr__(self, opt):
+        raise error.OptionError(opt)
 
     def __iter__(self):
         return iter(self.def_.keys())
