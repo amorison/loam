@@ -1,5 +1,18 @@
 import pytest
 import loam.error
+import loam.manager
+
+def test_build_section_invalid_option_name():
+    invalid_id = 'not a valid id'
+    with pytest.raises(loam.error.OptionError) as err:
+        loam.manager.Section(**{invalid_id: 'dummy'})
+    assert err.value.option == invalid_id
+
+def test_build_manager_invalid_section_name():
+    invalid_id = 'not a valid id'
+    with pytest.raises(loam.error.SectionError) as err:
+        loam.manager.ConfigurationManager(**{invalid_id: 'dummy'})
+    assert err.value.section == invalid_id
 
 def test_get_subconfig(conf, conf_def):
     for sub in conf_def:

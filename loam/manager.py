@@ -28,11 +28,16 @@ class Section:
         Args:
             options (:class:`~loam.tools.ConfOpt`): option metadata. The name
                 of each *option* is the name of the keyword argument passed on
-                to this function.
+                to this function. Option names should be valid identifiers,
+                otherwise an :class:`~loam.error.OptionError` is raised.
         """
-        self._def = options
-        for opt, meta in self.defaults_():
-            self[opt] = meta.default
+        self._def = {}
+        for opt_name, opt_meta in options.items():
+            if opt_name.isidentifier():
+                self._def[opt_name] = opt_meta
+                self[opt_name] = opt_meta.default
+            else:
+                raise error.OptionError(opt_name)
 
     @property
     def def_(self):
@@ -174,12 +179,18 @@ class ConfigurationManager:
         Args:
             sections (:class:`~loam.manager.Section`): section metadata. The
                 name of each *section* is the name of the keyword argument
-                passed on to this function.
+                passed on to this function. Section names should be valid
+                identifiers, otherwise a :class:`~loam.error.SectionError` is
+                raised.
         """
-        self._def = sections
+        self._def = {}
+        for sct_name, sct_meta in sections.items():
+            if sct_name.isidentifier():
+                self._def[sct_name] = sct_meta
+                setattr(self, sct_name, Section(**sct_meta))
+            else:
+                raise error.SectionError(sct_name)
         self._parser = None
-        for sct, opts in self._def.items():
-            setattr(self, sct, Section(**opts))
         self._nosub_valid = False
         self.sub_cmds_ = {}
         self._config_files = ()
