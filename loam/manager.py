@@ -12,7 +12,7 @@ from types import MappingProxyType
 
 import toml
 
-from . import error, tools
+from . import error, internal, tools
 
 
 BLK = ' \\\n'  # cutting line in scripts
@@ -551,7 +551,7 @@ class ConfigurationManager:
         if self._sub_cmds is None:
             raise error.ParserNotBuiltError(
                 'Subcommand metadata not available, call buid_parser first.')
-        grouping = tools._zsh_version() >= (5, 4)
+        grouping = internal.zsh_version() >= (5, 4)
         path = pathlib.Path(path)
         firstline = ['#compdef', cmd]
         firstline.extend(cmds)

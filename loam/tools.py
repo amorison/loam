@@ -6,7 +6,6 @@ They are designed to help you use :class:`~loam.manager.ConfigurationManager`.
 from collections import OrderedDict
 import argparse
 import pathlib
-import re
 import subprocess
 import shlex
 
@@ -205,13 +204,3 @@ def create_complete_files(conf, path, cmd, *cmds, zsh_sourceable=False):
     bash_file = bash_dir / '{}.sh'.format(cmd)
     conf.zsh_complete_(zsh_file, cmd, *cmds, sourceable=zsh_sourceable)
     conf.bash_complete_(bash_file, cmd, *cmds)
-
-
-def _zsh_version():
-    """Try to guess zsh version, returns (0, 0) on failure."""
-    try:
-        out = str(subprocess.check_output(shlex.split('zsh --version')))
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        return (0, 0)
-    match = re.search('[0-9]+\.[0-9]+', out)
-    return tuple(map(int, match[0].split('.'))) if match else (0, 0)
