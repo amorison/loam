@@ -196,6 +196,23 @@ class ConfigurationManager:
         self.sub_cmds_ = {}
         self._config_files = ()
 
+    @classmethod
+    def from_dict_(cls, conf_dict):
+        """Use a dictionary to create a :class:`ConfigurationManager`.
+
+        Args:
+            conf_dict (dict of dict of :class:`~loam.tools.ConfOpt`): the first
+                level of keys should be the section names. The second level
+                should be the option names. The values are the options
+                metadata.
+
+        Returns:
+            :class:`ConfigurationManager`: a configuration manager with the
+            requested sections and options.
+        """
+        return cls(**{name: Section(**opts)
+                      for name, opts in conf_dict.items()})
+
     @property
     def sub_cmds_(self):
         """Subcommands description.

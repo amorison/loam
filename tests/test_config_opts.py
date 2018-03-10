@@ -2,6 +2,12 @@ import pytest
 import loam.error
 import loam.manager
 
+def test_build_from_dict(conf, conf_def):
+    conf_dict = {name: dict(sct.def_) for name, sct in conf_def.items()}
+    conf_fd = loam.manager.ConfigurationManager.from_dict_(conf_dict)
+    assert all(conf[s][o] == conf_fd[s][o]
+               for s in conf_def for o in conf_def[s])
+
 def test_build_section_invalid_option_name():
     invalid_id = 'not a valid id'
     with pytest.raises(loam.error.OptionError) as err:
