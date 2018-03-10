@@ -4,12 +4,11 @@ They are designed to help you use :class:`~loam.manager.ConfigurationManager`.
 """
 
 from collections import OrderedDict
-import argparse
 import pathlib
 import subprocess
 import shlex
 
-from . import error
+from . import error, internal
 
 
 class ConfOpt:
@@ -57,21 +56,11 @@ class Subcmd:
         self.defaults = defaults
 
 
-class Switch(argparse.Action):
-
-    """Inherited from argparse.Action, store True/False to a +/-arg.
-
-    The :func:`switch_opt` function allows you to easily create a
-    :class:`ConfOpt` using this action.
-    """
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        """Set args attribute with True/False"""
-        setattr(namespace, self.dest, bool('-+'.index(option_string[0])))
-
-
 def switch_opt(default, shortname, help_msg):
-    """Define a ConfOpt with the Switch action.
+    """Define a switchable ConfOpt.
+
+    This creates a boolean option. If you use it in your CLI, it can be
+    switched on and off by prepending + or - to its name: +opt / -opt.
 
     Args:
         default (bool): the default value of the swith option.
@@ -82,8 +71,8 @@ def switch_opt(default, shortname, help_msg):
     Returns:
         :class:`ConfOpt`: a configuration option with the given properties.
     """
-    return ConfOpt(bool(default), True, shortname, dict(action=Switch), True,
-                   help_msg, None)
+    return ConfOpt(bool(default), True, shortname,
+                   dict(action=internal.Switch), True, help_msg, None)
 
 
 def config_conf_section():
@@ -137,7 +126,7 @@ def set_conf_str(conf, optstrs):
             string.
     """
     falsy = ['0', 'no', 'n', 'off', 'false', 'f']
-    bool_actions = ['store_true', 'store_false', Switch]
+    bool_actions = ['store_true', 'store_false', internal.Switch]
     for optstr in optstrs:
         opt, val = optstr.split('=', 1)
         sec, opt = opt.split('.', 1)

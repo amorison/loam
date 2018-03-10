@@ -116,7 +116,7 @@ class Section:
         """List of cli strings for a given option."""
         meta = self.def_[arg]
         action = meta.cmd_kwargs.get('action')
-        if action is tools.Switch:
+        if action is internal.Switch:
             names = ['-{}'.format(arg), '+{}'.format(arg)]
             if meta.shortname is not None:
                 names.append('-{}'.format(meta.shortname))
@@ -135,7 +135,7 @@ class Section:
                 continue
             kwargs = copy.deepcopy(meta.cmd_kwargs)
             action = kwargs.get('action')
-            if action is tools.Switch:
+            if action is internal.Switch:
                 kwargs.update(nargs=0)
             elif meta.default is not None and action not in store_bool:
                 kwargs.setdefault('type', type(meta.default))
