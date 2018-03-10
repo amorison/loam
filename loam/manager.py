@@ -99,7 +99,7 @@ class Section:
             sct_dict (dict): dict indexed with option names. Undefined
                 options are discarded.
             conf_arg (bool): if True, only options that can be set in a config
-            file are updated.
+                file are updated.
         """
         for opt, val in sct_dict.items():
             if opt not in self.def_:
@@ -368,9 +368,9 @@ class ConfigurationManager:
 
         Args:
             conf_dict (dict): dict of dict indexed with section and option
-            names.
+                names.
             conf_arg (bool): if True, only options that can be set in a config
-            file are updated.
+                file are updated.
         """
         for section, secdict in conf_dict.items():
             self[section].update_(secdict, conf_arg)
