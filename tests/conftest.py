@@ -2,8 +2,7 @@ import pytest
 
 @pytest.fixture(scope='session', params=['confA'])
 def conf_def(request):
-    from loam.manager import Section
-    from loam.tools import ConfOpt
+    from loam.manager import ConfOpt, Section
     metas = {}
     metas['confA'] = {
         'sectionA': Section(
@@ -26,7 +25,7 @@ def conf(conf_def):
 
 @pytest.fixture(params=['subsA'])
 def sub_cmds(request):
-    from loam.tools import Subcmd
+    from loam.manager import Subcmd
     subs = {}
     subs['subsA'] = {
         None: Subcmd('subsA loam test'),

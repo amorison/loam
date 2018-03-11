@@ -12,10 +12,55 @@ from types import MappingProxyType
 
 import toml
 
-from . import error, internal, tools
+from . import error, internal
 
 
 BLK = ' \\\n'  # cutting line in scripts
+
+
+class ConfOpt:
+
+    """Metadata of configuration options.
+
+    Attributes:
+        default: the default value of the configuration option.
+        cmd_arg (bool): whether the option is a command line argument.
+        shortname (str): short version of the command line argument.
+        cmd_kwargs (dict): keyword arguments fed to
+            :meth:`argparse.ArgumentParser.add_argument` during the
+            construction of the command line arguments parser.
+        conf_arg (bool): whether the option can be set in the config file.
+        help (str): short description of the option.
+        comprule (str): completion rule for ZSH shell.
+
+    """
+
+    def __init__(self, default, cmd_arg=False, shortname=None, cmd_kwargs=None,
+                 conf_arg=False, help_msg='', comprule=''):
+        self.default = default
+        self.cmd_arg = cmd_arg
+        self.shortname = shortname
+        self.cmd_kwargs = {} if cmd_kwargs is None else cmd_kwargs
+        self.conf_arg = conf_arg
+        self.help = help_msg
+        self.comprule = comprule
+
+
+class Subcmd:
+
+    """Metadata of sub commands.
+
+    Attributes:
+        help (str): short description of the sub command.
+        extra_parsers (tuple of str): configuration sections used by the
+            subcommand.
+        defaults (dict): default value of options associated to the subcommand.
+    """
+
+    def __init__(self, help_msg, *extra_parsers, **defaults):
+        self.help = help_msg
+        self.extra_parsers = extra_parsers
+        self.defaults = defaults
 
 
 class Section:
@@ -26,10 +71,10 @@ class Section:
         """Initialization of instances.
 
         Args:
-            options (:class:`~loam.tools.ConfOpt`): option metadata. The name
-                of each *option* is the name of the keyword argument passed on
-                to this function. Option names should be valid identifiers,
-                otherwise an :class:`~loam.error.OptionError` is raised.
+            options (:class:`ConfOpt`): option metadata. The name of each
+                *option* is the name of the keyword argument passed on to this
+                function. Option names should be valid identifiers, otherwise
+                an :class:`~loam.error.OptionError` is raised.
         """
         self._def = {}
         for opt_name, opt_meta in options.items():
@@ -201,10 +246,9 @@ class ConfigurationManager:
         """Use a dictionary to create a :class:`ConfigurationManager`.
 
         Args:
-            conf_dict (dict of dict of :class:`~loam.tools.ConfOpt`): the first
-                level of keys should be the section names. The second level
-                should be the option names. The values are the options
-                metadata.
+            conf_dict (dict of dict of :class:`ConfOpt`): the first level of
+                keys should be the section names. The second level should be
+                the option names. The values are the options metadata.
 
         Returns:
             :class:`ConfigurationManager`: a configuration manager with the
@@ -217,7 +261,7 @@ class ConfigurationManager:
     def sub_cmds_(self):
         """Subcommands description.
 
-        It is a dict of :class:`~loam.tools.Subcmd`.
+        It is a dict of :class:`Subcmd`.
         """
         return self._sub_cmds
 
@@ -429,7 +473,7 @@ class ConfigurationManager:
         """
         sub_cmds = self.sub_cmds_
         if None not in sub_cmds:
-            sub_cmds[None] = tools.Subcmd(None)
+            sub_cmds[None] = Subcmd(None)
         main_parser = argparse.ArgumentParser(description=sub_cmds[None].help,
                                               prefix_chars='-+')
 
@@ -441,7 +485,7 @@ class ConfigurationManager:
             for sct in sub_cmds[''].extra_parsers:
                 self[sct].add_to_parser_(main_parser)
         else:
-            sub_cmds[''] = tools.Subcmd(None)
+            sub_cmds[''] = Subcmd(None)
 
         xparsers = {}
         for sct in self:
@@ -572,7 +616,7 @@ class ConfigurationManager:
         path = pathlib.Path(path)
         firstline = ['#compdef', cmd]
         firstline.extend(cmds)
-        mdum = tools.Subcmd('')
+        mdum = Subcmd('')
         subcmds = [sub for sub in self.sub_cmds_ if sub]
         with path.open('w') as zcf:
             print(*firstline, end='\n\n', file=zcf)
@@ -643,7 +687,7 @@ class ConfigurationManager:
             raise error.ParserNotBuiltError(
                 'Subcommand metadata not available, call buid_parser first.')
         path = pathlib.Path(path)
-        mdum = tools.Subcmd('')
+        mdum = Subcmd('')
         subcmds = [sub for sub in self.sub_cmds_ if sub]
         with path.open('w') as bcf:
             # main function

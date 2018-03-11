@@ -9,51 +9,7 @@ import subprocess
 import shlex
 
 from . import error, internal
-
-
-class ConfOpt:
-
-    """Metadata of configuration options.
-
-    Attributes:
-        default: the default value of the configuration option.
-        cmd_arg (bool): whether the option is a command line argument.
-        shortname (str): short version of the command line argument.
-        cmd_kwargs (dict): keyword arguments fed to
-            :meth:`argparse.ArgumentParser.add_argument` during the
-            construction of the command line arguments parser.
-        conf_arg (bool): whether the option can be set in the config file.
-        help (str): short description of the option.
-        comprule (str): completion rule for ZSH shell.
-
-    """
-
-    def __init__(self, default, cmd_arg=False, shortname=None, cmd_kwargs=None,
-                 conf_arg=False, help_msg='', comprule=''):
-        self.default = default
-        self.cmd_arg = cmd_arg
-        self.shortname = shortname
-        self.cmd_kwargs = {} if cmd_kwargs is None else cmd_kwargs
-        self.conf_arg = conf_arg
-        self.help = help_msg
-        self.comprule = comprule
-
-
-class Subcmd:
-
-    """Metadata of sub commands.
-
-    Attributes:
-        help (str): short description of the sub command.
-        extra_parsers (tuple of str): configuration sections used by the
-            subcommand.
-        defaults (dict): default value of options associated to the subcommand.
-    """
-
-    def __init__(self, help_msg, *extra_parsers, **defaults):
-        self.help = help_msg
-        self.extra_parsers = extra_parsers
-        self.defaults = defaults
+from .manager import ConfOpt
 
 
 def switch_opt(default, shortname, help_msg):
@@ -69,7 +25,8 @@ def switch_opt(default, shortname, help_msg):
         help_msg (str): short description of the option.
 
     Returns:
-        :class:`ConfOpt`: a configuration option with the given properties.
+        :class:`~loam.manager.ConfOpt`: a configuration option with the given
+        properties.
     """
     return ConfOpt(bool(default), True, shortname,
                    dict(action=internal.Switch), True, help_msg, None)
@@ -110,7 +67,7 @@ def set_conf_opt(shortname=None):
         shortname (str): shortname for the option if relevant.
 
     Returns:
-        :class:`ConfOpt`: the option definition.
+        :class:`~loam.manager.ConfOpt`: the option definition.
     """
     return ConfOpt(None, True, shortname,
                    dict(action='append', metavar='section.option=value'),
