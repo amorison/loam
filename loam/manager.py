@@ -52,14 +52,13 @@ class Subcmd:
 
     Attributes:
         help (str): short description of the sub command.
-        extra_parsers (tuple of str): configuration sections used by the
-            subcommand.
+        sections (tuple of str): configuration sections used by the subcommand.
         defaults (dict): default value of options associated to the subcommand.
     """
 
-    def __init__(self, help_msg, *extra_parsers, **defaults):
+    def __init__(self, help_msg, *sections, **defaults):
         self.help = help_msg
-        self.extra_parsers = extra_parsers
+        self.sections = sections
         self.defaults = defaults
 
 
@@ -480,9 +479,9 @@ class ConfigurationManager:
         main_parser.set_defaults(**sub_cmds[None].defaults)
         if self._nosub_valid:
             main_parser.set_defaults(**sub_cmds[''].defaults)
-            for sct in sub_cmds[None].extra_parsers:
+            for sct in sub_cmds[None].sections:
                 self[sct].add_to_parser_(main_parser)
-            for sct in sub_cmds[''].extra_parsers:
+            for sct in sub_cmds[''].sections:
                 self[sct].add_to_parser_(main_parser)
         else:
             sub_cmds[''] = Subcmd(None)
@@ -500,8 +499,8 @@ class ConfigurationManager:
                 continue
             kwargs = {'prefix_chars': '+-', 'help': meta.help}
             parent_parsers = [xparsers[sct]
-                              for sct in sub_cmds[None].extra_parsers]
-            for sct in meta.extra_parsers:
+                              for sct in sub_cmds[None].sections]
+            for sct in meta.sections:
                 parent_parsers.append(xparsers[sct])
             kwargs.update(parents=parent_parsers)
             dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)
@@ -535,8 +534,8 @@ class ConfigurationManager:
         sub_cmds = self._sub_cmds
         if sub_cmd is None:
             sub_cmd = ''
-        scts = list(sub_cmds[None].extra_parsers
-                    + sub_cmds[sub_cmd].extra_parsers)
+        scts = list(sub_cmds[None].sections
+                    + sub_cmds[sub_cmd].sections)
         if sub_cmd in self:
             scts.append(sub_cmd)
         already_consumed = set()
@@ -546,7 +545,7 @@ class ConfigurationManager:
                                     if m.cmd_arg)
         # set sections implemented by empty subcommand with remaining options
         if sub_cmd != '':
-            for sct in sub_cmds[''].extra_parsers:
+            for sct in sub_cmds[''].sections:
                 self[sct].update_from_cmd_args_(args, already_consumed)
         return args, scts
 
@@ -632,8 +631,8 @@ class ConfigurationManager:
                       end=BLK, file=zcf)
             sections = []
             if self._nosub_valid:
-                sections.extend(self.sub_cmds_.get(None, mdum).extra_parsers)
-                sections.extend(self.sub_cmds_.get('', mdum).extra_parsers)
+                sections.extend(self.sub_cmds_.get(None, mdum).sections)
+                sections.extend(self.sub_cmds_.get('', mdum).sections)
             self._zsh_comp_sections(zcf, sections, grouping)
             if subcmds:
                 print("'*::arg:->args'", file=zcf)
@@ -648,8 +647,8 @@ class ConfigurationManager:
                 print('\nfunction _{}_{} {{'.format(cmd, sub), file=zcf)
                 print('_arguments', end=BLK, file=zcf)
                 sections = []
-                sections.extend(self.sub_cmds_.get(None, mdum).extra_parsers)
-                sections.extend(self.sub_cmds_[sub].extra_parsers)
+                sections.extend(self.sub_cmds_.get(None, mdum).sections)
+                sections.extend(self.sub_cmds_[sub].sections)
                 if sub in self:
                     sections.append(sub)
                 self._zsh_comp_sections(zcf, sections, grouping)
@@ -696,8 +695,8 @@ class ConfigurationManager:
             print(r'local cur=${COMP_WORDS[COMP_CWORD]}', end='\n\n', file=bcf)
             sections = []
             if self._nosub_valid:
-                sections.extend(self.sub_cmds_.get(None, mdum).extra_parsers)
-                sections.extend(self.sub_cmds_.get('', mdum).extra_parsers)
+                sections.extend(self.sub_cmds_.get(None, mdum).sections)
+                sections.extend(self.sub_cmds_.get('', mdum).sections)
             optstr = ' '.join(self._bash_comp_sections(sections))
             print(r'local options="{}"'.format(optstr), end='\n\n', file=bcf)
             if subcmds:
@@ -706,8 +705,8 @@ class ConfigurationManager:
                 print('declare -A suboptions', file=bcf)
             for sub in subcmds:
                 sections = []
-                sections.extend(self.sub_cmds_.get(None, mdum).extra_parsers)
-                sections.extend(self.sub_cmds_[sub].extra_parsers)
+                sections.extend(self.sub_cmds_.get(None, mdum).sections)
+                sections.extend(self.sub_cmds_[sub].sections)
                 if sub in self:
                     sections.append(sub)
                 optstr = ' '.join(self._bash_comp_sections(sections))
