@@ -237,7 +237,7 @@ class ConfigurationManager:
                 raise error.SectionError(sct_name)
         self._parser = None
         self._nosub_valid = False
-        self.sub_cmds_ = {}
+        self._subcmds = {}
         self._config_files = ()
 
     @classmethod
@@ -257,17 +257,42 @@ class ConfigurationManager:
                       for name, opts in conf_dict.items()})
 
     @property
-    def sub_cmds_(self):
+    def subcmds_(self):
         """Subcommands description.
 
         It is a dict of :class:`Subcmd`.
         """
-        return self._sub_cmds
+        return self._subcmds
 
-    @sub_cmds_.setter
-    def sub_cmds_(self, sub_cmds):
-        self._sub_cmds = sub_cmds
-        self._nosub_valid = sub_cmds is not None and '' in sub_cmds
+    def set_subcmds_(self, common_=None, bare_=None, **subcmds):
+        """Define subcommands of your CLI tool.
+
+        All arguments to this function should be :class:`Subcmd` instances.
+
+        Args:
+            common_: special subcommand, used to define the general description
+                of the CLI tool as well as configuration sections used by every
+                subcommand.
+            bare_: special subcommand, use it to define the configuration
+                sections that should be used when you call your CLI tool
+                without any subcommand.
+            subcmds: all the subcommands of your CLI tool. The name of each
+                *subcommand* is the name of the keyword argument passed on to
+                this function.
+        """
+        self._subcmds = {}
+        for sub_name, sub_meta in subcmds.items():
+            if sub_name.isidentifier():
+                self._subcmds[sub_name] = sub_meta
+            else:
+                raise error.SubcmdError(sub_name)
+        if common_ is not None:
+            self._subcmds[None] = common_
+        if bare_ is not None:
+            self._subcmds[''] = bare_
+            self._nosub_valid = True
+        else:
+            self._nosub_valid = False
 
     @property
     def config_files_(self):
@@ -461,7 +486,7 @@ class ConfigurationManager:
     def build_parser_(self):
         """Build command line argument parser.
 
-        :attr:`sub_cmds_` must be set.
+        :attr:`subcmds_` must be set.
 
         Returns:
             :class:`argparse.ArgumentParser`: the command line argument parser.
@@ -470,7 +495,7 @@ class ConfigurationManager:
             accordingly, use the :meth:`ConfigurationManager.parse_args_`
             method.
         """
-        sub_cmds = self.sub_cmds_
+        sub_cmds = self.subcmds_
         if None not in sub_cmds:
             sub_cmds[None] = Subcmd(None)
         main_parser = argparse.ArgumentParser(description=sub_cmds[None].help,
@@ -531,7 +556,7 @@ class ConfigurationManager:
                 'Please call build_parser before parse_args.')
         args = self._parser.parse_args(args=arglist)
         sub_cmd = args.loam_sub_name
-        sub_cmds = self._sub_cmds
+        sub_cmds = self._subcmds
         if sub_cmd is None:
             sub_cmd = ''
         scts = list(sub_cmds[None].sections
@@ -608,7 +633,7 @@ class ConfigurationManager:
                 explicit call to ``compdef``, which means it can be sourced
                 to activate CLI completion.
         """
-        if self._sub_cmds is None:
+        if self._subcmds is None:
             raise error.ParserNotBuiltError(
                 'Subcommand metadata not available, call buid_parser first.')
         grouping = internal.zsh_version() >= (5, 4)
@@ -616,7 +641,7 @@ class ConfigurationManager:
         firstline = ['#compdef', cmd]
         firstline.extend(cmds)
         mdum = Subcmd('')
-        subcmds = [sub for sub in self.sub_cmds_ if sub]
+        subcmds = [sub for sub in self.subcmds_ if sub]
         with path.open('w') as zcf:
             print(*firstline, end='\n\n', file=zcf)
             # main function
@@ -625,14 +650,14 @@ class ConfigurationManager:
             print('_arguments -C', end=BLK, file=zcf)
             if subcmds:
                 # list of subcommands and their description
-                substrs = ["{}\\:'{}'".format(sub, self.sub_cmds_[sub].help)
+                substrs = ["{}\\:'{}'".format(sub, self.subcmds_[sub].help)
                            for sub in subcmds]
                 print('"1:Commands:(({}))"'.format(' '.join(substrs)),
                       end=BLK, file=zcf)
             sections = []
             if self._nosub_valid:
-                sections.extend(self.sub_cmds_.get(None, mdum).sections)
-                sections.extend(self.sub_cmds_.get('', mdum).sections)
+                sections.extend(self.subcmds_.get(None, mdum).sections)
+                sections.extend(self.subcmds_.get('', mdum).sections)
             self._zsh_comp_sections(zcf, sections, grouping)
             if subcmds:
                 print("'*::arg:->args'", file=zcf)
@@ -647,8 +672,8 @@ class ConfigurationManager:
                 print('\nfunction _{}_{} {{'.format(cmd, sub), file=zcf)
                 print('_arguments', end=BLK, file=zcf)
                 sections = []
-                sections.extend(self.sub_cmds_.get(None, mdum).sections)
-                sections.extend(self.sub_cmds_[sub].sections)
+                sections.extend(self.subcmds_.get(None, mdum).sections)
+                sections.extend(self.subcmds_[sub].sections)
                 if sub in self:
                     sections.append(sub)
                 self._zsh_comp_sections(zcf, sections, grouping)
@@ -682,12 +707,12 @@ class ConfigurationManager:
             cmd (str): command name that should be completed.
             cmds (str): extra command names that should be completed.
         """
-        if self._sub_cmds is None:
+        if self._subcmds is None:
             raise error.ParserNotBuiltError(
                 'Subcommand metadata not available, call buid_parser first.')
         path = pathlib.Path(path)
         mdum = Subcmd('')
-        subcmds = [sub for sub in self.sub_cmds_ if sub]
+        subcmds = [sub for sub in self.subcmds_ if sub]
         with path.open('w') as bcf:
             # main function
             print('_{}() {{'.format(cmd), file=bcf)
@@ -695,8 +720,8 @@ class ConfigurationManager:
             print(r'local cur=${COMP_WORDS[COMP_CWORD]}', end='\n\n', file=bcf)
             sections = []
             if self._nosub_valid:
-                sections.extend(self.sub_cmds_.get(None, mdum).sections)
-                sections.extend(self.sub_cmds_.get('', mdum).sections)
+                sections.extend(self.subcmds_.get(None, mdum).sections)
+                sections.extend(self.subcmds_.get('', mdum).sections)
             optstr = ' '.join(self._bash_comp_sections(sections))
             print(r'local options="{}"'.format(optstr), end='\n\n', file=bcf)
             if subcmds:
@@ -705,8 +730,8 @@ class ConfigurationManager:
                 print('declare -A suboptions', file=bcf)
             for sub in subcmds:
                 sections = []
-                sections.extend(self.sub_cmds_.get(None, mdum).sections)
-                sections.extend(self.sub_cmds_[sub].sections)
+                sections.extend(self.subcmds_.get(None, mdum).sections)
+                sections.extend(self.subcmds_[sub].sections)
                 if sub in self:
                     sections.append(sub)
                 optstr = ' '.join(self._bash_comp_sections(sections))

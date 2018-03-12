@@ -42,6 +42,23 @@ class OptionError(LoamError):
         super().__init__('invalid option name: {}'.format(option))
 
 
+class SubcmdError(LoamError):
+
+    """Raised when an invalid Subcmd name is requested."""
+
+    def __init__(self, option):
+        """Initialization of instances:
+
+        Args:
+            option (str): invalid subcommand name.
+
+        Attributes:
+            option (str): invalid subcommand name.
+        """
+        self.option = option
+        super().__init__('invalid subcommand name: {}'.format(option))
+
+
 class ParserNotBuiltError(LoamError):
 
     """Raised when parse_args is called before build_parser"""

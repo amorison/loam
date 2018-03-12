@@ -28,8 +28,8 @@ def sub_cmds(request):
     from loam.manager import Subcmd
     subs = {}
     subs['subsA'] = {
-        None: Subcmd('subsA loam test'),
-        '': Subcmd(None, 'sectionA'),
+        'common_': Subcmd('subsA loam test'),
+        'bare_': Subcmd(None, 'sectionA'),
         'sectionB': Subcmd('sectionB subcmd help'),
     }
     return subs[request.param]
