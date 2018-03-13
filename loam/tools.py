@@ -125,12 +125,11 @@ def config_cmd_handler(conf, config='config'):
                                                    conf.config_files_[0])))
 
 
-def create_complete_files(conf, path, cmd, *cmds, zsh_sourceable=False):
+def create_complete_files(climan, path, cmd, *cmds, zsh_sourceable=False):
     """Create completion files for bash and zsh.
 
     Args:
-        conf (:class:`~loam.manager.ConfigurationManager`): configuration
-            manager.
+        climan (:class:`~loam.cli.CLIManager`): CLI manager.
         path (path-like): directory in which the config files should be
             created. It is created if it doesn't exist.
         cmd (str): command name that should be completed.
@@ -148,5 +147,5 @@ def create_complete_files(conf, path, cmd, *cmds, zsh_sourceable=False):
     if not bash_dir.exists():
         bash_dir.mkdir(parents=True)
     bash_file = bash_dir / '{}.sh'.format(cmd)
-    conf.zsh_complete_(zsh_file, cmd, *cmds, sourceable=zsh_sourceable)
-    conf.bash_complete_(bash_file, cmd, *cmds)
+    climan.zsh_complete(zsh_file, cmd, *cmds, sourceable=zsh_sourceable)
+    climan.bash_complete(bash_file, cmd, *cmds)
