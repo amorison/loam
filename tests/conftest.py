@@ -25,7 +25,7 @@ def conf(conf_def):
 
 @pytest.fixture(params=['subsA'])
 def sub_cmds(request):
-    from loam.manager import Subcmd
+    from loam.cli import Subcmd
     subs = {}
     subs['subsA'] = {
         'common_': Subcmd('subsA loam test'),
@@ -33,6 +33,11 @@ def sub_cmds(request):
         'sectionB': Subcmd('sectionB subcmd help'),
     }
     return subs[request.param]
+
+@pytest.fixture
+def climan(conf, sub_cmds):
+    from loam.cli import CLIManager
+    return CLIManager(conf, **sub_cmds)
 
 @pytest.fixture
 def cfile(tmpdir):
