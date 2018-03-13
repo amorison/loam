@@ -13,6 +13,11 @@ import toml
 from . import error
 
 
+def _is_valid(name):
+    """Check if a section or option name is valid."""
+    return name.isidentifier() and name != 'loam_sub_name'
+
+
 class ConfOpt:
 
     """Metadata of configuration options.
@@ -56,7 +61,7 @@ class Section:
         """
         self._def = {}
         for opt_name, opt_meta in options.items():
-            if opt_name.isidentifier():
+            if _is_valid(opt_name):
                 self._def[opt_name] = opt_meta
                 self[opt_name] = opt_meta.default
             else:
@@ -168,7 +173,7 @@ class ConfigurationManager:
         """
         self._sections = []
         for sct_name, sct_meta in sections.items():
-            if sct_name.isidentifier():
+            if _is_valid(sct_name):
                 setattr(self, sct_name, Section(**sct_meta.def_))
                 self._sections.append(sct_name)
             else:
