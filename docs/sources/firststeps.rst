@@ -18,8 +18,7 @@ configuration object with no config file nor argument parsing management.
 
 ::
 
-    from loam.manager import ConfigurationManager
-    from loam.tools import ConfOpt
+    from loam.manager import ConfigurationManager, ConfOpt
 
     # A simple dictionary define all the options and their default values.
     # The first level of keys are the section names, the second level of keys
@@ -33,7 +32,7 @@ configuration object with no config file nor argument parsing management.
                      'optionA': ConfOpt(3.14156)}
     }
 
-    conf = ConfigurationManager(conf_def)
+    conf = ConfigurationManager.from_dict_(conf_def)
 
     # you can access options value with attribute or item notation
     assert conf.sectionA.optionA is conf.sectionA['optionA']
