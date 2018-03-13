@@ -2,6 +2,7 @@
 import argparse
 import copy
 import pathlib
+from types import MappingProxyType
 
 from . import error, internal
 
@@ -71,8 +72,7 @@ class Subcmd:
 
 class CLIManager:
 
-    """CLI manager.
-    """
+    """CLI manager."""
 
     def __init__(self, conf_manager_, common_=None, bare_=None, **subcmds):
         """Initialization of instances:
@@ -97,14 +97,19 @@ class CLIManager:
                 self._subcmds[sub_name] = sub_meta
             else:
                 raise error.SubcmdError(sub_name)
-        if common_ is not None:
-            self._subcmds[None] = common_
-        if bare_ is not None:
-            self._subcmds[''] = bare_
-            self._nosub_valid = True
-        else:
-            self._nosub_valid = False
+        self._common = common_ if common_ is not None else Subcmd(None)
+        self._bare = bare_
         self._parser = self._build_parser()
+
+    @property
+    def common(self):
+        """Subcmd describing sections common to all subcommands."""
+        return self._common
+
+    @property
+    def bare(self):
+        """Subcmd used when the CLI tool is invoked without subcommand."""
+        return self._bare
 
     @property
     def subcmds(self):
@@ -112,7 +117,7 @@ class CLIManager:
 
         It is a dict of :class:`Subcmd`.
         """
-        return self._subcmds
+        return MappingProxyType(self._subcmds)
 
     def _build_parser(self):
         """Build command line argument parser.
@@ -124,20 +129,16 @@ class CLIManager:
             accordingly, use the :meth:`parse_args` method.
         """
         sub_cmds = self.subcmds
-        if None not in sub_cmds:
-            sub_cmds[None] = Subcmd(None)
-        main_parser = argparse.ArgumentParser(description=sub_cmds[None].help,
+        main_parser = argparse.ArgumentParser(description=self.common.help,
                                               prefix_chars='-+')
 
-        main_parser.set_defaults(**sub_cmds[None].defaults)
-        if self._nosub_valid:
-            main_parser.set_defaults(**sub_cmds[''].defaults)
-            for sct in sub_cmds[None].sections:
+        main_parser.set_defaults(**self.common.defaults)
+        if self.bare is not None:
+            main_parser.set_defaults(**self.bare.defaults)
+            for sct in self.common.sections:
                 _add_section_to_parser(self._conf[sct], main_parser)
-            for sct in sub_cmds[''].sections:
+            for sct in self.bare.sections:
                 _add_section_to_parser(self._conf[sct], main_parser)
-        else:
-            sub_cmds[''] = Subcmd(None)
 
         xparsers = {}
         for sct in self._conf:
@@ -148,11 +149,9 @@ class CLIManager:
 
         subparsers = main_parser.add_subparsers(dest='loam_sub_name')
         for sub_cmd, meta in sub_cmds.items():
-            if sub_cmd is None or sub_cmd == '':
-                continue
             kwargs = {'prefix_chars': '+-', 'help': meta.help}
             parent_parsers = [xparsers[sct]
-                              for sct in sub_cmds[None].sections]
+                              for sct in self.common.sections]
             for sct in meta.sections:
                 parent_parsers.append(xparsers[sct])
             kwargs.update(parents=parent_parsers)
@@ -180,21 +179,23 @@ class CLIManager:
         """
         args = self._parser.parse_args(args=arglist)
         sub_cmd = args.loam_sub_name
-        sub_cmds = self._subcmds
+        sub_cmds = self.subcmds
+        scts = list(self.common.sections)
         if sub_cmd is None:
-            sub_cmd = ''
-        scts = list(sub_cmds[None].sections
-                    + sub_cmds[sub_cmd].sections)
-        if sub_cmd in self._conf:
-            scts.append(sub_cmd)
+            if self.bare is not None:
+                scts.extend(self.bare.sections)
+        else:
+            scts.extend(sub_cmds[sub_cmd].sections)
+            if sub_cmd in self._conf:
+                scts.append(sub_cmd)
         already_consumed = set()
         for sct in scts:
             _update_section_from_cmd_args(self._conf[sct], args)
             already_consumed |= set(o for o, m in self._conf[sct].defaults_()
                                     if m.cmd_arg)
         # set sections implemented by empty subcommand with remaining options
-        if sub_cmd != '':
-            for sct in sub_cmds[''].sections:
+        if sub_cmd is not None and self.bare is not None:
+            for sct in self.bare.sections:
                 _update_section_from_cmd_args(self._conf[sct], args,
                                               already_consumed)
         return args, scts
@@ -262,8 +263,7 @@ class CLIManager:
         path = pathlib.Path(path)
         firstline = ['#compdef', cmd]
         firstline.extend(cmds)
-        mdum = Subcmd('')
-        subcmds = [sub for sub in self.subcmds_ if sub]
+        subcmds = list(self.subcmds.keys())
         with path.open('w') as zcf:
             print(*firstline, end='\n\n', file=zcf)
             # main function
@@ -272,14 +272,14 @@ class CLIManager:
             print('_arguments -C', end=BLK, file=zcf)
             if subcmds:
                 # list of subcommands and their description
-                substrs = ["{}\\:'{}'".format(sub, self.subcmds_[sub].help)
+                substrs = ["{}\\:'{}'".format(sub, self.subcmds[sub].help)
                            for sub in subcmds]
                 print('"1:Commands:(({}))"'.format(' '.join(substrs)),
                       end=BLK, file=zcf)
             sections = []
-            if self._nosub_valid:
-                sections.extend(self.subcmds_.get(None, mdum).sections)
-                sections.extend(self.subcmds_.get('', mdum).sections)
+            if self.bare is not None:
+                sections.extend(self.common.sections)
+                sections.extend(self.bare.sections)
             self._zsh_comp_sections(zcf, sections, grouping)
             if subcmds:
                 print("'*::arg:->args'", file=zcf)
@@ -294,8 +294,8 @@ class CLIManager:
                 print('\nfunction _{}_{} {{'.format(cmd, sub), file=zcf)
                 print('_arguments', end=BLK, file=zcf)
                 sections = []
-                sections.extend(self.subcmds_.get(None, mdum).sections)
-                sections.extend(self.subcmds_[sub].sections)
+                sections.extend(self.common.sections)
+                sections.extend(self.subcmds[sub].sections)
                 if sub in self._conf:
                     sections.append(sub)
                 self._zsh_comp_sections(zcf, sections, grouping)
@@ -330,17 +330,16 @@ class CLIManager:
             cmds (str): extra command names that should be completed.
         """
         path = pathlib.Path(path)
-        mdum = Subcmd('')
-        subcmds = [sub for sub in self.subcmds if sub]
+        subcmds = list(self.subcmds.keys())
         with path.open('w') as bcf:
             # main function
             print('_{}() {{'.format(cmd), file=bcf)
             print('COMPREPLY=()', file=bcf)
             print(r'local cur=${COMP_WORDS[COMP_CWORD]}', end='\n\n', file=bcf)
             sections = []
-            if self._nosub_valid:
-                sections.extend(self.subcmds_.get(None, mdum).sections)
-                sections.extend(self.subcmds_.get('', mdum).sections)
+            if self.bare is not None:
+                sections.extend(self.common.sections)
+                sections.extend(self.bare.sections)
             optstr = ' '.join(self._bash_comp_sections(sections))
             print(r'local options="{}"'.format(optstr), end='\n\n', file=bcf)
             if subcmds:
@@ -349,8 +348,8 @@ class CLIManager:
                 print('declare -A suboptions', file=bcf)
             for sub in subcmds:
                 sections = []
-                sections.extend(self.subcmds_.get(None, mdum).sections)
-                sections.extend(self.subcmds_[sub].sections)
+                sections.extend(self.common.sections)
+                sections.extend(self.subcmds[sub].sections)
                 if sub in self._conf:
                     sections.append(sub)
                 optstr = ' '.join(self._bash_comp_sections(sections))
