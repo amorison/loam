@@ -1,5 +1,24 @@
 import pytest
 import loam.error
+import loam.manager
+
+def test_build_from_dict(conf, conf_def):
+    conf_dict = {name: dict(sct.def_) for name, sct in conf_def.items()}
+    conf_fd = loam.manager.ConfigurationManager.from_dict_(conf_dict)
+    assert all(conf[s][o] == conf_fd[s][o]
+               for s in conf_def for o in conf_def[s])
+
+def test_build_section_invalid_option_name():
+    invalid_id = 'not a valid id'
+    with pytest.raises(loam.error.OptionError) as err:
+        loam.manager.Section(**{invalid_id: 'dummy'})
+    assert err.value.option == invalid_id
+
+def test_build_manager_invalid_section_name():
+    invalid_id = 'not a valid id'
+    with pytest.raises(loam.error.SectionError) as err:
+        loam.manager.ConfigurationManager(**{invalid_id: 'dummy'})
+    assert err.value.section == invalid_id
 
 def test_get_subconfig(conf, conf_def):
     for sub in conf_def:
@@ -52,6 +71,11 @@ def test_reset_subconfig_item(conf):
     del conf['sectionA']
     assert conf.sectionA.optA == 1
 
+def test_reset_subconfig_func(conf):
+    conf.sectionA.optA = 42
+    conf.sectionA.reset_()
+    assert conf.sectionA.optA == 1
+
 def test_reset_opt(conf):
     conf.sectionA.optA = 42
     del conf.sectionA.optA
@@ -84,11 +108,7 @@ def test_update_section_conf_arg(conf):
     assert conf.sectionA.optB == 42 and conf.sectionB.optB == 43
 
 def test_opt_def_values(conf, conf_def):
-    assert all(conf[s].def_[o] == conf_def[s][o]
-               for s in conf_def for o in conf_def[s])
-
-def test_section_def_values(conf, conf_def):
-    assert all(conf.def_[s][o] == conf_def[s][o]
+    assert all(conf[s].def_[o] == conf_def[s].def_[o]
                for s in conf_def for o in conf_def[s])
 
 def test_config_iter_subs(conf, conf_def):
@@ -111,7 +131,7 @@ def test_config_iter_default_val(conf):
 def test_config_iter_subconfig(conf, conf_def):
     raw_iter = set(iter(conf.sectionA))
     opts_iter = set(conf.sectionA.options_())
-    opts_expected = set(conf_def['sectionA'].keys())
+    opts_expected = set(conf_def['sectionA'])
     assert raw_iter == opts_iter == opts_expected
 
 def test_config_iter_subconfig_default_val(conf):
