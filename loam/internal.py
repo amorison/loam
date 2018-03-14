@@ -30,4 +30,4 @@ def zsh_version():
     except (FileNotFoundError, subprocess.CalledProcessError):
         return (0, 0)
     match = re.search('[0-9]+\.[0-9]+', out)
-    return tuple(map(int, match[0].split('.'))) if match else (0, 0)
+    return tuple(map(int, match.group(0).split('.'))) if match else (0, 0)
