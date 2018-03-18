@@ -1,6 +1,5 @@
 from shlex import split
 import pytest
-import loam.error
 
 def test_parse_no_args(conf, climan):
     climan.parse_args([])
