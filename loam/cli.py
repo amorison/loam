@@ -27,16 +27,6 @@ def _names(section, option):
     return names
 
 
-def _update_section_from_cmd_args(section, args, exclude=None):
-    """Set option values accordingly to cmd line args."""
-    if exclude is None:
-        exclude = set()
-    for opt, meta in section.defaults_():
-        if opt in exclude or not meta.cmd_arg:
-            continue
-        section[opt] = getattr(args, opt, None)
-
-
 class Subcmd:
 
     """Metadata of sub commands.
@@ -180,40 +170,23 @@ class CLIManager:
     def parse_args(self, arglist=None):
         """Parse arguments and update options accordingly.
 
-        The :meth:`ConfigurationManager.build_parser_` method needs to be
-        called prior to this function.
-
         Args:
             arglist (list of str): list of arguments to parse. If set to None,
                 ``sys.argv[1:]`` is used.
 
         Returns:
-            (:class:`Namespace`, list of str): the argument namespace returned
-            by the :class:`argparse.ArgumentParser` and the list of
-            configuration sections altered by the parsing.
+            :class:`Namespace`: the argument namespace returned by the
+            :class:`argparse.ArgumentParser`.
         """
         args = self._parser.parse_args(args=arglist)
         sub_cmd = args.loam_sub_name
-        sub_cmds = self.subcmds
-        scts = list(self.common.sections)
         if sub_cmd is None:
-            if self.bare is not None:
-                scts.extend(self.bare.sections)
+            for opt, sct in self._opt_bare.items():
+                self._conf[sct][opt] = getattr(args, opt, None)
         else:
-            scts.extend(sub_cmds[sub_cmd].sections)
-            if sub_cmd in self._conf:
-                scts.append(sub_cmd)
-        already_consumed = set()
-        for sct in scts:
-            _update_section_from_cmd_args(self._conf[sct], args)
-            already_consumed |= set(o for o, m in self._conf[sct].defaults_()
-                                    if m.cmd_arg)
-        # set sections implemented by empty subcommand with remaining options
-        if sub_cmd is not None and self.bare is not None:
-            for sct in self.bare.sections:
-                _update_section_from_cmd_args(self._conf[sct], args,
-                                              already_consumed)
-        return args, scts
+            for opt, sct in self._opt_cmds[sub_cmd].items():
+                self._conf[sct][opt] = getattr(args, opt, None)
+        return args
 
     def _zsh_comp_sections(self, zcf, sections, grouping, add_help=True):
         """Write zsh _arguments compdef for a list of sections.
