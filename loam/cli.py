@@ -100,7 +100,11 @@ class CLIManager:
                 raise error.SubcmdError(sub_name)
         self._common = common_ if common_ is not None else Subcmd(None)
         self._bare = bare_
-        self._all_opts_solver()  # define self._opt_cmds
+        # dict of dict [command][option] = section
+        self._opt_cmds = {}
+        # same as above but for bare command only [option] = section
+        self._opt_bare = {}
+        self._all_opts_solver()
         self._parser = self._build_parser()
 
     @property
@@ -121,32 +125,32 @@ class CLIManager:
         """
         return MappingProxyType(self._subcmds)
 
-    def _cmd_opts_solver(self, cmd, sections):
+    def _cmd_opts_solver(self, cmd_name, cmd_dict, sections):
         """Scan options related to one command and enrich _opt_cmds."""
-        self._opt_cmds[cmd] = {}
         for sct in reversed(sections):
             for opt, opt_meta in self._conf[sct].def_.items():
                 if not opt_meta.cmd_arg:
                     continue
-                if opt not in self._opt_cmds[cmd]:
-                    self._opt_cmds[cmd][opt] = sct
+                if opt not in cmd_dict:
+                    cmd_dict[opt] = sct
                 else:
                     warnings.warn(
                         'Command {0}: {1}.{2} shadowed by {3}.{2}'.format(
-                            cmd, sct, opt, self._opt_cmds[cmd][opt]),
-                        error.LoamWarning)
+                            cmd_name, sct, opt, cmd_dict[opt]),
+                        error.LoamWarning, stacklevel=4)
 
     def _all_opts_solver(self):
         """Scan all options and build _opt_cmds."""
-        self._opt_cmds = {}
         if self.bare is not None:
             sections = list(self.common.sections)
             sections.extend(self.bare.sections)
-            self._cmd_opts_solver('', sections)
+            self._cmd_opts_solver('<>', self._opt_bare, sections)
         for cmd_name, cmd_meta in self.subcmds.items():
+            self._opt_cmds[cmd_name] = {}
             sections = list(self.common.sections)
             sections.extend(cmd_meta.sections)
-            self._cmd_opts_solver(cmd_name, sections)
+            self._cmd_opts_solver('<{}>'.format(cmd_name),
+                                  self._opt_cmds[cmd_name], sections)
 
     def _build_parser(self):
         """Build command line argument parser.
