@@ -2,6 +2,7 @@
 import argparse
 import copy
 import pathlib
+import warnings
 from types import MappingProxyType
 
 from . import error, internal
@@ -99,6 +100,7 @@ class CLIManager:
                 raise error.SubcmdError(sub_name)
         self._common = common_ if common_ is not None else Subcmd(None)
         self._bare = bare_
+        self._all_opts_solver()  # define self._opt_cmds
         self._parser = self._build_parser()
 
     @property
@@ -118,6 +120,33 @@ class CLIManager:
         It is a dict of :class:`Subcmd`.
         """
         return MappingProxyType(self._subcmds)
+
+    def _cmd_opts_solver(self, cmd, sections):
+        """Scan options related to one command and enrich _opt_cmds."""
+        self._opt_cmds[cmd] = {}
+        for sct in reversed(sections):
+            for opt, opt_meta in self._conf[sct].def_.items():
+                if not opt_meta.cmd_arg:
+                    continue
+                if opt not in self._opt_cmds[cmd]:
+                    self._opt_cmds[cmd][opt] = sct
+                else:
+                    warnings.warn(
+                        'Command {0}: {1}.{2} shadowed by {3}.{2}'.format(
+                            cmd, sct, opt, self._opt_cmds[cmd][opt]),
+                        error.LoamWarning)
+
+    def _all_opts_solver(self):
+        """Scan all options and build _opt_cmds."""
+        self._opt_cmds = {}
+        if self.bare is not None:
+            sections = list(self.common.sections)
+            sections.extend(self.bare.sections)
+            self._cmd_opts_solver('', sections)
+        for cmd_name, cmd_meta in self.subcmds.items():
+            sections = list(self.common.sections)
+            sections.extend(cmd_meta.sections)
+            self._cmd_opts_solver(cmd_name, sections)
 
     def _build_parser(self):
         """Build command line argument parser.
