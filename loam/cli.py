@@ -27,24 +27,6 @@ def _names(section, option):
     return names
 
 
-def _add_section_to_parser(section, parser):
-    """Add arguments to a parser."""
-    store_bool = ('store_true', 'store_false')
-    for arg, meta in section.defaults_():
-        if not meta.cmd_arg:
-            continue
-        kwargs = copy.deepcopy(meta.cmd_kwargs)
-        action = kwargs.get('action')
-        if action is internal.Switch:
-            kwargs.update(nargs=0)
-        elif meta.default is not None and action not in store_bool:
-            kwargs.setdefault('type', type(meta.default))
-        kwargs.update(help=meta.help)
-        parser.add_argument(*_names(section, arg), **kwargs)
-    parser.set_defaults(**{a: section[a]
-                           for a, m in section.defaults_() if m.cmd_arg})
-
-
 def _update_section_from_cmd_args(section, args, exclude=None):
     """Set option values accordingly to cmd line args."""
     if exclude is None:
@@ -149,8 +131,25 @@ class CLIManager:
             self._opt_cmds[cmd_name] = {}
             sections = list(self.common.sections)
             sections.extend(cmd_meta.sections)
+            if cmd_name in self._conf:
+                sections.append(cmd_name)
             self._cmd_opts_solver('<{}>'.format(cmd_name),
                                   self._opt_cmds[cmd_name], sections)
+
+    def _add_options_to_parser(self, opts_dict, parser):
+        """Add options to a parser."""
+        store_bool = ('store_true', 'store_false')
+        for opt, sct in opts_dict.items():
+            meta = self._conf[sct].def_[opt]
+            kwargs = copy.deepcopy(meta.cmd_kwargs)
+            action = kwargs.get('action')
+            if action is internal.Switch:
+                kwargs.update(nargs=0)
+            elif meta.default is not None and action not in store_bool:
+                kwargs.setdefault('type', type(meta.default))
+            kwargs.update(help=meta.help)
+            kwargs.setdefault('default', self._conf[sct][opt])
+            parser.add_argument(*_names(self._conf[sct], opt), **kwargs)
 
     def _build_parser(self):
         """Build command line argument parser.
@@ -161,36 +160,19 @@ class CLIManager:
             arguments and update the :class:`ConfigurationManager` instance
             accordingly, use the :meth:`parse_args` method.
         """
-        sub_cmds = self.subcmds
         main_parser = argparse.ArgumentParser(description=self.common.help,
                                               prefix_chars='-+')
 
+        self._add_options_to_parser(self._opt_bare, main_parser)
         main_parser.set_defaults(**self.common.defaults)
         if self.bare is not None:
             main_parser.set_defaults(**self.bare.defaults)
-            for sct in self.common.sections:
-                _add_section_to_parser(self._conf[sct], main_parser)
-            for sct in self.bare.sections:
-                _add_section_to_parser(self._conf[sct], main_parser)
-
-        xparsers = {}
-        for sct in self._conf:
-            if sct not in sub_cmds:
-                xparsers[sct] = argparse.ArgumentParser(add_help=False,
-                                                        prefix_chars='-+')
-                _add_section_to_parser(self._conf[sct], xparsers[sct])
 
         subparsers = main_parser.add_subparsers(dest='loam_sub_name')
-        for sub_cmd, meta in sub_cmds.items():
+        for cmd_name, meta in self.subcmds.items():
             kwargs = {'prefix_chars': '+-', 'help': meta.help}
-            parent_parsers = [xparsers[sct]
-                              for sct in self.common.sections]
-            for sct in meta.sections:
-                parent_parsers.append(xparsers[sct])
-            kwargs.update(parents=parent_parsers)
-            dummy_parser = subparsers.add_parser(sub_cmd, **kwargs)
-            if sub_cmd in self._conf:
-                _add_section_to_parser(self._conf[sub_cmd], dummy_parser)
+            dummy_parser = subparsers.add_parser(cmd_name, **kwargs)
+            self._add_options_to_parser(self._opt_cmds[cmd_name], dummy_parser)
             dummy_parser.set_defaults(**meta.defaults)
 
         return main_parser
