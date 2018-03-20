@@ -76,7 +76,11 @@ class CLIManager:
         self._opt_cmds = {}
         # same as above but for bare command only [option] = section
         self._opt_bare = {}
-        self._all_opts_solver()
+        if self.bare is not None:
+            self._cmd_opts_solver(None)
+        for cmd_name, cmd_meta in self.subcmds.items():
+            self._opt_cmds[cmd_name] = {}
+            self._cmd_opts_solver(cmd_name)
         self._parser = self._build_parser()
 
     @property
@@ -97,8 +101,31 @@ class CLIManager:
         """
         return MappingProxyType(self._subcmds)
 
-    def _cmd_opts_solver(self, cmd_name, cmd_dict, sections):
+    def sections_list(self, cmd=None):
+        """List of config sections used by a command.
+
+        Args:
+            cmd (str): command name, set to ``None`` or ``''`` for the bare
+                command.
+
+        Returns:
+            list of str: list of configuration sections used by that command.
+        """
+        sections = list(self.common.sections)
+        if not cmd:
+            if self.bare is not None:
+                sections.extend(self.bare.sections)
+                return sections
+            return []
+        sections.extend(self.subcmds[cmd].sections)
+        if cmd in self._conf:
+            sections.append(cmd)
+        return sections
+
+    def _cmd_opts_solver(self, cmd_name):
         """Scan options related to one command and enrich _opt_cmds."""
+        sections = self.sections_list(cmd_name)
+        cmd_dict = self._opt_cmds[cmd_name] if cmd_name else self._opt_bare
         for sct in reversed(sections):
             for opt, opt_meta in self._conf[sct].def_.items():
                 if not opt_meta.cmd_arg:
@@ -107,24 +134,9 @@ class CLIManager:
                     cmd_dict[opt] = sct
                 else:
                     warnings.warn(
-                        'Command {0}: {1}.{2} shadowed by {3}.{2}'.format(
+                        'Command <{0}>: {1}.{2} shadowed by {3}.{2}'.format(
                             cmd_name, sct, opt, cmd_dict[opt]),
                         error.LoamWarning, stacklevel=4)
-
-    def _all_opts_solver(self):
-        """Scan all options and build _opt_cmds."""
-        if self.bare is not None:
-            sections = list(self.common.sections)
-            sections.extend(self.bare.sections)
-            self._cmd_opts_solver('<>', self._opt_bare, sections)
-        for cmd_name, cmd_meta in self.subcmds.items():
-            self._opt_cmds[cmd_name] = {}
-            sections = list(self.common.sections)
-            sections.extend(cmd_meta.sections)
-            if cmd_name in self._conf:
-                sections.append(cmd_name)
-            self._cmd_opts_solver('<{}>'.format(cmd_name),
-                                  self._opt_cmds[cmd_name], sections)
 
     def _add_options_to_parser(self, opts_dict, parser):
         """Add options to a parser."""
