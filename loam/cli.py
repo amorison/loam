@@ -200,12 +200,12 @@ class CLIManager:
                 self._conf[sct][opt] = getattr(args, opt, None)
         return args
 
-    def _zsh_comp_sections(self, zcf, sections, grouping, add_help=True):
-        """Write zsh _arguments compdef for a list of sections.
+    def _zsh_comp_command(self, zcf, cmd, grouping, add_help=True):
+        """Write zsh _arguments compdef for a given command.
 
         Args:
             zcf (file): zsh compdef file.
-            sections (list of str): list of sections.
+            cmd (str): command name, set to None or '' for bare command.
             grouping (bool): group options (zsh>=5.4).
             add_help (bool): add an help option.
         """
@@ -217,36 +217,33 @@ class CLIManager:
         # could deal with duplicate by iterating in reverse and keep set of
         # already defined opts.
         no_comp = ('store_true', 'store_false')
-        for sec in sections:
-            for opt, meta in self._conf[sec].defaults_():
-                if not meta.cmd_arg:
-                    continue
-                if meta.cmd_kwargs.get('action') == 'append':
-                    grpfmt, optfmt = "+ '{}'", "'*{}[{}]{}'"
-                    if meta.comprule is None:
-                        meta.comprule = ''
-                else:
-                    grpfmt, optfmt = "+ '({})'", "'{}[{}]{}'"
-                if meta.cmd_kwargs.get('action') in no_comp \
-                   or meta.cmd_kwargs.get('nargs') == 0:
-                    meta.comprule = None
+        cmd_dict = self._opt_cmds[cmd] if cmd else self._opt_bare
+        for opt, sct in cmd_dict.items():
+            meta = self._conf[sct].def_[opt]
+            if meta.cmd_kwargs.get('action') == 'append':
+                grpfmt, optfmt = "+ '{}'", "'*{}[{}]{}'"
                 if meta.comprule is None:
-                    compstr = ''
-                elif meta.comprule == '':
-                    optfmt = optfmt.split('[')
-                    optfmt = optfmt[0] + '=[' + optfmt[1]
-                    compstr = ': :( )'
-                else:
-                    optfmt = optfmt.split('[')
-                    optfmt = optfmt[0] + '=[' + optfmt[1]
-                    compstr = ': :{}'.format(meta.comprule)
-                if grouping:
-                    print(grpfmt.format(opt), end=BLK, file=zcf)
-                for name in _names(self._conf[sec], opt):
-                    print(optfmt.format(name,
-                                        meta.help.replace("'", "'\"'\"'"),
-                                        compstr),
-                          end=BLK, file=zcf)
+                    meta.comprule = ''
+            else:
+                grpfmt, optfmt = "+ '({})'", "'{}[{}]{}'"
+            if meta.cmd_kwargs.get('action') in no_comp \
+               or meta.cmd_kwargs.get('nargs') == 0:
+                meta.comprule = None
+            if meta.comprule is None:
+                compstr = ''
+            elif meta.comprule == '':
+                optfmt = optfmt.split('[')
+                optfmt = optfmt[0] + '=[' + optfmt[1]
+                compstr = ': :( )'
+            else:
+                optfmt = optfmt.split('[')
+                optfmt = optfmt[0] + '=[' + optfmt[1]
+                compstr = ': :{}'.format(meta.comprule)
+            if grouping:
+                print(grpfmt.format(opt), end=BLK, file=zcf)
+            for name in _names(self._conf[sct], opt):
+                print(optfmt.format(name, meta.help.replace("'", "'\"'\"'"),
+                                    compstr), end=BLK, file=zcf)
 
     def zsh_complete(self, path, cmd, *cmds, sourceable=False):
         """Write zsh compdef script.
@@ -276,11 +273,7 @@ class CLIManager:
                            for sub in subcmds]
                 print('"1:Commands:(({}))"'.format(' '.join(substrs)),
                       end=BLK, file=zcf)
-            sections = []
-            if self.bare is not None:
-                sections.extend(self.common.sections)
-                sections.extend(self.bare.sections)
-            self._zsh_comp_sections(zcf, sections, grouping)
+            self._zsh_comp_command(zcf, None, grouping)
             if subcmds:
                 print("'*::arg:->args'", file=zcf)
                 print('case $line[1] in', file=zcf)
@@ -293,32 +286,25 @@ class CLIManager:
             for sub in subcmds:
                 print('\nfunction _{}_{} {{'.format(cmd, sub), file=zcf)
                 print('_arguments', end=BLK, file=zcf)
-                sections = []
-                sections.extend(self.common.sections)
-                sections.extend(self.subcmds[sub].sections)
-                if sub in self._conf:
-                    sections.append(sub)
-                self._zsh_comp_sections(zcf, sections, grouping)
+                self._zsh_comp_command(zcf, sub, grouping)
                 print('}', file=zcf)
             if sourceable:
                 print('\ncompdef _{0} {0}'.format(cmd), *cmds, file=zcf)
 
-    def _bash_comp_sections(self, sections, add_help=True):
-        """Build a list of all options from a list of sections.
+    def _bash_comp_command(self, cmd, add_help=True):
+        """Build a list of all options for a given command.
 
         Args:
-            sections (list of str): list of sections.
+            cmd (str): command name, set to None or '' for bare command.
             add_help (bool): add an help option.
 
         Returns:
             list of str: list of CLI options strings.
         """
         out = ['-h', '--help'] if add_help else []
-        for sec in sections:
-            for opt, meta in self._conf[sec].defaults_():
-                if not meta.cmd_arg:
-                    continue
-                out.extend(_names(self._conf[sec], opt))
+        cmd_dict = self._opt_cmds[cmd] if cmd else self._opt_bare
+        for opt, sct in cmd_dict:
+            out.extend(_names(self._conf[sct], opt))
         return out
 
     def bash_complete(self, path, cmd, *cmds):
@@ -336,23 +322,14 @@ class CLIManager:
             print('_{}() {{'.format(cmd), file=bcf)
             print('COMPREPLY=()', file=bcf)
             print(r'local cur=${COMP_WORDS[COMP_CWORD]}', end='\n\n', file=bcf)
-            sections = []
-            if self.bare is not None:
-                sections.extend(self.common.sections)
-                sections.extend(self.bare.sections)
-            optstr = ' '.join(self._bash_comp_sections(sections))
+            optstr = ' '.join(self._bash_comp_command(None))
             print(r'local options="{}"'.format(optstr), end='\n\n', file=bcf)
             if subcmds:
                 print('local commands="{}"'.format(' '.join(subcmds)),
                       file=bcf)
                 print('declare -A suboptions', file=bcf)
             for sub in subcmds:
-                sections = []
-                sections.extend(self.common.sections)
-                sections.extend(self.subcmds[sub].sections)
-                if sub in self._conf:
-                    sections.append(sub)
-                optstr = ' '.join(self._bash_comp_sections(sections))
+                optstr = ' '.join(self._bash_comp_command(sub))
                 print('suboptions[{}]="{}"'.format(sub, optstr), file=bcf)
             condstr = 'if'
             for sub in subcmds:
