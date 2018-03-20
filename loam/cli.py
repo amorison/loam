@@ -78,7 +78,7 @@ class CLIManager:
         self._opt_bare = {}
         if self.bare is not None:
             self._cmd_opts_solver(None)
-        for cmd_name, cmd_meta in self.subcmds.items():
+        for cmd_name in self.subcmds:
             self._opt_cmds[cmd_name] = {}
             self._cmd_opts_solver(cmd_name)
         self._parser = self._build_parser()
