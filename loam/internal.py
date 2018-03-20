@@ -23,7 +23,7 @@ class Switch(argparse.Action):
 
 
 def zsh_version():
-    """Try to guess zsh version, returns (0, 0) on failure."""
+    """Try to guess zsh version, return (0, 0) on failure."""
     try:
         out = subprocess.check_output(shlex.split('zsh --version'))
     except (FileNotFoundError, subprocess.CalledProcessError):
