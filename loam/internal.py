@@ -28,5 +28,5 @@ def zsh_version():
         out = subprocess.check_output(shlex.split('zsh --version'))
     except (FileNotFoundError, subprocess.CalledProcessError):
         return (0, 0)
-    match = re.search(b'[0-9]+\.[0-9]+', out)
+    match = re.search(br'[0-9]+\.[0-9]+', out)
     return tuple(map(int, match.group(0).split(b'.'))) if match else (0, 0)
