@@ -18,7 +18,7 @@ def test_parse_sub_common_args(conf, climan):
 
 def test_parse_no_sub_only_args(conf, climan):
     climan.parse_args(split('--optC 42 sectionB'))
-    assert conf.sectionA.optC == 42
+    assert conf.sectionA.optC == 3
     assert conf.sectionB.optC == 6
 
 def test_parse_not_conf_cmd_args(climan):

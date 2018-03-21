@@ -8,6 +8,13 @@ class LoamError(Exception):
     pass
 
 
+class LoamWarning(UserWarning):
+
+    """Warning category for warnings issued by loam."""
+
+    pass
+
+
 class SectionError(LoamError):
 
     """Raised when invalid config section is requested."""
