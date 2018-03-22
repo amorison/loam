@@ -28,6 +28,10 @@ def test_get_opt(conf):
     for sub, opt in conf.options_():
         assert getattr(conf[sub], opt) is conf[sub][opt]
 
+def test_set_opt_def(conf):
+    with pytest.raises(TypeError):
+        conf.sectionA.def_['optA'] = None
+
 def test_get_invalid_subconfig(conf):
     invalid = 'invalidsubdummy'
     with pytest.raises(loam.error.SectionError) as err:
