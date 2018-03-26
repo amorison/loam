@@ -81,7 +81,7 @@ class Section:
         delattr(self, opt)
 
     def __delattr__(self, opt):
-        if not opt in self:
+        if opt not in self:
             raise error.OptionError(opt)
         self[opt] = self.def_[opt].default
 
