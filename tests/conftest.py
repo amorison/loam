@@ -1,8 +1,12 @@
+from pathlib import Path
+
 import pytest
+
+from loam.manager import ConfOpt, Section, ConfigurationManager
+from loam.cli import Subcmd, CLIManager
 
 @pytest.fixture(scope='session', params=['confA'])
 def conf_def(request):
-    from loam.manager import ConfOpt, Section
     metas = {}
     metas['confA'] = {
         'sectionA': Section(
@@ -20,12 +24,10 @@ def conf_def(request):
 
 @pytest.fixture
 def conf(conf_def):
-    from loam.manager import ConfigurationManager
     return ConfigurationManager(**conf_def)
 
 @pytest.fixture(params=['subsA'])
 def sub_cmds(request):
-    from loam.cli import Subcmd
     subs = {}
     subs['subsA'] = {
         'common_': Subcmd('subsA loam test'),
@@ -36,22 +38,18 @@ def sub_cmds(request):
 
 @pytest.fixture
 def climan(conf, sub_cmds):
-    from loam.cli import CLIManager
     return CLIManager(conf, **sub_cmds)
 
 @pytest.fixture
 def cfile(tmpdir):
-    from pathlib import Path
     return Path(str(tmpdir)) / 'config.toml'
 
 @pytest.fixture
 def nonexistent_file(tmpdir):
-    from pathlib import Path
     return Path(str(tmpdir)) / 'dummy.toml'
 
 @pytest.fixture
 def illtoml(tmpdir):
-    from pathlib import Path
     path = Path(str(tmpdir)) / 'ill.toml'
     with path.open('w') as ift:
         ift.write('not}valid[toml\n')
