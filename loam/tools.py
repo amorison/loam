@@ -121,8 +121,8 @@ def config_cmd_handler(conf, config='config'):
     if conf[config].edit:
         if not conf.config_files_[0].is_file():
             conf.create_config_(update=conf[config].update)
-        subprocess.call(shlex.split('{} {}'.format(conf[config].editor,
-                                                   conf.config_files_[0])))
+        subprocess.run(shlex.split('{} {}'.format(conf[config].editor,
+                                                  conf.config_files_[0])))
 
 
 def create_complete_files(climan, path, cmd, *cmds, zsh_sourceable=False):
