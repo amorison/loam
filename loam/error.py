@@ -25,7 +25,7 @@ class SectionError(LoamError):
 
     def __init__(self, section):
         self.section = section
-        super().__init__('invalid section name: {}'.format(section))
+        super().__init__(f'invalid section name: {section}')
 
 
 class OptionError(LoamError):
@@ -40,7 +40,7 @@ class OptionError(LoamError):
 
     def __init__(self, option):
         self.option = option
-        super().__init__('invalid option name: {}'.format(option))
+        super().__init__(f'invalid option name: {option}')
 
 
 class SubcmdError(LoamError):
@@ -55,4 +55,4 @@ class SubcmdError(LoamError):
 
     def __init__(self, option):
         self.option = option
-        super().__init__('invalid subcommand name: {}'.format(option))
+        super().__init__(f'invalid subcommand name: {option}')

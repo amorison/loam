@@ -142,10 +142,10 @@ def create_complete_files(climan, path, cmd, *cmds, zsh_sourceable=False):
     zsh_dir = path / 'zsh'
     if not zsh_dir.exists():
         zsh_dir.mkdir(parents=True)
-    zsh_file = zsh_dir / '_{}.sh'.format(cmd)
+    zsh_file = zsh_dir / f"_{cmd}.sh"
     bash_dir = path / 'bash'
     if not bash_dir.exists():
         bash_dir.mkdir(parents=True)
-    bash_file = bash_dir / '{}.sh'.format(cmd)
+    bash_file = bash_dir / f"{cmd}.sh"
     climan.zsh_complete(zsh_file, cmd, *cmds, sourceable=zsh_sourceable)
     climan.bash_complete(bash_file, cmd, *cmds)

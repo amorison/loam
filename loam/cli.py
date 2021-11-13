@@ -16,14 +16,14 @@ def _names(section, option):
     meta = section.def_[option]
     action = meta.cmd_kwargs.get('action')
     if action is internal.Switch:
-        names = ['-{}'.format(option), '+{}'.format(option)]
+        names = [f'-{option}', f'+{option}']
         if meta.shortname is not None:
-            names.append('-{}'.format(meta.shortname))
-            names.append('+{}'.format(meta.shortname))
+            names.append(f'-{meta.shortname}')
+            names.append(f'+{meta.shortname}')
     else:
-        names = ['--{}'.format(option)]
+        names = [f'--{option}']
         if meta.shortname is not None:
-            names.append('-{}'.format(meta.shortname))
+            names.append(f'-{meta.shortname}')
     return names
 
 
@@ -261,12 +261,12 @@ class CLIManager:
         with path.open('w') as zcf:
             print(*firstline, end='\n\n', file=zcf)
             # main function
-            print('function _{} {{'.format(cmd), file=zcf)
+            print(f'function _{cmd} {{', file=zcf)
             print('local line', file=zcf)
             print('_arguments -C', end=BLK, file=zcf)
             if subcmds:
                 # list of subcommands and their description
-                substrs = ["{}\\:'{}'".format(sub, self.subcmds[sub].help)
+                substrs = [rf"{sub}\:'{self.subcmds[sub].help}'"
                            for sub in subcmds]
                 print('"1:Commands:(({}))"'.format(' '.join(substrs)),
                       end=BLK, file=zcf)
@@ -275,18 +275,17 @@ class CLIManager:
                 print("'*::arg:->args'", file=zcf)
                 print('case $line[1] in', file=zcf)
                 for sub in subcmds:
-                    print('{sub}) _{cmd}_{sub} ;;'.format(sub=sub, cmd=cmd),
-                          file=zcf)
+                    print(f'{sub}) _{cmd}_{sub} ;;', file=zcf)
                 print('esac', file=zcf)
             print('}', file=zcf)
             # all subcommand completion handlers
             for sub in subcmds:
-                print('\nfunction _{}_{} {{'.format(cmd, sub), file=zcf)
+                print(f'\nfunction _{cmd}_{sub} {{', file=zcf)
                 print('_arguments', end=BLK, file=zcf)
                 self._zsh_comp_command(zcf, sub, grouping)
                 print('}', file=zcf)
             if sourceable:
-                print('\ncompdef _{0} {0}'.format(cmd), *cmds, file=zcf)
+                print(f'\ncompdef _{cmd} {cmd}', *cmds, file=zcf)
 
     def _bash_comp_command(self, cmd, add_help=True):
         """Build a list of all options for a given command.
@@ -316,18 +315,18 @@ class CLIManager:
         subcmds = list(self.subcmds.keys())
         with path.open('w') as bcf:
             # main function
-            print('_{}() {{'.format(cmd), file=bcf)
+            print(f'_{cmd}() {{', file=bcf)
             print('COMPREPLY=()', file=bcf)
             print(r'local cur=${COMP_WORDS[COMP_CWORD]}', end='\n\n', file=bcf)
             optstr = ' '.join(self._bash_comp_command(None))
-            print(r'local options="{}"'.format(optstr), end='\n\n', file=bcf)
+            print(f'local options="{optstr}"', end='\n\n', file=bcf)
             if subcmds:
                 print('local commands="{}"'.format(' '.join(subcmds)),
                       file=bcf)
                 print('declare -A suboptions', file=bcf)
             for sub in subcmds:
                 optstr = ' '.join(self._bash_comp_command(sub))
-                print('suboptions[{}]="{}"'.format(sub, optstr), file=bcf)
+                print(f'suboptions[{sub}]="{optstr}"', file=bcf)
             condstr = 'if'
             for sub in subcmds:
                 print(condstr, r'[[ "${COMP_LINE}" == *"', sub, '"* ]] ; then',
@@ -344,4 +343,4 @@ class CLIManager:
                       file=bcf)
             print('fi', file=bcf)
             print('}', end='\n\n', file=bcf)
-            print('complete -F _{0} {0}'.format(cmd), *cmds, file=bcf)
+            print(f'complete -F _{cmd} {cmd}', *cmds, file=bcf)
