@@ -1,14 +1,12 @@
+from pathlib import Path
 from setuptools import setup
 
-with open('README.rst') as rdm:
-    README = rdm.read()
 
 setup(
     name='loam',
-    use_scm_version=True,
 
     description='Light configuration manager',
-    long_description=README,
+    long_description=Path("README.rst").read_text(),
 
     url='https://github.com/amorison/loam',
 
@@ -21,15 +19,18 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
     ],
 
     packages=['loam'],
-    setup_requires=['setuptools_scm'],
+
+    python_requires=">=3.6",
     install_requires=[
-        'setuptools_scm',
-        'toml>=0.9.4',
+        'setuptools_scm>=6.2',
+        'toml>=0.10.2',
     ],
 )
