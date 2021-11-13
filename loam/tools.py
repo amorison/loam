@@ -106,7 +106,7 @@ def set_conf_str(conf, optstrs):
 
 
 def config_cmd_handler(conf, config='config'):
-    """Implement the behavior of a subcmd using config_conf_section
+    """Implement the behavior of a subcmd using config_conf_section.
 
     Args:
         conf (:class:`~loam.manager.ConfigurationManager`): it should contain a

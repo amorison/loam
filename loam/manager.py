@@ -19,7 +19,6 @@ def _is_valid(name):
 
 
 class ConfOpt:
-
     """Metadata of configuration options.
 
     Attributes:
@@ -47,18 +46,16 @@ class ConfOpt:
 
 
 class Section:
+    """Hold options for a single section.
 
-    """Hold options for a single section."""
+    Args:
+        options (:class:`ConfOpt`): option metadata. The name of each
+            *option* is the name of the keyword argument passed on to this
+            function. Option names should be valid identifiers, otherwise
+            an :class:`~loam.error.OptionError` is raised.
+    """
 
     def __init__(self, **options):
-        """Initialization of instances.
-
-        Args:
-            options (:class:`ConfOpt`): option metadata. The name of each
-                *option* is the name of the keyword argument passed on to this
-                function. Option names should be valid identifiers, otherwise
-                an :class:`~loam.error.OptionError` is raised.
-        """
         self._def = {}
         for opt_name, opt_meta in options.items():
             if _is_valid(opt_name):
@@ -69,6 +66,7 @@ class Section:
 
     @property
     def def_(self):
+        """Return mapping of default values of options."""
         return MappingProxyType(self._def)
 
     def __getitem__(self, opt):
@@ -95,7 +93,7 @@ class Section:
         return opt in self.def_
 
     def options_(self):
-        """Iterator over configuration option names.
+        """Iterate over configuration option names.
 
         Yields:
             option names.
@@ -103,7 +101,7 @@ class Section:
         return iter(self)
 
     def opt_vals_(self):
-        """Iterator over option names and option values.
+        """Iterate over option names and option values.
 
         Yields:
             tuples with option names, and option values.
@@ -112,7 +110,7 @@ class Section:
             yield opt, self[opt]
 
     def defaults_(self):
-        """Iterator over option names, and option metadata.
+        """Iterate over option names, and option metadata.
 
         Yields:
             tuples with option names, and :class:`Conf` instances holding
@@ -142,7 +140,6 @@ class Section:
 
 
 class ConfigurationManager:
-
     """Configuration manager.
 
     Configuration options are organized in sections. A configuration option can
@@ -159,18 +156,16 @@ class ConfigurationManager:
         del conf.some_section.some_option  # reset a particular option
 
     It will be set to its default value the next time you access it.
+
+    Args:
+        sections (:class:`~loam.manager.Section`): section metadata. The
+            name of each *section* is the name of the keyword argument
+            passed on to this function. Section names should be valid
+            identifiers, otherwise a :class:`~loam.error.SectionError` is
+            raised.
     """
 
     def __init__(self, **sections):
-        """Initialization of instances.
-
-        Args:
-            sections (:class:`~loam.manager.Section`): section metadata. The
-                name of each *section* is the name of the keyword argument
-                passed on to this function. Section names should be valid
-                identifiers, otherwise a :class:`~loam.error.SectionError` is
-                raised.
-        """
         self._sections = []
         for sct_name, sct_meta in sections.items():
             if _is_valid(sct_name):
@@ -237,7 +232,7 @@ class ConfigurationManager:
         return sct in self._sections
 
     def sections_(self):
-        """Iterator over configuration section names.
+        """Iterate over configuration section names.
 
         Yields:
             section names.
@@ -245,7 +240,7 @@ class ConfigurationManager:
         return iter(self)
 
     def options_(self):
-        """Iterator over section and option names.
+        """Iterate over section and option names.
 
         This iterator is also implemented at the section level. The two loops
         produce the same output::
@@ -265,7 +260,7 @@ class ConfigurationManager:
                 yield sct, opt
 
     def opt_vals_(self):
-        """Iterator over sections, option names, and option values.
+        """Iterate over sections, option names, and option values.
 
         This iterator is also implemented at the section level. The two loops
         produce the same output::
@@ -284,7 +279,7 @@ class ConfigurationManager:
             yield sct, opt, self[sct][opt]
 
     def defaults_(self):
-        """Iterator over sections, option names, and option metadata.
+        """Iterate over sections, option names, and option metadata.
 
         This iterator is also implemented at the section level. The two loops
         produce the same output::

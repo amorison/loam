@@ -10,7 +10,6 @@ import subprocess
 
 
 class Switch(argparse.Action):
-
     """Inherited from argparse.Action, store True/False to a +/-arg.
 
     The :func:`switch_opt` function allows you to easily create a
@@ -18,7 +17,7 @@ class Switch(argparse.Action):
     """
 
     def __call__(self, parser, namespace, values, option_string=None):
-        """Set args attribute with True/False"""
+        """Set args attribute to True or False."""
         setattr(namespace, self.dest, bool('-+'.index(option_string[0])))
 
 

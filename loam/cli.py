@@ -28,7 +28,6 @@ def _names(section, option):
 
 
 class Subcmd:
-
     """Metadata of sub commands.
 
     Attributes:
@@ -44,25 +43,23 @@ class Subcmd:
 
 
 class CLIManager:
+    """CLI manager.
 
-    """CLI manager."""
+    Args:
+        conf_manager_ (:class:`~loam.manager.ConfigurationManager`): the
+            configuration manager holding option definitions.
+        common_: special subcommand, used to define the general description
+            of the CLI tool as well as configuration sections used by every
+            subcommand.
+        bare_: special subcommand, use it to define the configuration
+            sections that should be used when you call your CLI tool
+            without any subcommand.
+        subcmds: all the subcommands of your CLI tool. The name of each
+            *subcommand* is the name of the keyword argument passed on to
+            this function.
+    """
 
     def __init__(self, conf_manager_, common_=None, bare_=None, **subcmds):
-        """Initialization of instances:
-
-        Args:
-            conf_manager_ (:class:`~loam.manager.ConfigurationManager`): the
-                configuration manager holding option definitions.
-            common_: special subcommand, used to define the general description
-                of the CLI tool as well as configuration sections used by every
-                subcommand.
-            bare_: special subcommand, use it to define the configuration
-                sections that should be used when you call your CLI tool
-                without any subcommand.
-            subcmds: all the subcommands of your CLI tool. The name of each
-                *subcommand* is the name of the keyword argument passed on to
-                this function.
-        """
         self._conf = conf_manager_
         self._subcmds = {}
         for sub_name, sub_meta in subcmds.items():

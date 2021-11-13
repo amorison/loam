@@ -5,6 +5,7 @@ import pytest
 from loam.manager import ConfOpt, Section, ConfigurationManager
 from loam.cli import Subcmd, CLIManager
 
+
 @pytest.fixture(scope='session', params=['confA'])
 def conf_def(request):
     metas = {}
@@ -22,9 +23,11 @@ def conf_def(request):
     }
     return metas[request.param]
 
+
 @pytest.fixture
 def conf(conf_def):
     return ConfigurationManager(**conf_def)
+
 
 @pytest.fixture(params=['subsA'])
 def sub_cmds(request):
@@ -36,17 +39,21 @@ def sub_cmds(request):
     }
     return subs[request.param]
 
+
 @pytest.fixture
 def climan(conf, sub_cmds):
     return CLIManager(conf, **sub_cmds)
+
 
 @pytest.fixture
 def cfile(tmpdir):
     return Path(str(tmpdir)) / 'config.toml'
 
+
 @pytest.fixture
 def nonexistent_file(tmpdir):
     return Path(str(tmpdir)) / 'dummy.toml'
+
 
 @pytest.fixture
 def illtoml(tmpdir):
