@@ -1,7 +1,6 @@
 *.swp
 __pycache__/
-/.pytest_cache
-/.tox
+/.tox/
 /.coverage
-*egg-info/
-docs/_build
+/loam.egg-info/
+/docs/_build/
