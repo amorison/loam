@@ -58,6 +58,5 @@ def nonexistent_file(tmpdir):
 @pytest.fixture
 def illtoml(tmpdir):
     path = Path(str(tmpdir)) / 'ill.toml'
-    with path.open('w') as ift:
-        ift.write('not}valid[toml\n')
+    path.write_text('not}valid[toml\n')
     return path
