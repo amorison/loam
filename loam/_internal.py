@@ -1,7 +1,4 @@
-"""Internal objects.
-
-You should not use these in your own script.
-"""
+"""Internal helpers."""
 
 import argparse
 import re

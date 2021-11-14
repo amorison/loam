@@ -8,7 +8,7 @@ import pathlib
 import subprocess
 import shlex
 
-from . import error, internal
+from . import error, _internal
 from .manager import ConfOpt
 
 
@@ -29,7 +29,7 @@ def switch_opt(default, shortname, help_msg):
         properties.
     """
     return ConfOpt(bool(default), True, shortname,
-                   dict(action=internal.Switch), True, help_msg, None)
+                   dict(action=_internal.Switch), True, help_msg, None)
 
 
 def config_conf_section():
@@ -83,7 +83,7 @@ def set_conf_str(conf, optstrs):
             string.
     """
     falsy = ['0', 'no', 'n', 'off', 'false', 'f']
-    bool_actions = ['store_true', 'store_false', internal.Switch]
+    bool_actions = ['store_true', 'store_false', _internal.Switch]
     for optstr in optstrs:
         opt, val = optstr.split('=', 1)
         sec, opt = opt.split('.', 1)

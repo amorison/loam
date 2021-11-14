@@ -5,7 +5,7 @@ import pathlib
 import warnings
 from types import MappingProxyType
 
-from . import error, internal
+from . import error, _internal
 
 
 BLK = ' \\\n'  # cutting line in scripts
@@ -15,7 +15,7 @@ def _names(section, option):
     """List of cli strings for a given option."""
     meta = section.def_[option]
     action = meta.cmd_kwargs.get('action')
-    if action is internal.Switch:
+    if action is _internal.Switch:
         names = [f'-{option}', f'+{option}']
         if meta.shortname is not None:
             names.append(f'-{meta.shortname}')
@@ -142,7 +142,7 @@ class CLIManager:
             meta = self._conf[sct].def_[opt]
             kwargs = copy.deepcopy(meta.cmd_kwargs)
             action = kwargs.get('action')
-            if action is internal.Switch:
+            if action is _internal.Switch:
                 kwargs.update(nargs=0)
             elif meta.default is not None and action not in store_bool:
                 kwargs.setdefault('type', type(meta.default))
@@ -257,7 +257,7 @@ class CLIManager:
                 options. Otherwise, loam will attempt to check whether
                 zsh >= 5.4.
         """
-        grouping = force_grouping or internal.zsh_version() >= (5, 4)
+        grouping = force_grouping or _internal.zsh_version() >= (5, 4)
         path = pathlib.Path(path)
         firstline = ['#compdef', cmd]
         firstline.extend(cmds)
