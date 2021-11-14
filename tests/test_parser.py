@@ -22,14 +22,14 @@ def test_parse_short_nosub_common_args(conf, climan):
 
 def test_parse_switch_nosub_common_args(conf, climan):
     climan.parse_args(split('-optBool'))
-    assert not conf.sectionA.optBool
-    assert not conf.sectionB.optBool
+    assert conf.sectionA.optBool is False
+    assert conf.sectionB.optBool is False
 
 
 def test_parse_switch_short_nosub_common_args(conf, climan):
     climan.parse_args(split('-o'))
-    assert not conf.sectionA.optBool
-    assert not conf.sectionB.optBool
+    assert conf.sectionA.optBool is False
+    assert conf.sectionB.optBool is False
 
 
 def test_parse_sub_common_args(conf, climan):
@@ -40,14 +40,14 @@ def test_parse_sub_common_args(conf, climan):
 
 def test_parse_switch_sub_common_args(conf, climan):
     climan.parse_args(split('sectionB +optBool'))
-    assert conf.sectionA.optBool
-    assert conf.sectionB.optBool
+    assert conf.sectionA.optBool is True
+    assert conf.sectionB.optBool is True
 
 
 def test_parse_switch_short_sub_common_args(conf, climan):
     climan.parse_args(split('sectionB +o'))
-    assert conf.sectionA.optBool
-    assert conf.sectionB.optBool
+    assert conf.sectionA.optBool is True
+    assert conf.sectionB.optBool is True
 
 
 def test_parse_no_sub_only_args(conf, climan):

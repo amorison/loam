@@ -175,6 +175,6 @@ def test_config_iter_subconfig_default_val(conf):
 def test_context_section(conf):
     with conf.sectionA.context_(optA=42, optBool=False):
         assert conf.sectionA.optA == 42
-        assert not conf.sectionA.optBool
+        assert conf.sectionA.optBool is False
     assert conf.sectionA.optA == 1
-    assert conf.sectionA.optBool
+    assert conf.sectionA.optBool is True
