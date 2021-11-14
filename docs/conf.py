@@ -12,6 +12,7 @@
 
 import os
 import sys
+from pkg_resources import get_distribution
 
 sys.path.insert(0, os.path.abspath('..'))
 
@@ -43,7 +44,7 @@ copyright = '2018 - 2021, Adrien Morison'
 author = 'Adrien Morison'
 
 # The full version, including alpha/beta/rc tags.
-release = loam.__version__
+release = get_distribution("loam").version
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])
 
