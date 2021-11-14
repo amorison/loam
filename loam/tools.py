@@ -32,6 +32,18 @@ def switch_opt(default, shortname, help_msg):
                    dict(action=_internal.Switch), True, help_msg, None)
 
 
+def command_flag(shortname, help_msg):
+    """Define a command line flag.
+
+    The corresponding option is set to true if it is passed as a command line
+    option.  This is similar to :func:`switch_opt`, except the option is not
+    available from config files.  There is therefore no need for a mechanism to
+    switch it off from the command line.
+    """
+    return ConfOpt(None, True, shortname, dict(action='store_true'), False,
+                   help_msg)
+
+
 def config_conf_section():
     """Define a configuration section handling config file.
 
@@ -40,20 +52,11 @@ def config_conf_section():
         configuration options.
     """
     config_dict = OrderedDict((
-        ('create',
-            ConfOpt(None, True, None, {'action': 'store_true'},
-                    False, 'create most global config file')),
-        ('create_local',
-            ConfOpt(None, True, None, {'action': 'store_true'},
-                    False, 'create most local config file')),
-        ('update',
-            ConfOpt(None, True, None, {'action': 'store_true'},
-                    False, 'add missing entries to config file')),
-        ('edit',
-            ConfOpt(None, True, None, {'action': 'store_true'},
-                    False, 'open config file in a text editor')),
-        ('editor',
-            ConfOpt('vim', False, None, {}, True, 'text editor')),
+        ('create', command_flag(None, 'create most global config file')),
+        ('create_local', command_flag(None, 'create most local config file')),
+        ('update', command_flag(None, 'add missing entries to config file')),
+        ('edit', command_flag(None, 'open config file in a text editor')),
+        ('editor', ConfOpt('vim', False, None, {}, True, 'text editor')),
     ))
     return config_dict
 
