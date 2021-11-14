@@ -242,7 +242,8 @@ class CLIManager:
                 print(optfmt.format(name, meta.help.replace("'", "'\"'\"'"),
                                     compstr), end=BLK, file=zcf)
 
-    def zsh_complete(self, path, cmd, *cmds, sourceable=False):
+    def zsh_complete(self, path, cmd, *cmds, sourceable=False,
+                     force_grouping=False):
         """Write zsh compdef script.
 
         Args:
@@ -252,8 +253,11 @@ class CLIManager:
             sourceable (bool): if True, the generated file will contain an
                 explicit call to ``compdef``, which means it can be sourced
                 to activate CLI completion.
+            force_grouping (bool): if True, assume zsh supports grouping of
+                options. Otherwise, loam will attempt to check whether
+                zsh >= 5.4.
         """
-        grouping = internal.zsh_version() >= (5, 4)
+        grouping = force_grouping or internal.zsh_version() >= (5, 4)
         path = pathlib.Path(path)
         firstline = ['#compdef', cmd]
         firstline.extend(cmds)

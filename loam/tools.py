@@ -125,7 +125,8 @@ def config_cmd_handler(conf, config='config'):
                                                   conf.config_files_[0])))
 
 
-def create_complete_files(climan, path, cmd, *cmds, zsh_sourceable=False):
+def create_complete_files(climan, path, cmd, *cmds, zsh_sourceable=False,
+                          zsh_force_grouping=False):
     """Create completion files for bash and zsh.
 
     Args:
@@ -137,6 +138,9 @@ def create_complete_files(climan, path, cmd, *cmds, zsh_sourceable=False):
         zsh_sourceable (bool): if True, the generated file will contain an
             explicit call to ``compdef``, which means it can be sourced
             to activate CLI completion.
+        zsh_force_grouping (bool): if True, assume zsh supports grouping of
+            options. Otherwise, loam will attempt to check whether
+            zsh >= 5.4.
     """
     path = pathlib.Path(path)
     zsh_dir = path / 'zsh'
@@ -145,5 +149,6 @@ def create_complete_files(climan, path, cmd, *cmds, zsh_sourceable=False):
     bash_dir = path / 'bash'
     bash_dir.mkdir(parents=True, exist_ok=True)
     bash_file = bash_dir / f"{cmd}.sh"
-    climan.zsh_complete(zsh_file, cmd, *cmds, sourceable=zsh_sourceable)
+    climan.zsh_complete(zsh_file, cmd, *cmds, sourceable=zsh_sourceable,
+                        force_grouping=zsh_force_grouping)
     climan.bash_complete(bash_file, cmd, *cmds)

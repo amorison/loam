@@ -69,7 +69,7 @@ complete -F _cmd cmd
 
 
 def test_create_complete_files(climan, tmp_path):
-    create_complete_files(climan, tmp_path, 'cmd')
+    create_complete_files(climan, tmp_path, 'cmd', zsh_force_grouping=True)
     script_zsh = tmp_path / 'zsh' / '_cmd.sh'
     produced_zsh = script_zsh.read_text()
     assert produced_zsh == EXPECTED_ZSH
