@@ -49,7 +49,8 @@ class SectionContext:
 def zsh_version():
     """Try to guess zsh version, return (0, 0) on failure."""
     try:
-        out = subprocess.check_output(shlex.split('zsh --version'))
+        out = subprocess.run(shlex.split('zsh --version'), check=True,
+                             stdout=subprocess.PIPE).stdout
     except (FileNotFoundError, subprocess.CalledProcessError):
         return (0, 0)
     match = re.search(br'[0-9]+\.[0-9]+', out)
