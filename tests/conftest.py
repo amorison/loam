@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pytest
 
 from loam.manager import ConfOpt, Section, ConfigurationManager
@@ -49,17 +47,17 @@ def climan(conf, sub_cmds):
 
 
 @pytest.fixture
-def cfile(tmpdir):
-    return Path(str(tmpdir)) / 'config.toml'
+def cfile(tmp_path):
+    return tmp_path / 'config.toml'
 
 
 @pytest.fixture
-def nonexistent_file(tmpdir):
-    return Path(str(tmpdir)) / 'dummy.toml'
+def nonexistent_file(tmp_path):
+    return tmp_path / 'dummy.toml'
 
 
 @pytest.fixture
-def illtoml(tmpdir):
-    path = Path(str(tmpdir)) / 'ill.toml'
+def illtoml(tmp_path):
+    path = tmp_path / 'ill.toml'
     path.write_text('not}valid[toml\n')
     return path
