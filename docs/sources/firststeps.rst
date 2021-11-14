@@ -8,7 +8,6 @@ The loam package is available on PyPI, you can install it with pip::
 
     python3 -m pip install -U --user loam
 
-It is compatible with Python 3.4 and above.
 
 Basic usage
 -----------
