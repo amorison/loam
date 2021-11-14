@@ -18,6 +18,34 @@ class Switch(argparse.Action):
         setattr(namespace, self.dest, bool('-+'.index(option_string[0])))
 
 
+class SectionContext:
+    """Context manager to locally change option values.
+
+    It is reusable but not reentrant.
+
+    Args:
+        section (Section): configuration section to be managed.
+        options (Mapping): mapping between option names and their values in the
+            context.
+    """
+
+    def __init__(self, section, options):
+        self._section = section
+        self._options = options
+        self._old_values = {}
+
+    def __enter__(self):
+        self._old_values = {}
+        for option_name, new_value in self._options.items():
+            self._old_values[option_name] = self._section[option_name]
+            self._section[option_name] = new_value
+
+    def __exit__(self, e_type, *_):
+        for option_name, old_value in self._old_values.items():
+            self._section[option_name] = old_value
+        return e_type is None
+
+
 def zsh_version():
     """Try to guess zsh version, return (0, 0) on failure."""
     try:

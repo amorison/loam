@@ -10,7 +10,7 @@ from types import MappingProxyType
 
 import toml
 
-from . import error
+from . import error, _internal
 
 
 def _is_valid(name):
@@ -137,6 +137,13 @@ class Section:
         """Restore default values of options in this section."""
         for opt, meta in self.defaults_():
             self[opt] = meta.default
+
+    def context_(self, **options):
+        """Enter a context to locally change option values.
+
+        This context is reusable but not reentrant.
+        """
+        return _internal.SectionContext(self, options)
 
 
 class ConfigurationManager:
