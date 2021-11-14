@@ -4,6 +4,7 @@ import pytest
 
 from loam.manager import ConfOpt, Section, ConfigurationManager
 from loam.cli import Subcmd, CLIManager
+from loam.tools import switch_opt
 
 
 @pytest.fixture(scope='session', params=['confA'])
@@ -11,14 +12,16 @@ def conf_def(request):
     metas = {}
     metas['confA'] = {
         'sectionA': Section(
-            optA=ConfOpt(1, True, None, {}, True, 'AA'),
+            optA=ConfOpt(1, True, 'a', {}, True, 'AA'),
             optB=ConfOpt(2, True, None, {}, False, 'AB'),
             optC=ConfOpt(3, True, None, {}, True, 'AC'),
+            optBool=switch_opt(True, 'o', 'Abool'),
         ),
         'sectionB': Section(
             optA=ConfOpt(4, True, None, {}, True, 'BA'),
             optB=ConfOpt(5, True, None, {}, False, 'BB'),
             optC=ConfOpt(6, False, None, {}, True, 'BC'),
+            optBool=switch_opt(False, 'o', 'Bbool'),
         ),
     }
     return metas[request.param]

@@ -299,7 +299,8 @@ class CLIManager:
         """
         out = ['-h', '--help'] if add_help else []
         cmd_dict = self._opt_cmds[cmd] if cmd else self._opt_bare
-        for opt, sct in cmd_dict:
+        print(cmd_dict)
+        for opt, sct in cmd_dict.items():
             out.extend(_names(self._conf[sct], opt))
         return out
 
