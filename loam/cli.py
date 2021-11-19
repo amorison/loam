@@ -229,12 +229,10 @@ class CLIManager:
             if meta.comprule is None:
                 compstr = ''
             elif meta.comprule == '':
-                optfmt = optfmt.split('[')
-                optfmt = optfmt[0] + '=[' + optfmt[1]
+                optfmt = optfmt.replace('[', '=[')
                 compstr = ': :( )'
             else:
-                optfmt = optfmt.split('[')
-                optfmt = optfmt[0] + '=[' + optfmt[1]
+                optfmt = optfmt.replace('[', '=[')
                 compstr = ': :{}'.format(meta.comprule)
             if grouping:
                 print(grpfmt.format(opt), end=BLK, file=zcf)
