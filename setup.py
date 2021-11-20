@@ -19,7 +19,6 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
@@ -28,7 +27,7 @@ setup(
 
     packages=['loam'],
 
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     install_requires=[
         'setuptools_scm>=6.2',
         'toml>=0.10.2',
