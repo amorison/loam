@@ -1,9 +1,15 @@
 """Internal helpers."""
 
+from __future__ import annotations
 import argparse
 import re
 import shlex
 import subprocess
+import typing
+
+if typing.TYPE_CHECKING:
+    from typing import Dict, Any, Tuple, Mapping
+    from .manager import Section
 
 
 class Switch(argparse.Action):
@@ -29,24 +35,24 @@ class SectionContext:
             context.
     """
 
-    def __init__(self, section, options):
+    def __init__(self, section: Section, options: Mapping[str, Any]):
         self._section = section
         self._options = options
-        self._old_values = {}
+        self._old_values: Dict[str, Any] = {}
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         self._old_values = {}
         for option_name, new_value in self._options.items():
             self._old_values[option_name] = self._section[option_name]
             self._section[option_name] = new_value
 
-    def __exit__(self, e_type, *_):
+    def __exit__(self, e_type, *_) -> bool:
         for option_name, old_value in self._old_values.items():
             self._section[option_name] = old_value
         return e_type is None
 
 
-def zsh_version():
+def zsh_version() -> Tuple[int, ...]:
     """Try to guess zsh version, return (0, 0) on failure."""
     try:
         out = subprocess.run(shlex.split('zsh --version'), check=True,

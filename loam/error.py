@@ -17,13 +17,13 @@ class SectionError(LoamError):
     """Raised when invalid config section is requested.
 
     Args:
-        section (str): invalid section name.
+        section: invalid section name.
 
     Attributes:
-        section (str): invalid section name.
+        section: invalid section name.
     """
 
-    def __init__(self, section):
+    def __init__(self, section: str):
         self.section = section
         super().__init__(f'invalid section name: {section}')
 
@@ -32,13 +32,13 @@ class OptionError(LoamError):
     """Raised when invalid config option is requested.
 
     Args:
-        option (str): invalid option name.
+        option: invalid option name.
 
     Attributes:
-        option (str): invalid option name.
+        option: invalid option name.
     """
 
-    def __init__(self, option):
+    def __init__(self, option: str):
         self.option = option
         super().__init__(f'invalid option name: {option}')
 
@@ -47,12 +47,12 @@ class SubcmdError(LoamError):
     """Raised when an invalid Subcmd name is requested.
 
     Args:
-        option (str): invalid subcommand name.
+        option: invalid subcommand name.
 
     Attributes:
-        option (str): invalid subcommand name.
+        option: invalid subcommand name.
     """
 
-    def __init__(self, option):
+    def __init__(self, option: str):
         self.option = option
         super().__init__(f'invalid subcommand name: {option}')

@@ -3,53 +3,69 @@
 They are designed to help you use :class:`~loam.manager.ConfigurationManager`.
 """
 
+from __future__ import annotations
 from collections import OrderedDict
 import pathlib
 import subprocess
 import shlex
+import typing
 
 from . import error, _internal
 from .manager import ConfOpt
 
+if typing.TYPE_CHECKING:
+    from typing import Optional, Dict, List, Union
+    from os import PathLike
+    from .manager import ConfigurationManager
+    from .cli import CLIManager
 
-def switch_opt(default, shortname, help_msg):
+
+def switch_opt(default: bool, shortname: Optional[str],
+               help_msg: str) -> ConfOpt:
     """Define a switchable ConfOpt.
 
     This creates a boolean option. If you use it in your CLI, it can be
     switched on and off by prepending + or - to its name: +opt / -opt.
 
     Args:
-        default (bool): the default value of the swith option.
-        shortname (str): short name of the option, no shortname will be used if
-            it is set to None.
-        help_msg (str): short description of the option.
+        default: the default value of the swith option.
+        shortname: short name of the option, no shortname will be used if set
+            to None.
+        help_msg: short description of the option.
 
     Returns:
-        :class:`~loam.manager.ConfOpt`: a configuration option with the given
-        properties.
+        a :class:`~loam.manager.ConfOpt` with the relevant properties.
     """
     return ConfOpt(bool(default), True, shortname,
                    dict(action=_internal.Switch), True, help_msg, None)
 
 
-def command_flag(shortname, help_msg):
+def command_flag(shortname: Optional[str], help_msg: str) -> ConfOpt:
     """Define a command line flag.
 
     The corresponding option is set to true if it is passed as a command line
     option.  This is similar to :func:`switch_opt`, except the option is not
     available from config files.  There is therefore no need for a mechanism to
     switch it off from the command line.
+
+    Args:
+        shortname: short name of the option, no shortname will be used if set
+            to None.
+        help_msg: short description of the option.
+
+    Returns:
+        a :class:`~loam.manager.ConfOpt` with the relevant properties.
     """
     return ConfOpt(None, True, shortname, dict(action='store_true'), False,
-                   help_msg)
+                   help_msg, None)
 
 
-def config_conf_section():
+def config_conf_section() -> Dict[str, ConfOpt]:
     """Define a configuration section handling config file.
 
     Returns:
-        dict of ConfOpt: it defines the 'create', 'update', 'edit' and 'editor'
-        configuration options.
+        definition of the 'create', 'update', 'edit' and 'editor' configuration
+        options.
     """
     config_dict = OrderedDict((
         ('create', command_flag(None, 'create most global config file')),
@@ -61,29 +77,28 @@ def config_conf_section():
     return config_dict
 
 
-def set_conf_opt(shortname=None):
+def set_conf_opt(shortname: Optional[str] = None) -> ConfOpt:
     """Define a Confopt to set a config option.
 
     You can feed the value of this option to :func:`set_conf_str`.
 
     Args:
-        shortname (str): shortname for the option if relevant.
+        shortname: shortname for the option if relevant.
 
     Returns:
-        :class:`~loam.manager.ConfOpt`: the option definition.
+        the option definition.
     """
     return ConfOpt(None, True, shortname,
                    dict(action='append', metavar='section.option=value'),
                    False, 'set configuration options')
 
 
-def set_conf_str(conf, optstrs):
+def set_conf_str(conf: ConfigurationManager, optstrs: List[str]):
     """Set options from a list of section.option=value string.
 
     Args:
-        conf (:class:`~loam.manager.ConfigurationManager`): the conf to update.
-        optstrs (list of str): the list of 'section.option=value' formatted
-            string.
+        conf: the :class:`~loam.manager.ConfigurationManager` to update.
+        optstrs: the list of 'section.option=value' formatted strings.
     """
     falsy = ['0', 'no', 'n', 'off', 'false', 'f']
     bool_actions = ['store_true', 'store_false', _internal.Switch]
@@ -108,13 +123,13 @@ def set_conf_str(conf, optstrs):
         conf[sec][opt] = cast(val)
 
 
-def config_cmd_handler(conf, config='config'):
+def config_cmd_handler(conf: ConfigurationManager, config: str = 'config'):
     """Implement the behavior of a subcmd using config_conf_section.
 
     Args:
-        conf (:class:`~loam.manager.ConfigurationManager`): it should contain a
+        conf: a :class:`~loam.manager.ConfigurationManager` containing a
             section created with :func:`config_conf_section` function.
-        config (str): name of the configuration section created with
+        config: name of the configuration section created with
             :func:`config_conf_section` function.
     """
     if conf[config].create or conf[config].update:
@@ -128,22 +143,22 @@ def config_cmd_handler(conf, config='config'):
                                                   conf.config_files_[0])))
 
 
-def create_complete_files(climan, path, cmd, *cmds, zsh_sourceable=False,
-                          zsh_force_grouping=False):
+def create_complete_files(climan: CLIManager, path: Union[str, PathLike],
+                          cmd: str, *cmds: str, zsh_sourceable: bool = False,
+                          zsh_force_grouping: bool = False):
     """Create completion files for bash and zsh.
 
     Args:
-        climan (:class:`~loam.cli.CLIManager`): CLI manager.
-        path (path-like): directory in which the config files should be
-            created. It is created if it doesn't exist.
-        cmd (str): command name that should be completed.
-        cmds (str): extra command names that should be completed.
-        zsh_sourceable (bool): if True, the generated file will contain an
-            explicit call to ``compdef``, which means it can be sourced
-            to activate CLI completion.
-        zsh_force_grouping (bool): if True, assume zsh supports grouping of
-            options. Otherwise, loam will attempt to check whether
-            zsh >= 5.4.
+        climan: a :class:`~loam.cli.CLIManager`.
+        path: directory in which the config files should be created. It is
+            created if it doesn't exist.
+        cmd: command name that should be completed.
+        cmds: extra command names that should be completed.
+        zsh_sourceable: if True, the generated file will contain an explicit
+            call to ``compdef``, which means it can be sourced to activate CLI
+            completion.
+        zsh_force_grouping: if True, assume zsh supports grouping of options.
+            Otherwise, loam will attempt to check whether zsh >= 5.4.
     """
     path = pathlib.Path(path)
     zsh_dir = path / 'zsh'
