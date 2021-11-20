@@ -17,6 +17,7 @@ Welcome to loam's documentation!
    :caption: API Reference
 
    sources/api/manager
+   sources/api/cli
    sources/api/tools
    sources/api/error
 
