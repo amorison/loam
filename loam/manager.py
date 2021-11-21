@@ -45,7 +45,7 @@ class ConfOpt:
     def __init__(self, default: Any, cmd_arg: bool = False,
                  shortname: Optional[str] = None,
                  cmd_kwargs: Optional[Dict[str, Any]] = None,
-                 conf_arg=False, help_msg: str = '',
+                 conf_arg: bool = False, help_msg: str = '',
                  comprule: Optional[str] = ''):
         self.default = default
         self.cmd_arg = cmd_arg
@@ -89,7 +89,7 @@ class Section:
     def __delitem__(self, opt: str):
         delattr(self, opt)
 
-    def __delattr__(self, opt):
+    def __delattr__(self, opt: str):
         if opt not in self:
             raise error.OptionError(opt)
         self[opt] = self.def_[opt].default
