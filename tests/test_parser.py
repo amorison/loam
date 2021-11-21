@@ -1,5 +1,7 @@
 from shlex import split
 import pytest
+import loam.error
+import loam.cli
 
 
 def test_parse_no_args(conf, climan):
@@ -59,3 +61,8 @@ def test_parse_no_sub_only_args(conf, climan):
 def test_parse_not_conf_cmd_args(climan):
     with pytest.raises(SystemExit):
         climan.parse_args(split('sectionB --optC 42'))
+
+
+def test_build_climan_invalid_sub(conf):
+    with pytest.raises(loam.error.SubcmdError):
+        loam.cli.CLIManager(conf, **{'1invalid_sub': loam.cli.Subcmd('')})
