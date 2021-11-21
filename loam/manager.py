@@ -7,6 +7,7 @@ Note:
 """
 
 from __future__ import annotations
+from dataclasses import dataclass, field
 from pathlib import Path
 from types import MappingProxyType
 import typing
@@ -26,6 +27,7 @@ def _is_valid(name: str) -> bool:
     return name.isidentifier() and name != 'loam_sub_name'
 
 
+@dataclass(frozen=True)
 class ConfOpt:
     """Metadata of configuration options.
 
@@ -39,21 +41,15 @@ class ConfOpt:
         conf_arg: whether the option can be set in the config file.
         help: short description of the option.
         comprule: completion rule for ZSH shell.
-
     """
 
-    def __init__(self, default: Any, cmd_arg: bool = False,
-                 shortname: Optional[str] = None,
-                 cmd_kwargs: Optional[Dict[str, Any]] = None,
-                 conf_arg: bool = False, help_msg: str = '',
-                 comprule: Optional[str] = ''):
-        self.default = default
-        self.cmd_arg = cmd_arg
-        self.shortname = shortname
-        self.cmd_kwargs = {} if cmd_kwargs is None else cmd_kwargs
-        self.conf_arg = conf_arg
-        self.help = help_msg
-        self.comprule = comprule
+    default: Any
+    cmd_arg: bool = False
+    shortname: Optional[str] = None
+    cmd_kwargs: Dict[str, Any] = field(default_factory=dict)
+    conf_arg: bool = False
+    help: str = ''
+    comprule: Optional[str] = ''
 
 
 class Section:
