@@ -26,6 +26,7 @@ setup(
     ],
 
     packages=['loam'],
+    package_data={'loam': ['py.typed']},
 
     python_requires=">=3.7",
     install_requires=[
