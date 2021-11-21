@@ -4,7 +4,6 @@ They are designed to help you use :class:`~loam.manager.ConfigurationManager`.
 """
 
 from __future__ import annotations
-from collections import OrderedDict
 import pathlib
 import subprocess
 import shlex
@@ -64,17 +63,16 @@ def config_conf_section() -> Dict[str, ConfOpt]:
     """Define a configuration section handling config file.
 
     Returns:
-        definition of the 'create', 'update', 'edit' and 'editor' configuration
-        options.
+        definition of the 'create', 'create_local', 'update', 'edit' and
+        'editor' configuration options.
     """
-    config_dict = OrderedDict((
-        ('create', command_flag(None, 'create most global config file')),
-        ('create_local', command_flag(None, 'create most local config file')),
-        ('update', command_flag(None, 'add missing entries to config file')),
-        ('edit', command_flag(None, 'open config file in a text editor')),
-        ('editor', ConfOpt('vim', False, None, {}, True, 'text editor')),
-    ))
-    return config_dict
+    return dict(
+        create=command_flag(None, 'create most global config file'),
+        create_local=command_flag(None, 'create most local config file'),
+        update=command_flag(None, 'add missing entries to config file'),
+        edit=command_flag(None, 'open config file in a text editor'),
+        editor=ConfOpt('vim', conf_arg=True, help='text editor'),
+    )
 
 
 def set_conf_opt(shortname: Optional[str] = None) -> ConfOpt:
