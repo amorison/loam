@@ -223,23 +223,24 @@ class CLIManager:
         cmd_dict = self._opt_cmds[cmd] if cmd else self._opt_bare
         for opt, sct in cmd_dict.items():
             meta = self._conf[sct].def_[opt]
+            comprule = meta.comprule
             if meta.cmd_kwargs.get('action') == 'append':
                 grpfmt, optfmt = "+ '{}'", "'*{}[{}]{}'"
-                if meta.comprule is None:
-                    meta.comprule = ''
+                if comprule is None:
+                    comprule = ''
             else:
                 grpfmt, optfmt = "+ '({})'", "'{}[{}]{}'"
             if meta.cmd_kwargs.get('action') in no_comp \
                or meta.cmd_kwargs.get('nargs') == 0:
-                meta.comprule = None
-            if meta.comprule is None:
+                comprule = None
+            if comprule is None:
                 compstr = ''
-            elif meta.comprule == '':
+            elif comprule == '':
                 optfmt = optfmt.replace('[', '=[')
                 compstr = ': :( )'
             else:
                 optfmt = optfmt.replace('[', '=[')
-                compstr = ': :{}'.format(meta.comprule)
+                compstr = f': :{comprule}'
             if grouping:
                 print(grpfmt.format(opt), end=BLK, file=zcf)
             for name in _names(self._conf[sct], opt):
