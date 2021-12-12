@@ -79,18 +79,18 @@ class Section:
     def __getitem__(self, opt: str) -> Any:
         return getattr(self, opt)
 
-    def __setitem__(self, opt: str, value: Any):
+    def __setitem__(self, opt: str, value: Any) -> None:
         setattr(self, opt, value)
 
-    def __delitem__(self, opt: str):
+    def __delitem__(self, opt: str) -> None:
         delattr(self, opt)
 
-    def __delattr__(self, opt: str):
+    def __delattr__(self, opt: str) -> None:
         if opt not in self:
             raise error.OptionError(opt)
         self[opt] = self.def_[opt].default
 
-    def __getattr__(self, opt: str):
+    def __getattr__(self, opt: str) -> None:
         raise error.OptionError(opt)
 
     def __iter__(self) -> Iterator[str]:
@@ -112,7 +112,8 @@ class Section:
         """Iterate over option names, and option metadata."""
         return self.def_.items()
 
-    def update_(self, sct_dict: Mapping[str, Any], conf_arg: bool = True):
+    def update_(self, sct_dict: Mapping[str, Any],
+                conf_arg: bool = True) -> None:
         """Update values of configuration section with dict.
 
         Args:
@@ -127,7 +128,7 @@ class Section:
             if not conf_arg or self.def_[opt].conf_arg:
                 self[opt] = val
 
-    def reset_(self):
+    def reset_(self) -> None:
         """Restore default values of options in this section."""
         for opt, meta in self.defaults_():
             self[opt] = meta.default
@@ -203,7 +204,7 @@ class ConfigurationManager:
         """
         return self._config_files
 
-    def set_config_files_(self, *config_files: Union[str, PathLike]):
+    def set_config_files_(self, *config_files: Union[str, PathLike]) -> None:
         """Set the list of config files.
 
         Args:
@@ -215,13 +216,13 @@ class ConfigurationManager:
     def __getitem__(self, sct: str) -> Section:
         return getattr(self, sct)
 
-    def __delitem__(self, sct: str):
+    def __delitem__(self, sct: str) -> None:
         delattr(self, sct)
 
-    def __delattr__(self, sct: str):
+    def __delattr__(self, sct: str) -> None:
         self[sct].reset_()
 
-    def __getattr__(self, sct: str):
+    def __getattr__(self, sct: str) -> None:
         raise error.SectionError(sct)
 
     def __iter__(self) -> Iterator[str]:
@@ -283,12 +284,12 @@ class ConfigurationManager:
         for sct, opt in self.options_():
             yield sct, opt, self[sct].def_[opt]
 
-    def reset_(self):
+    def reset_(self) -> None:
         """Restore default values of all options."""
         for sct, opt, meta in self.defaults_():
             self[sct][opt] = meta.default
 
-    def create_config_(self, index: int = 0, update: bool = False):
+    def create_config_(self, index: int = 0, update: bool = False) -> None:
         """Create config file.
 
         Create config file in :attr:`config_files_[index]`.
@@ -317,7 +318,7 @@ class ConfigurationManager:
             toml.dump(conf_dict, cfile)
 
     def update_(self, conf_dict: Mapping[str, Mapping[str, Any]],
-                conf_arg: bool = True):
+                conf_arg: bool = True) -> None:
         """Update values of configuration options with dict.
 
         Args:

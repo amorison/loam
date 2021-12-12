@@ -8,7 +8,8 @@ import subprocess
 import typing
 
 if typing.TYPE_CHECKING:
-    from typing import Dict, Any, Tuple, Mapping
+    from typing import Dict, Any, Tuple, Mapping, Optional, Type
+    from argparse import ArgumentParser, Namespace
     from .manager import Section
 
 
@@ -19,8 +20,12 @@ class Switch(argparse.Action):
     :class:`~loam.tools.ConfOpt` using this action.
     """
 
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(self, parser: ArgumentParser, namespace: Namespace,
+                 values: Any, option_string: Optional[str] = None) -> None:
         """Set args attribute to True or False."""
+        if option_string is None:
+            raise ValueError("Switch action is not suitable for "
+                             "positional arguments.")
         setattr(namespace, self.dest, bool('-+'.index(option_string[0])))
 
 
@@ -46,7 +51,7 @@ class SectionContext:
             self._old_values[option_name] = self._section[option_name]
             self._section[option_name] = new_value
 
-    def __exit__(self, e_type, *_) -> bool:
+    def __exit__(self, e_type: Optional[Type[BaseException]], *_: Any) -> bool:
         for option_name, old_value in self._old_values.items():
             self._section[option_name] = old_value
         return e_type is None

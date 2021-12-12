@@ -91,7 +91,7 @@ def set_conf_opt(shortname: Optional[str] = None) -> ConfOpt:
                    False, 'set configuration options')
 
 
-def set_conf_str(conf: ConfigurationManager, optstrs: List[str]):
+def set_conf_str(conf: ConfigurationManager, optstrs: List[str]) -> None:
     """Set options from a list of section.option=value string.
 
     Args:
@@ -121,7 +121,8 @@ def set_conf_str(conf: ConfigurationManager, optstrs: List[str]):
         conf[sec][opt] = cast(val)
 
 
-def config_cmd_handler(conf: ConfigurationManager, config: str = 'config'):
+def config_cmd_handler(conf: ConfigurationManager,
+                       config: str = 'config') -> None:
     """Implement the behavior of a subcmd using config_conf_section.
 
     Args:
@@ -143,7 +144,7 @@ def config_cmd_handler(conf: ConfigurationManager, config: str = 'config'):
 
 def create_complete_files(climan: CLIManager, path: Union[str, PathLike],
                           cmd: str, *cmds: str, zsh_sourceable: bool = False,
-                          zsh_force_grouping: bool = False):
+                          zsh_force_grouping: bool = False) -> None:
     """Create completion files for bash and zsh.
 
     Args:

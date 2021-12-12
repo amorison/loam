@@ -126,7 +126,7 @@ class CLIManager:
             sections.append(cmd)
         return sections
 
-    def _cmd_opts_solver(self, cmd_name: Optional[str]):
+    def _cmd_opts_solver(self, cmd_name: Optional[str]) -> None:
         """Scan options related to one command and enrich _opt_cmds."""
         sections = self.sections_list(cmd_name)
         cmd_dict = self._opt_cmds[cmd_name] if cmd_name else self._opt_bare
@@ -143,7 +143,7 @@ class CLIManager:
                         error.LoamWarning, stacklevel=4)
 
     def _add_options_to_parser(self, opts_dict: Mapping[str, str],
-                               parser: ArgumentParser):
+                               parser: ArgumentParser) -> None:
         """Add options to a parser."""
         store_bool = ('store_true', 'store_false')
         for opt, sct in opts_dict.items():
@@ -203,7 +203,7 @@ class CLIManager:
         return args
 
     def _zsh_comp_command(self, zcf: TextIO, cmd: Optional[str],
-                          grouping: bool, add_help: bool = True):
+                          grouping: bool, add_help: bool = True) -> None:
         """Write zsh _arguments compdef for a given command.
 
         Args:
@@ -248,7 +248,8 @@ class CLIManager:
                                     compstr), end=BLK, file=zcf)
 
     def zsh_complete(self, path: Union[str, PathLike], cmd: str, *cmds: str,
-                     sourceable: bool = False, force_grouping: bool = False):
+                     sourceable: bool = False,
+                     force_grouping: bool = False) -> None:
         """Write zsh compdef script.
 
         Args:
@@ -312,7 +313,8 @@ class CLIManager:
             out.extend(_names(self._conf[sct], opt))
         return out
 
-    def bash_complete(self, path: Union[str, PathLike], cmd: str, *cmds: str):
+    def bash_complete(self, path: Union[str, PathLike], cmd: str,
+                      *cmds: str) -> None:
         """Write bash complete script.
 
         Args:
