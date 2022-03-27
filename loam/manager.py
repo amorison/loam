@@ -90,7 +90,7 @@ class Section:
             raise error.OptionError(opt)
         self[opt] = self.def_[opt].default
 
-    def __getattr__(self, opt: str) -> None:
+    def __getattr__(self, opt: str) -> Any:
         raise error.OptionError(opt)
 
     def __iter__(self) -> Iterator[str]:
@@ -222,7 +222,7 @@ class ConfigurationManager:
     def __delattr__(self, sct: str) -> None:
         self[sct].reset_()
 
-    def __getattr__(self, sct: str) -> None:
+    def __getattr__(self, sct: str) -> Section:
         raise error.SectionError(sct)
 
     def __iter__(self) -> Iterator[str]:
