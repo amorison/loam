@@ -63,7 +63,7 @@ class Section:
     """
 
     def __init__(self, **options: ConfOpt):
-        self._def = {}
+        super().__setattr__("_def", {})
         for opt_name, opt_meta in options.items():
             if _is_valid(opt_name):
                 self._def[opt_name] = opt_meta
@@ -92,6 +92,12 @@ class Section:
 
     def __getattr__(self, opt: str) -> Any:
         raise error.OptionError(opt)
+
+    def __setattr__(self, opt: str, val: Any) -> None:
+        if opt in self._def:
+            super().__setattr__(opt, val)
+        else:
+            raise error.OptionError(opt)
 
     def __iter__(self) -> Iterator[str]:
         return iter(self.def_.keys())
