@@ -1,12 +1,9 @@
 [build-system]
-requires = ["setuptools>=51", "setuptools_scm>=6.3.2", "wheel"]
+requires = ["setuptools>=51", "setuptools_scm>=6.3.2"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
+write_to = "loam/_version.py"
 
 [tool.mypy]
 disallow_untyped_defs = true
-
-[[tool.mypy.overrides]]
-module = "setuptools_scm"
-ignore_missing_imports = true
