@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
+from typing import Optional
 
 from loam.base import Entry, Section
 
@@ -49,6 +50,14 @@ def test_with_str_mutable_protected():
 
     MySection().some_mut.inner_list.append(5.6)
     assert MySection().some_mut.inner_list == [4.5, 3.8]
+
+
+def test_type_hint_not_a_class():
+    @dataclass
+    class MySection(Section):
+        maybe_n: Optional[int] = Entry(from_str=int).with_val(None)
+    assert MySection().maybe_n is None
+    assert MySection("42").maybe_n == 42
 
 
 def test_with_str_no_from_str():
