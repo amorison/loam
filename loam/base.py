@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, fields, field, Field
+from dataclasses import dataclass, asdict, fields, field, Field
+from os import PathLike
+from pathlib import Path
 from typing import (
     get_type_hints,
-    TypeVar, Generic, Callable, Optional, Dict, Any, Type
+    TypeVar, Generic, Callable, Optional, Dict, Any, Type, Union, Mapping
 )
+
+import toml
 
 T = TypeVar("T")
 
@@ -123,3 +127,45 @@ class Section:
                 raise ValueError(
                     f"Please specify a `from_str` for {field_name}.")
         setattr(self, field_name, value)
+
+
+TConfig = TypeVar("TConfig", bound="Config")
+
+
+@dataclass
+class Config:
+    """Base class for a full configuration."""
+
+    @classmethod
+    def from_file(cls: Type[TConfig], path: Union[str, PathLike]) -> TConfig:
+        """Read configuration from toml file."""
+        pars = toml.load(Path(path))
+        return cls.from_dict(pars)
+
+    @classmethod
+    def _type_hints(cls) -> Dict[str, Any]:
+        return get_type_hints(cls)
+
+    @classmethod
+    def from_dict(
+        cls: Type[TConfig], options: Mapping[str, Mapping[str, Any]]
+    ) -> TConfig:
+        """Create configuration from a dictionary."""
+        thints = cls._type_hints()
+        # check all fields are Section, and type hints are resolved to classes
+        sections = {}
+        for fld in fields(cls):
+            section_dict = options.get(fld.name, {})
+            sections[fld.name] = thints[fld.name](**section_dict)
+        return cls(**sections)
+
+    def to_file(self, path: Union[str, PathLike]) -> None:
+        """Write configuration in toml file."""
+        dct = asdict(self)
+        for sec_name, sec_dict in dct.items():
+            for fld in fields(getattr(self, sec_name)):
+                entry: Entry = fld.metadata.get("loam_entry", Entry())
+                if entry.to_str is not None:
+                    sec_dict[fld.name] = entry.to_str(sec_dict[fld.name])
+        with Path(path).open('w') as pf:
+            toml.dump(dct, pf)
