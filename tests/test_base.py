@@ -2,11 +2,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+import pytest
+
 from loam.base import Entry, Section
 
 
 class MyMut:
     def __init__(self, inner_list):
+        if not isinstance(inner_list, list):
+            raise TypeError
         self.inner_list = inner_list
 
     @staticmethod
@@ -45,3 +49,26 @@ def test_with_str_mutable_protected():
 
     MySection().some_mut.inner_list.append(5.6)
     assert MySection().some_mut.inner_list == [4.5, 3.8]
+
+
+def test_with_str_no_from_str():
+    with pytest.raises(ValueError):
+        Entry().with_str("5")
+
+
+def test_init_wrong_type():
+    @dataclass
+    class MySection(Section):
+        some_n: int = 42
+    with pytest.raises(TypeError):
+        MySection(42.0)
+
+
+def test_missing_from_str():
+    @dataclass
+    class MySection(Section):
+        my_mut: MyMut = Entry().with_factory(lambda: MyMut([4.5]))
+    sec = MySection()
+    assert sec.my_mut.inner_list == [4.5]
+    with pytest.raises(ValueError):
+        sec.set_from_str("my_mut", "4.5,3.8")
