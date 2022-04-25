@@ -9,11 +9,11 @@ import subprocess
 import shlex
 import typing
 
-from . import error, _internal
+from . import _internal
 from .manager import ConfOpt
 
 if typing.TYPE_CHECKING:
-    from typing import Optional, Dict, List, Union
+    from typing import Optional, Dict, Union
     from os import PathLike
     from .manager import ConfigurationManager
     from .cli import CLIManager
@@ -73,52 +73,6 @@ def config_conf_section() -> Dict[str, ConfOpt]:
         edit=command_flag(None, 'open config file in a text editor'),
         editor=ConfOpt('vim', conf_arg=True, help='text editor'),
     )
-
-
-def set_conf_opt(shortname: Optional[str] = None) -> ConfOpt:
-    """Define a Confopt to set a config option.
-
-    You can feed the value of this option to :func:`set_conf_str`.
-
-    Args:
-        shortname: shortname for the option if relevant.
-
-    Returns:
-        the option definition.
-    """
-    return ConfOpt(None, True, shortname,
-                   dict(action='append', metavar='section.option=value'),
-                   False, 'set configuration options')
-
-
-def set_conf_str(conf: ConfigurationManager, optstrs: List[str]) -> None:
-    """Set options from a list of section.option=value string.
-
-    Args:
-        conf: the :class:`~loam.manager.ConfigurationManager` to update.
-        optstrs: the list of 'section.option=value' formatted strings.
-    """
-    falsy = ['0', 'no', 'n', 'off', 'false', 'f']
-    bool_actions = ['store_true', 'store_false', _internal.Switch]
-    for optstr in optstrs:
-        opt, val = optstr.split('=', 1)
-        sec, opt = opt.split('.', 1)
-        if sec not in conf:
-            raise error.SectionError(sec)
-        if opt not in conf[sec]:
-            raise error.OptionError(opt)
-        meta = conf[sec].def_[opt]
-        if meta.default is None:
-            if 'type' in meta.cmd_kwargs:
-                cast = meta.cmd_kwargs['type']
-            else:
-                act = meta.cmd_kwargs.get('action')
-                cast = bool if act in bool_actions else str
-        else:
-            cast = type(meta.default)
-        if cast is bool and val.lower() in falsy:
-            val = ''
-        conf[sec][opt] = cast(val)
 
 
 def config_cmd_handler(conf: ConfigurationManager,
