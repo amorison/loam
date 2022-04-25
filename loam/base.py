@@ -137,6 +137,11 @@ class Config:
     """Base class for a full configuration."""
 
     @classmethod
+    def default(cls: Type[TConfig]) -> TConfig:
+        """Create a configuration with default values."""
+        return cls.from_dict({})
+
+    @classmethod
     def from_file(cls: Type[TConfig], path: Union[str, PathLike]) -> TConfig:
         """Read configuration from toml file."""
         pars = toml.load(Path(path))
