@@ -1,7 +1,6 @@
 """Parsers for your CLI arguments.
 
-These functions can be used as the `type` argument in
-:attr:`~loam.manager.ConfOpt.cmd_kwargs`.
+These functions can be used as `from_str` in :attr:`~loam.base.Entry`.
 """
 
 from __future__ import annotations
