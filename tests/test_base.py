@@ -1,9 +1,10 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 import pytest
-from typing import Optional
+import toml
 
 from loam.base import Entry, Section, Config
 
@@ -106,6 +107,21 @@ def test_to_from_toml(my_config, tmp_path):
     new_config = my_config.default_()
     new_config.update_from_file_(toml_file)
     assert my_config == new_config
+
+
+def test_to_toml_not_in_file(my_config, tmp_path):
+    toml_file = tmp_path / "conf.toml"
+    my_config.section_b.some_str = "ignored"
+    my_config.to_file_(toml_file)
+    assert "ignored" not in toml_file.read_text()
+
+
+def test_from_toml_not_in_file(my_config, tmp_path):
+    toml_file = tmp_path / "conf.toml"
+    with toml_file.open("w") as tf:
+        toml.dump({"section_b": {"some_str": "ignored"}}, tf)
+    my_config.default_().update_from_file_(toml_file)
+    assert my_config.section_b.some_str == "bar"
 
 
 def test_to_file_exist_ok(my_config, tmp_path):

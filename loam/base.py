@@ -182,7 +182,15 @@ class Config:
     def update_from_file_(self, path: Union[str, PathLike]) -> None:
         """Update configuration from toml file."""
         pars = toml.load(Path(path))
-        # filter out options for which in_file is False
+        # only keep entries for which in_file is True
+        pars = {
+            sec_name: {
+                opt: val
+                for opt, val in section.items()
+                if getattr(self, sec_name).meta_(opt).entry.in_file
+            }
+            for sec_name, section in pars.items()
+        }
         self.update_from_dict_(pars)
 
     def update_from_dict_(
@@ -202,11 +210,17 @@ class Config:
             raise RuntimeError(f"{path} already exists")
         path.parent.mkdir(parents=True, exist_ok=True)
         dct = asdict(self)
+        to_dump: Dict[str, Dict[str, Any]] = {}
         for sec_name, sec_dict in dct.items():
-            for fld in fields(getattr(self, sec_name)):
-                entry: Entry = fld.metadata.get("loam_entry", Entry())
-                # only write down those that are in_file
+            to_dump[sec_name] = {}
+            section: Section = getattr(self, sec_name)
+            for fld in fields(section):
+                entry = section.meta_(fld.name).entry
+                if not entry.in_file:
+                    continue
+                value = sec_dict[fld.name]
                 if entry.to_str is not None:
-                    sec_dict[fld.name] = entry.to_str(sec_dict[fld.name])
+                    value = entry.to_str(value)
+                to_dump[sec_name][fld.name] = value
         with path.open('w') as pf:
-            toml.dump(dct, pf)
+            toml.dump(to_dump, pf)

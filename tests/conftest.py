@@ -81,7 +81,7 @@ def section_a() -> SectionA:
 @dataclass
 class SectionB(loam.base.Section):
     some_path: Path = loam.base.Entry(to_str=str).with_val(Path())
-    some_str: str = "bar"
+    some_str: str = loam.base.Entry(in_file=False).with_val("bar")
 
 
 @pytest.fixture
