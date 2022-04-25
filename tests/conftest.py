@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pathlib import Path
 
 import pytest
 
@@ -79,7 +80,7 @@ def section_a() -> SectionA:
 
 @dataclass
 class SectionB(loam.base.Section):
-    some_n: int = 42
+    some_path: Path = loam.base.Entry(to_str=str).with_val(Path())
     some_str: str = "bar"
 
 

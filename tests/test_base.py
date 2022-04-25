@@ -1,5 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
+from pathlib import Path
 
 import pytest
 from typing import Optional
@@ -78,6 +79,6 @@ def test_missing_from_str():
 
 def test_config_default(my_config):
     assert my_config.section_a.some_n == 42
-    assert my_config.section_b.some_n == 42
+    assert my_config.section_b.some_path == Path()
     assert my_config.section_a.some_str == "foo"
     assert my_config.section_b.some_str == "bar"
