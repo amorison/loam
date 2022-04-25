@@ -23,6 +23,13 @@ class Entry(Generic[T]):
     """Metadata of configuration options.
 
     Attributes:
+        val: default value. Use :attr`val_str` or :attr:`val_factory` instead
+            if it is mutable.
+        val_str: default value from a string representation. This requires
+            :attr:`from_str`. The call to the latter is wrapped in a function
+            to avoid issues if the obtained value is mutable.
+        val_factory: default value wrapped in a function, this is
+            useful if the default value is mutable.
         doc: short description of the option.
         in_file: whether the option can be set in the config file.
         in_cli: whether the option is a command line argument.
@@ -33,6 +40,9 @@ class Entry(Generic[T]):
         cli_zsh_comprule: completion rule for ZSH shell.
     """
 
+    val: Optional[T] = None
+    val_str: Optional[str] = None
+    val_factory: Optional[Callable[[], T]] = None
     doc: str = ""
     from_str: Optional[Callable[[str], T]] = None
     to_str: Optional[Callable[[T], str]] = None
@@ -42,29 +52,27 @@ class Entry(Generic[T]):
     cli_kwargs: Dict[str, Any] = field(default_factory=dict)
     cli_zsh_comprule: Optional[str] = ''
 
-    def with_str(self, val_as_str: str) -> T:
-        """Set default value from a string representation.
+    def field(self) -> T:
+        """Produce a :class:`dataclasses.Field` from the entry."""
+        non_none_cout = (int(self.val is not None) +
+                         int(self.val_str is not None) +
+                         int(self.val_factory is not None))
+        if non_none_cout != 1:
+            raise ValueError(
+                "Exactly one of val, val_str, and val_factory should be set.")
 
-        This uses :attr:`from_str`.  Note that the call itself is embedded in a
-        factory function to avoid issues if the generated value is mutable.
-        """
-        if self.from_str is None:
-            raise ValueError("Need `from_str` to call with_str")
-        func = self.from_str  # for mypy to see func is not None here
-        return self.with_factory(lambda: func(val_as_str))
+        if self.val is not None:
+            return field(default=self.val, metadata=dict(loam_entry=self))
+        if self.val_factory is not None:
+            func = self.val_factory
+        else:
+            if self.from_str is None:
+                raise ValueError("Need `from_str` to use val_str")
 
-    def with_val(self, val: T) -> T:
-        """Set default value.
+            def func() -> T:
+                # TYPE SAFETY: previous checks ensure this is valid
+                return self.from_str(self.val_str)  # type: ignore
 
-        Use :meth:`with_factory` or :meth:`with_str` if the value is mutable.
-        """
-        return field(default=val, metadata=dict(loam_entry=self))
-
-    def with_factory(self, func: Callable[[], T]) -> T:
-        """Set default value from a factory function.
-
-        This is useful with the value is mutable.
-        """
         return field(default_factory=func, metadata=dict(loam_entry=self))
 
 

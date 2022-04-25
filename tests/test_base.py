@@ -23,10 +23,15 @@ class MyMut:
 def test_with_val():
     @dataclass
     class MySection(Section):
-        some_n: int = Entry().with_val(42)
+        some_n: int = Entry(val=42).field()
 
     sec = MySection()
     assert sec.some_n == 42
+
+
+def test_two_vals_fail():
+    with pytest.raises(ValueError):
+        Entry(val=5, val_factory=lambda: 5).field()
 
 
 def test_set_from_str_type_hint(section_a):
@@ -55,7 +60,8 @@ def test_context_from_str(section_b):
 def test_with_str_mutable_protected():
     @dataclass
     class MySection(Section):
-        some_mut: MyMut = Entry(from_str=MyMut.from_str).with_str("4.5,3.8")
+        some_mut: MyMut = Entry(
+            val_str="4.5,3.8", from_str=MyMut.from_str).field()
 
     MySection().some_mut.inner_list.append(5.6)
     assert MySection().some_mut.inner_list == [4.5, 3.8]
@@ -64,14 +70,15 @@ def test_with_str_mutable_protected():
 def test_type_hint_not_a_class():
     @dataclass
     class MySection(Section):
-        maybe_n: Optional[int] = Entry(from_str=int).with_val(None)
+        maybe_n: Optional[int] = Entry(
+            val_factory=lambda: None, from_str=int).field()
     assert MySection().maybe_n is None
     assert MySection("42").maybe_n == 42
 
 
 def test_with_str_no_from_str():
     with pytest.raises(ValueError):
-        Entry().with_str("5")
+        Entry(val_str="5").field()
 
 
 def test_init_wrong_type():
@@ -85,7 +92,7 @@ def test_init_wrong_type():
 def test_missing_from_str():
     @dataclass
     class MySection(Section):
-        my_mut: MyMut = Entry().with_factory(lambda: MyMut([4.5]))
+        my_mut: MyMut = Entry(val_factory=lambda: MyMut([4.5])).field()
     sec = MySection()
     assert sec.my_mut.inner_list == [4.5]
     with pytest.raises(ValueError):
