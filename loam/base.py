@@ -82,18 +82,14 @@ class Section:
     it, please call the parent implementation.
     """
 
-    _loam_meta: Dict[str, _Meta] = field(
-        default_factory=dict, init=False, repr=False, compare=False)
-
     @classmethod
     def _type_hints(cls) -> Dict[str, Any]:
         return get_type_hints(cls)
 
     def __post_init__(self) -> None:
+        self._loam_meta: Dict[str, _Meta] = {}
         thints = self._type_hints()
         for fld in fields(self):
-            if fld.name == "_loam_meta":
-                continue
             meta = fld.metadata.get("loam_entry", Entry())
             thint = thints[fld.name]
             if not isinstance(thint, type):
