@@ -170,11 +170,3 @@ def test_config_iter_subconfig_default_val(conf):
     vals_iter = set(conf.sectionA.opt_vals_())
     vals_dflts = set((o, m.default) for o, m in conf.sectionA.defaults_())
     assert vals_iter == vals_dflts
-
-
-def test_context_section(conf):
-    with conf.sectionA.context_(optA=42, optBool=False):
-        assert conf.sectionA.optA == 42
-        assert conf.sectionA.optBool is False
-    assert conf.sectionA.optA == 1
-    assert conf.sectionA.optBool is True

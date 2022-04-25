@@ -84,6 +84,11 @@ class SectionB(loam.base.Section):
     some_str: str = "bar"
 
 
+@pytest.fixture
+def section_b() -> SectionB:
+    return SectionB()
+
+
 @dataclass
 class MyConfig(loam.base.Config):
     section_a: SectionA

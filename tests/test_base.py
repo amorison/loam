@@ -37,6 +37,20 @@ def test_set_from_str_type_hint(section_a):
     assert section_a.some_str == "bar"
 
 
+def test_context(section_a):
+    with section_a.context(some_n=5, some_str="bar"):
+        assert section_a.some_n == 5
+        assert section_a.some_str == "bar"
+    assert section_a.some_n == 42
+    assert section_a.some_str == "foo"
+
+
+def test_context_from_str(section_b):
+    with section_b.context(some_path="my/path"):
+        assert section_b.some_path == Path("my/path")
+    assert section_b.some_path == Path()
+
+
 def test_with_str_mutable_protected():
     @dataclass
     class MySection(Section):

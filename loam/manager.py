@@ -14,11 +14,11 @@ import typing
 
 import toml
 
-from . import error, _internal
+from . import error
 
 if typing.TYPE_CHECKING:
     from typing import (Dict, List, Any, Union, Tuple, Mapping, Optional,
-                        Iterator, Iterable, ContextManager)
+                        Iterator, Iterable)
     from os import PathLike
 
 
@@ -138,13 +138,6 @@ class Section:
         """Restore default values of options in this section."""
         for opt, meta in self.defaults_():
             self[opt] = meta.default
-
-    def context_(self, **options: Any) -> ContextManager[None]:
-        """Enter a context to locally change option values.
-
-        This context is reusable but not reentrant.
-        """
-        return _internal.SectionContext(self, options)
 
 
 class ConfigurationManager:

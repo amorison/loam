@@ -7,10 +7,13 @@ from os import PathLike
 from pathlib import Path
 from typing import (
     get_type_hints,
-    TypeVar, Generic, Callable, Optional, Dict, Any, Type, Union, Mapping
+    TypeVar, Generic, Callable, Optional, Dict, Any, Type, Union, Mapping,
+    ContextManager
 )
 
 import toml
+
+from . import _internal
 
 T = TypeVar("T")
 
@@ -123,6 +126,13 @@ class Section:
                 raise ValueError(
                     f"Please specify a `from_str` for {field_name}.")
         setattr(self, field_name, value)
+
+    def context(self, **options: Any) -> ContextManager[None]:
+        """Enter a context with locally changed option values.
+
+        This context is reusable but not reentrant.
+        """
+        return _internal.SectionContext(self, options)
 
 
 TConfig = TypeVar("TConfig", bound="Config")
