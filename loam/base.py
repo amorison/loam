@@ -169,7 +169,7 @@ class Config:
         return cls(**sections)
 
     def update_from_file_(self, path: Union[str, PathLike]) -> None:
-        """Read configuration from toml file."""
+        """Update configuration from toml file."""
         pars = toml.load(Path(path))
         # filter out options for which in_file is False
         self.update_from_dict_(pars)
@@ -177,7 +177,7 @@ class Config:
     def update_from_dict_(
         self, options: Mapping[str, Mapping[str, Any]]
     ) -> None:
-        """Create configuration from a dictionary."""
+        """Update configuration from a dictionary."""
         for sec, opts in options.items():
             section: Section = getattr(self, sec)
             section.update_from_dict_(opts)
