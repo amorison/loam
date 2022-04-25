@@ -69,8 +69,15 @@ class Entry(Generic[T]):
 
 
 @dataclass(frozen=True)
-class _Meta(Generic[T]):
-    """Group several metadata."""
+class Meta(Generic[T]):
+    """Group several metadata of configuration entry.
+
+    Attributes:
+        fld: :class:`dataclasses.Field` object from the underlying metadata.
+        entry: the metadata from the loam API.
+        type_hint: type hint resolved as a class. If the type hint could not
+            be resolved as a class, this is merely :class:`object`.
+    """
 
     fld: Field[T]
     entry: Entry[T]
@@ -90,14 +97,14 @@ class Section:
         return get_type_hints(cls)
 
     def __post_init__(self) -> None:
-        self._loam_meta: Dict[str, _Meta] = {}
+        self._loam_meta: Dict[str, Meta] = {}
         thints = self._type_hints()
         for fld in fields(self):
             meta = fld.metadata.get("loam_entry", Entry())
             thint = thints[fld.name]
             if not isinstance(thint, type):
                 thint = object
-            self._loam_meta[fld.name] = _Meta(fld, meta, thint)
+            self._loam_meta[fld.name] = Meta(fld, meta, thint)
 
             current_val = getattr(self, fld.name)
             if (not issubclass(thint, str)) and isinstance(current_val, str):
@@ -107,6 +114,10 @@ class Section:
                 typ = type(current_val)
                 raise TypeError(
                     f"Expected a {thint} for {fld.name}, received a {typ}.")
+
+    def meta_(self, entry_name: str) -> Meta:
+        """Metadata for the given entry name."""
+        return self._loam_meta[entry_name]
 
     def set_from_str_(self, field_name: str, value_as_str: str) -> None:
         """Set an option from the string representation of the value.
