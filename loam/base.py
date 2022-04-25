@@ -174,13 +174,19 @@ class Config:
             sections[fld.name] = thint(**section_dict)
         return cls(**sections)
 
-    def to_file_(self, path: Union[str, PathLike]) -> None:
+    def to_file_(
+        self, path: Union[str, PathLike], exist_ok: bool = True
+    ) -> None:
         """Write configuration in toml file."""
+        path = Path(path)
+        if not exist_ok and path.is_file():
+            raise RuntimeError(f"{path} already exists")
+        path.parent.mkdir(parents=True, exist_ok=True)
         dct = asdict(self)
         for sec_name, sec_dict in dct.items():
             for fld in fields(getattr(self, sec_name)):
                 entry: Entry = fld.metadata.get("loam_entry", Entry())
                 if entry.to_str is not None:
                     sec_dict[fld.name] = entry.to_str(sec_dict[fld.name])
-        with Path(path).open('w') as pf:
+        with path.open('w') as pf:
             toml.dump(dct, pf)

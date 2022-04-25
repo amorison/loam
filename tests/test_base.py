@@ -105,6 +105,14 @@ def test_to_from_toml(my_config, tmp_path):
     assert my_config == new_config
 
 
+def test_to_file_exist_ok(my_config, tmp_path):
+    toml_file = tmp_path / "conf.toml"
+    my_config.to_file_(toml_file)
+    with pytest.raises(RuntimeError):
+        my_config.to_file_(toml_file, exist_ok=False)
+    my_config.to_file_(toml_file)
+
+
 def test_config_with_not_section():
     @dataclass
     class MyConfig(Config):
