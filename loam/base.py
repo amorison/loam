@@ -101,14 +101,14 @@ class Section:
 
             current_val = getattr(self, fld.name)
             if (not issubclass(thint, str)) and isinstance(current_val, str):
-                self.set_from_str(fld.name, current_val)
+                self.set_from_str_(fld.name, current_val)
                 current_val = getattr(self, fld.name)
             if not isinstance(current_val, thint):
                 typ = type(current_val)
                 raise TypeError(
                     f"Expected a {thint} for {fld.name}, received a {typ}.")
 
-    def set_from_str(self, field_name: str, value_as_str: str) -> None:
+    def set_from_str_(self, field_name: str, value_as_str: str) -> None:
         """Set an option from the string representation of the value.
 
         This uses :meth:`Entry.from_str` to parse the given string, and
@@ -127,7 +127,7 @@ class Section:
                     f"Please specify a `from_str` for {field_name}.")
         setattr(self, field_name, value)
 
-    def context(self, **options: Any) -> ContextManager[None]:
+    def context_(self, **options: Any) -> ContextManager[None]:
         """Enter a context with locally changed option values.
 
         This context is reusable but not reentrant.
@@ -143,22 +143,22 @@ class Config:
     """Base class for a full configuration."""
 
     @classmethod
-    def default(cls: Type[TConfig]) -> TConfig:
+    def default_(cls: Type[TConfig]) -> TConfig:
         """Create a configuration with default values."""
-        return cls.from_dict({})
+        return cls.from_dict_({})
 
     @classmethod
-    def from_file(cls: Type[TConfig], path: Union[str, PathLike]) -> TConfig:
+    def from_file_(cls: Type[TConfig], path: Union[str, PathLike]) -> TConfig:
         """Read configuration from toml file."""
         pars = toml.load(Path(path))
-        return cls.from_dict(pars)
+        return cls.from_dict_(pars)
 
     @classmethod
     def _type_hints(cls) -> Dict[str, Any]:
         return get_type_hints(cls)
 
     @classmethod
-    def from_dict(
+    def from_dict_(
         cls: Type[TConfig], options: Mapping[str, Mapping[str, Any]]
     ) -> TConfig:
         """Create configuration from a dictionary."""
@@ -174,7 +174,7 @@ class Config:
             sections[fld.name] = thint(**section_dict)
         return cls(**sections)
 
-    def to_file(self, path: Union[str, PathLike]) -> None:
+    def to_file_(self, path: Union[str, PathLike]) -> None:
         """Write configuration in toml file."""
         dct = asdict(self)
         for sec_name, sec_dict in dct.items():

@@ -97,4 +97,4 @@ class MyConfig(loam.base.Config):
 
 @pytest.fixture
 def my_config() -> MyConfig:
-    return MyConfig.default()
+    return MyConfig.default_()

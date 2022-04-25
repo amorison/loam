@@ -50,7 +50,7 @@ class SectionContext:
         for option_name, new_value in self._options.items():
             self._old_values[option_name] = getattr(self._section, option_name)
             if isinstance(new_value, str):
-                self._section.set_from_str(option_name, new_value)
+                self._section.set_from_str_(option_name, new_value)
             else:
                 setattr(self._section, option_name, new_value)
 
