@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from typing import Optional
 
-from loam.base import Entry, Section
+from loam.base import Entry, Section, Config
 
 
 class MyMut:
@@ -89,3 +89,11 @@ def test_to_from_toml(my_config, tmp_path):
     my_config.to_file(toml_file)
     new_config = my_config.from_file(toml_file)
     assert my_config == new_config
+
+
+def test_config_with_not_section():
+    @dataclass
+    class MyConfig(Config):
+        dummy: int = 5
+    with pytest.raises(TypeError):
+        MyConfig.default()

@@ -153,11 +153,15 @@ class Config:
     ) -> TConfig:
         """Create configuration from a dictionary."""
         thints = cls._type_hints()
-        # check all fields are Section, and type hints are resolved to classes
         sections = {}
         for fld in fields(cls):
+            thint = thints[fld.name]
+            if not (isinstance(thint, type) and issubclass(thint, Section)):
+                raise TypeError(
+                    f"Could not resolve type hint of {fld.name} to a Section "
+                    f"(got {thint})")
             section_dict = options.get(fld.name, {})
-            sections[fld.name] = thints[fld.name](**section_dict)
+            sections[fld.name] = thint(**section_dict)
         return cls(**sections)
 
     def to_file(self, path: Union[str, PathLike]) -> None:
