@@ -1,8 +1,11 @@
+from dataclasses import dataclass
+
 import pytest
 
 from loam.manager import ConfOpt, Section, ConfigurationManager
 from loam.cli import Subcmd, CLIManager
 from loam.tools import switch_opt
+import loam.base
 
 
 @pytest.fixture(scope='session', params=['confA'])
@@ -61,3 +64,26 @@ def illtoml(tmp_path):
     path = tmp_path / 'ill.toml'
     path.write_text('not}valid[toml\n')
     return path
+
+
+@dataclass
+class SectionA(loam.base.Section):
+    some_n: int = 42
+    some_str: str = "foo"
+
+
+@dataclass
+class SectionB(loam.base.Section):
+    some_n: int = 42
+    some_str: str = "bar"
+
+
+@dataclass
+class MyConfig(loam.base.Config):
+    section_a: SectionA
+    section_b: SectionB
+
+
+@pytest.fixture
+def my_config() -> MyConfig:
+    return MyConfig.default()

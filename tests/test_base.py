@@ -81,3 +81,10 @@ def test_missing_from_str():
     assert sec.my_mut.inner_list == [4.5]
     with pytest.raises(ValueError):
         sec.set_from_str("my_mut", "4.5,3.8")
+
+
+def test_config_default(my_config):
+    assert my_config.section_a.some_n == 42
+    assert my_config.section_b.some_n == 42
+    assert my_config.section_a.some_str == "foo"
+    assert my_config.section_b.some_str == "bar"
