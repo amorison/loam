@@ -1,6 +1,5 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from pathlib import Path
 
 import pytest
 from typing import Optional
@@ -40,7 +39,6 @@ def test_set_from_str_type_hint(section_a):
 def test_with_str_mutable_protected():
     @dataclass
     class MySection(Section):
-        outdir: Path = Entry(from_str=Path, to_str=str).with_str(".")
         some_mut: MyMut = Entry(from_str=MyMut.from_str).with_str("4.5,3.8")
 
     MySection().some_mut.inner_list.append(5.6)
