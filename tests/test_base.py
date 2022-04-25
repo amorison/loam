@@ -28,18 +28,13 @@ def test_with_val():
     assert sec.some_n == 42
 
 
-def test_set_from_str_type_hint():
-    @dataclass
-    class MySection(Section):
-        some_n: int = 5
-        some_str: str = "foo"
-    sec = MySection()
-    assert sec.some_n == 5
-    assert sec.some_str == "foo"
-    sec.set_from_str("some_n", "42")
-    assert sec.some_n == 42
-    sec.set_from_str("some_str", "bar")
-    assert sec.some_str == "bar"
+def test_set_from_str_type_hint(section_a):
+    assert section_a.some_n == 42
+    assert section_a.some_str == "foo"
+    section_a.set_from_str("some_n", "5")
+    assert section_a.some_n == 5
+    section_a.set_from_str("some_str", "bar")
+    assert section_a.some_str == "bar"
 
 
 def test_with_str_mutable_protected():

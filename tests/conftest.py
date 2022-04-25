@@ -72,6 +72,11 @@ class SectionA(loam.base.Section):
     some_str: str = "foo"
 
 
+@pytest.fixture
+def section_a() -> SectionA:
+    return SectionA()
+
+
 @dataclass
 class SectionB(loam.base.Section):
     some_n: int = 42
