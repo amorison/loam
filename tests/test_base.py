@@ -100,8 +100,11 @@ def test_config_default(my_config):
 
 def test_to_from_toml(my_config, tmp_path):
     toml_file = tmp_path / "conf.toml"
+    my_config.section_a.some_n = 5
+    my_config.section_b.some_path = Path("foo/bar")
     my_config.to_file_(toml_file)
-    new_config = my_config.from_file_(toml_file)
+    new_config = my_config.default_()
+    new_config.update_from_file_(toml_file)
     assert my_config == new_config
 
 

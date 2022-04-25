@@ -134,6 +134,14 @@ class Section:
         """
         return _internal.SectionContext(self, options)
 
+    def update_from_dict_(self, options: Mapping[str, Any]) -> None:
+        """Update options from a mapping, parsing str as needed."""
+        for opt, val in options.items():
+            if isinstance(val, str):
+                self.set_from_str_(opt, val)
+            else:
+                setattr(self, opt, val)
+
 
 TConfig = TypeVar("TConfig", bound="Config")
 
@@ -143,25 +151,12 @@ class Config:
     """Base class for a full configuration."""
 
     @classmethod
-    def default_(cls: Type[TConfig]) -> TConfig:
-        """Create a configuration with default values."""
-        return cls.from_dict_({})
-
-    @classmethod
-    def from_file_(cls: Type[TConfig], path: Union[str, PathLike]) -> TConfig:
-        """Read configuration from toml file."""
-        pars = toml.load(Path(path))
-        return cls.from_dict_(pars)
-
-    @classmethod
     def _type_hints(cls) -> Dict[str, Any]:
         return get_type_hints(cls)
 
     @classmethod
-    def from_dict_(
-        cls: Type[TConfig], options: Mapping[str, Mapping[str, Any]]
-    ) -> TConfig:
-        """Create configuration from a dictionary."""
+    def default_(cls: Type[TConfig]) -> TConfig:
+        """Create a configuration with default values."""
         thints = cls._type_hints()
         sections = {}
         for fld in fields(cls):
@@ -170,9 +165,22 @@ class Config:
                 raise TypeError(
                     f"Could not resolve type hint of {fld.name} to a Section "
                     f"(got {thint})")
-            section_dict = options.get(fld.name, {})
-            sections[fld.name] = thint(**section_dict)
+            sections[fld.name] = thint()
         return cls(**sections)
+
+    def update_from_file_(self, path: Union[str, PathLike]) -> None:
+        """Read configuration from toml file."""
+        pars = toml.load(Path(path))
+        # filter out options for which in_file is False
+        self.update_from_dict_(pars)
+
+    def update_from_dict_(
+        self, options: Mapping[str, Mapping[str, Any]]
+    ) -> None:
+        """Create configuration from a dictionary."""
+        for sec, opts in options.items():
+            section: Section = getattr(self, sec)
+            section.update_from_dict_(opts)
 
     def to_file_(
         self, path: Union[str, PathLike], exist_ok: bool = True
@@ -186,6 +194,7 @@ class Config:
         for sec_name, sec_dict in dct.items():
             for fld in fields(getattr(self, sec_name)):
                 entry: Entry = fld.metadata.get("loam_entry", Entry())
+                # only write down those that are in_file
                 if entry.to_str is not None:
                     sec_dict[fld.name] = entry.to_str(sec_dict[fld.name])
         with path.open('w') as pf:
