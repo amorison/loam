@@ -205,11 +205,11 @@ class Section:
             self.set_safe_(opt, val)
 
 
-TConfig = TypeVar("TConfig", bound="Config")
+TConfig = TypeVar("TConfig", bound="ConfigBase")
 
 
 @dataclass
-class Config:
+class ConfigBase:
     """Base class for a full configuration."""
 
     @classmethod

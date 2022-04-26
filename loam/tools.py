@@ -8,12 +8,13 @@ import shlex
 import typing
 
 from . import _internal
-from .base import Entry, Section, Config
+from .base import Entry, Section
 
 if typing.TYPE_CHECKING:
     from pathlib import Path
     from typing import Optional, Union, Type
     from os import PathLike
+    from .base import ConfigBase
     from .cli import CLIManager
 
 
@@ -66,14 +67,14 @@ class ConfigSection(Section):
 
 
 def config_cmd_handler(
-        config: Union[Config, Type[Config]],
+        config: Union[ConfigBase, Type[ConfigBase]],
         config_section: ConfigSection,
         config_file: Path,
 ) -> None:
     """Implement the behavior of a subcmd using config_conf_section.
 
     Args:
-        config: the :class:`~loam.base.Config` to manage.
+        config: the :class:`~loam.base.ConfigBase` to manage.
         config_section: a :class:`ConfigSection` set as desired.
         config_file: path to the config file.
     """

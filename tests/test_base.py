@@ -6,7 +6,7 @@ from typing import Optional
 import pytest
 import toml
 
-from loam.base import entry, Section, Config
+from loam.base import entry, Section, ConfigBase
 
 
 class MyMut:
@@ -139,7 +139,7 @@ def test_to_file_exist_ok(my_config, tmp_path):
 
 def test_config_with_not_section():
     @dataclass
-    class MyConfig(Config):
+    class MyConfig(ConfigBase):
         dummy: int = 5
     with pytest.raises(TypeError):
         MyConfig.default_()

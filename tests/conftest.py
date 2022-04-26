@@ -5,7 +5,7 @@ import pytest
 
 from loam.cli import Subcmd, CLIManager
 from loam.tools import switch_opt
-from loam.base import entry, Section, Config
+from loam.base import entry, Section, ConfigBase
 
 
 @dataclass
@@ -25,7 +25,7 @@ class SecB(Section):
 
 
 @dataclass
-class Conf(Config):
+class Conf(ConfigBase):
     sectionA: SecA
     sectionB: SecB
 
@@ -79,7 +79,7 @@ def section_b() -> SectionB:
 
 
 @dataclass
-class MyConfig(Config):
+class MyConfig(ConfigBase):
     section_a: SectionA
     section_b: SectionB
 

@@ -14,7 +14,7 @@ if typing.TYPE_CHECKING:
     from typing import Dict, List, Any, Optional, Mapping, TextIO, Union
     from argparse import ArgumentParser, Namespace
     from os import PathLike
-    from .base import Section, Config
+    from .base import Section, ConfigBase
 
 
 BLK = ' \\\n'  # cutting line in scripts
@@ -57,7 +57,7 @@ class CLIManager:
     """CLI manager.
 
     Args:
-        config_: the :class:`~loam.base.Config` holding option definitions.
+        config_: the :class:`~loam.base.ConfigBase` holding option definitions.
         common_: special subcommand, used to define the general description
             of the CLI tool as well as configuration sections used by every
             subcommand.
@@ -69,7 +69,7 @@ class CLIManager:
             this function.
     """
 
-    def __init__(self, config_: Config,
+    def __init__(self, config_: ConfigBase,
                  common_: Optional[Subcmd] = None,
                  bare_: Optional[Subcmd] = None,
                  **subcmds: Subcmd):
