@@ -9,7 +9,6 @@ import typing
 
 from . import _internal
 from .base import Entry, Section, Config
-from .manager import ConfOpt
 
 if typing.TYPE_CHECKING:
     from pathlib import Path
@@ -19,8 +18,8 @@ if typing.TYPE_CHECKING:
 
 
 def switch_opt(default: bool, shortname: Optional[str],
-               help_msg: str) -> ConfOpt:
-    """Define a switchable ConfOpt.
+               doc: str) -> bool:
+    """Define a switchable option.
 
     This creates a boolean option. If you use it in your CLI, it can be
     switched on and off by prepending + or - to its name: +opt / -opt.
@@ -29,13 +28,12 @@ def switch_opt(default: bool, shortname: Optional[str],
         default: the default value of the swith option.
         shortname: short name of the option, no shortname will be used if set
             to None.
-        help_msg: short description of the option.
-
-    Returns:
-        a :class:`~loam.manager.ConfOpt` with the relevant properties.
+        doc: short description of the option.
     """
-    return ConfOpt(bool(default), True, shortname,
-                   dict(action=_internal.Switch), True, help_msg, None)
+    return Entry(
+        val=default, doc=doc, cli_short=shortname,
+        cli_kwargs=dict(action=_internal.Switch), cli_zsh_comprule=None
+    ).field()
 
 
 def command_flag(doc: str, shortname: Optional[str] = None) -> bool:

@@ -3,35 +3,36 @@ from pathlib import Path
 
 import pytest
 
-from loam.manager import ConfOpt, Section, ConfigurationManager
 from loam.cli import Subcmd, CLIManager
 from loam.tools import switch_opt
-import loam.base
+from loam.base import Entry, Section, Config
 
 
-@pytest.fixture(scope='session', params=['confA'])
-def conf_def(request):
-    metas = {}
-    metas['confA'] = {
-        'sectionA': Section(
-            optA=ConfOpt(1, True, 'a', {}, True, 'AA'),
-            optB=ConfOpt(2, True, None, {}, False, 'AB'),
-            optC=ConfOpt(3, True, None, {}, True, 'AC'),
-            optBool=switch_opt(True, 'o', 'Abool'),
-        ),
-        'sectionB': Section(
-            optA=ConfOpt(4, True, None, {}, True, 'BA'),
-            optB=ConfOpt(5, True, None, {}, False, 'BB'),
-            optC=ConfOpt(6, False, None, {}, True, 'BC'),
-            optBool=switch_opt(False, 'o', 'Bbool'),
-        ),
-    }
-    return metas[request.param]
+@dataclass
+class SecA(Section):
+    optA: int = Entry(val=1, doc="AA", cli_short='a').field()
+    optB: int = Entry(val=2, doc="AB", in_file=False).field()
+    optC: int = Entry(val=3, doc="AC").field()
+    optBool: bool = switch_opt(True, 'o', 'Abool')
+
+
+@dataclass
+class SecB(Section):
+    optA: int = Entry(val=4, doc="BA").field()
+    optB: int = Entry(val=5, doc="BB", in_file=False).field()
+    optC: int = Entry(val=6, doc="BC", in_cli=False).field()
+    optBool: int = switch_opt(False, 'o', 'Bbool')
+
+
+@dataclass
+class Conf(Config):
+    sectionA: SecA
+    sectionB: SecB
 
 
 @pytest.fixture
-def conf(conf_def):
-    return ConfigurationManager(**conf_def)
+def conf() -> Conf:
+    return Conf.default_()
 
 
 @pytest.fixture(params=['subsA'])
@@ -55,20 +56,8 @@ def cfile(tmp_path):
     return tmp_path / 'config.toml'
 
 
-@pytest.fixture
-def nonexistent_file(tmp_path):
-    return tmp_path / 'dummy.toml'
-
-
-@pytest.fixture
-def illtoml(tmp_path):
-    path = tmp_path / 'ill.toml'
-    path.write_text('not}valid[toml\n')
-    return path
-
-
 @dataclass
-class SectionA(loam.base.Section):
+class SectionA(Section):
     some_n: int = 42
     some_str: str = "foo"
 
@@ -79,9 +68,9 @@ def section_a() -> SectionA:
 
 
 @dataclass
-class SectionB(loam.base.Section):
-    some_path: Path = loam.base.Entry(val=Path(), to_str=str).field()
-    some_str: str = loam.base.Entry(val="bar", in_file=False).field()
+class SectionB(Section):
+    some_path: Path = Entry(val=Path(), to_str=str).field()
+    some_str: str = Entry(val="bar", in_file=False).field()
 
 
 @pytest.fixture
@@ -90,7 +79,7 @@ def section_b() -> SectionB:
 
 
 @dataclass
-class MyConfig(loam.base.Config):
+class MyConfig(Config):
     section_a: SectionA
     section_b: SectionB
 

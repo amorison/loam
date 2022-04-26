@@ -145,3 +145,14 @@ def test_config_with_not_section():
         dummy: int = 5
     with pytest.raises(TypeError):
         MyConfig.default_()
+
+
+def test_update_opt(conf):
+    conf.sectionA.update_from_dict_({'optA': 42, 'optC': 43})
+    assert conf.sectionA.optA == 42 and conf.sectionA.optC == 43
+
+
+def test_update_section(conf):
+    conf.update_from_dict_(
+        {'sectionA': {'optA': 42}, 'sectionB': {'optA': 43}})
+    assert conf.sectionA.optA == 42 and conf.sectionB.optA == 43
