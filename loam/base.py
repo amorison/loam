@@ -144,19 +144,34 @@ class Section:
             if not isinstance(thint, type):
                 thint = object
             self._loam_meta[fld.name] = Meta(fld, meta, thint)
-
             current_val = getattr(self, fld.name)
-            if (not issubclass(thint, str)) and isinstance(current_val, str):
-                self.set_from_str_(fld.name, current_val)
-                current_val = getattr(self, fld.name)
-            if not isinstance(current_val, thint):
-                typ = type(current_val)
-                raise TypeError(
-                    f"Expected a {thint} for {fld.name}, received a {typ}.")
+            if isinstance(current_val, str) or not isinstance(current_val,
+                                                              thint):
+                self.set_safe_(fld.name, current_val)
 
     def meta_(self, entry_name: str) -> Meta:
         """Metadata for the given entry name."""
         return self._loam_meta[entry_name]
+
+    def set_safe_(self, entry_name: str, value: Any) -> None:
+        """Set an option from a value or a string.
+
+        This method is only meant as a convenience to manipulate
+        :class:`Section` instances in a dynamic way.  It parses strings if
+        necessary and raises `TypeError` when the type can be determined to be
+        incorrect.  When possible, either prefer directly setting the attribute
+        or calling :meth:`set_from_str_` as those can be statically checked.
+        """
+        if isinstance(value, str):
+            self.set_from_str_(entry_name, value)
+        else:
+            typ = self.meta_(entry_name).type_hint
+            if isinstance(value, typ):
+                setattr(self, entry_name, value)
+            else:
+                typg = type(value)
+                raise TypeError(
+                    f"Expected a {typ} for {entry_name}, received a {typg}.")
 
     def set_from_str_(self, field_name: str, value_as_str: str) -> None:
         """Set an option from the string representation of the value.
@@ -187,10 +202,7 @@ class Section:
     def update_from_dict_(self, options: Mapping[str, Any]) -> None:
         """Update options from a mapping, parsing str as needed."""
         for opt, val in options.items():
-            if isinstance(val, str):
-                self.set_from_str_(opt, val)
-            else:
-                setattr(self, opt, val)
+            self.set_safe_(opt, val)
 
 
 TConfig = TypeVar("TConfig", bound="Config")

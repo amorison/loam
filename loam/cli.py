@@ -200,18 +200,12 @@ class CLIManager:
             for opt, sct in self._opt_bare.items():
                 section: Section = getattr(self._conf, sct)
                 val = getattr(args, opt, None)
-                if isinstance(val, str):
-                    section.set_from_str_(opt, val)
-                else:
-                    setattr(section, opt, val)
+                section.set_safe_(opt, val)
         else:
             for opt, sct in self._opt_cmds[sub_cmd].items():
                 section = getattr(self._conf, sct)
                 val = getattr(args, opt, None)
-                if isinstance(val, str):
-                    section.set_from_str_(opt, val)
-                else:
-                    setattr(section, opt, val)
+                section.set_safe_(opt, val)
         return args
 
     def _zsh_comp_command(self, zcf: TextIO, cmd: Optional[str],
