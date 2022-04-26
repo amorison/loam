@@ -76,6 +76,37 @@ class Entry(Generic[T]):
         return field(default_factory=func, metadata=dict(loam_entry=self))
 
 
+def entry(
+    val: Optional[T] = None,
+    val_str: Optional[str] = None,
+    val_factory: Optional[Callable[[], T]] = None,
+    doc: str = "",
+    from_str: Optional[Callable[[str], T]] = None,
+    to_str: Optional[Callable[[T], str]] = None,
+    in_file: bool = True,
+    in_cli: bool = True,
+    cli_short: Optional[str] = None,
+    cli_kwargs: Dict[str, Any] = None,
+    cli_zsh_comprule: Optional[str] = '',
+) -> T:
+    """Build Entry(...).field()."""
+    if cli_kwargs is None:
+        cli_kwargs = {}
+    return Entry(
+        val=val,
+        val_str=val_str,
+        val_factory=val_factory,
+        doc=doc,
+        from_str=from_str,
+        to_str=to_str,
+        in_file=in_file,
+        in_cli=in_cli,
+        cli_short=cli_short,
+        cli_kwargs=cli_kwargs,
+        cli_zsh_comprule=cli_zsh_comprule,
+    ).field()
+
+
 @dataclass(frozen=True)
 class Meta(Generic[T]):
     """Group several metadata of configuration entry.

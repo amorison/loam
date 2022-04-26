@@ -5,22 +5,22 @@ import pytest
 
 from loam.cli import Subcmd, CLIManager
 from loam.tools import switch_opt
-from loam.base import Entry, Section, Config
+from loam.base import entry, Section, Config
 
 
 @dataclass
 class SecA(Section):
-    optA: int = Entry(val=1, doc="AA", cli_short='a').field()
-    optB: int = Entry(val=2, doc="AB", in_file=False).field()
-    optC: int = Entry(val=3, doc="AC").field()
+    optA: int = entry(val=1, doc="AA", cli_short='a')
+    optB: int = entry(val=2, doc="AB", in_file=False)
+    optC: int = entry(val=3, doc="AC")
     optBool: bool = switch_opt(True, 'o', 'Abool')
 
 
 @dataclass
 class SecB(Section):
-    optA: int = Entry(val=4, doc="BA").field()
-    optB: int = Entry(val=5, doc="BB", in_file=False).field()
-    optC: int = Entry(val=6, doc="BC", in_cli=False).field()
+    optA: int = entry(val=4, doc="BA")
+    optB: int = entry(val=5, doc="BB", in_file=False)
+    optC: int = entry(val=6, doc="BC", in_cli=False)
     optBool: int = switch_opt(False, 'o', 'Bbool')
 
 
@@ -69,8 +69,8 @@ def section_a() -> SectionA:
 
 @dataclass
 class SectionB(Section):
-    some_path: Path = Entry(val=Path(), to_str=str).field()
-    some_str: str = Entry(val="bar", in_file=False).field()
+    some_path: Path = entry(val=Path(), to_str=str)
+    some_str: str = entry(val="bar", in_file=False)
 
 
 @pytest.fixture
