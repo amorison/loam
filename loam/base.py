@@ -273,5 +273,7 @@ class ConfigBase:
                 if entry.to_str is not None:
                     value = entry.to_str(value)
                 to_dump[sec_name][fld.name] = value
+            if not to_dump[sec_name]:
+                del to_dump[sec_name]
         with path.open('w') as pf:
             toml.dump(to_dump, pf)
