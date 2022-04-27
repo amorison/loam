@@ -16,7 +16,7 @@ Welcome to loam's documentation!
    :maxdepth: 2
    :caption: API Reference
 
-   sources/api/manager
+   sources/api/base
    sources/api/cli
    sources/api/tools
    sources/api/error
