@@ -40,7 +40,7 @@ autoclass_content = 'both'
 
 # -- Project information -----------------------------------------------------
 project = 'loam'
-copyright = '2018 - 2021, Adrien Morison'
+copyright = '2018 - 2022, Adrien Morison'
 author = 'Adrien Morison'
 
 # The full version, including alpha/beta/rc tags.
