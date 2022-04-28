@@ -10,7 +10,7 @@ import typing
 if typing.TYPE_CHECKING:
     from typing import Dict, Any, Tuple, Mapping, Optional, Type
     from argparse import ArgumentParser, Namespace
-    from .manager import Section
+    from .base import Section
 
 
 class Switch(argparse.Action):
@@ -46,14 +46,13 @@ class SectionContext:
         self._old_values: Dict[str, Any] = {}
 
     def __enter__(self) -> None:
-        self._old_values = {}
-        for option_name, new_value in self._options.items():
-            self._old_values[option_name] = self._section[option_name]
-            self._section[option_name] = new_value
+        self._old_values = {
+            opt: getattr(self._section, opt) for opt in self._options
+        }
+        self._section.update_from_dict_(self._options)
 
     def __exit__(self, e_type: Optional[Type[BaseException]], *_: Any) -> bool:
-        for option_name, old_value in self._old_values.items():
-            self._section[option_name] = old_value
+        self._section.update_from_dict_(self._old_values)
         return e_type is None
 
 

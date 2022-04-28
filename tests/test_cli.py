@@ -6,8 +6,7 @@ import loam.cli
 
 def test_parse_no_args(conf, climan):
     climan.parse_args([])
-    for s, o, m in conf.defaults_():
-        assert conf[s][o] == m.default
+    assert conf == conf.default_()
 
 
 def test_parse_nosub_common_args(conf, climan):

@@ -1,33 +1,38 @@
+from dataclasses import dataclass
+from pathlib import Path
+
 import pytest
 
-from loam.manager import ConfOpt, Section, ConfigurationManager
 from loam.cli import Subcmd, CLIManager
-from loam.tools import switch_opt
+from loam.tools import switch_opt, path_entry
+from loam.base import entry, Section, ConfigBase
 
 
-@pytest.fixture(scope='session', params=['confA'])
-def conf_def(request):
-    metas = {}
-    metas['confA'] = {
-        'sectionA': Section(
-            optA=ConfOpt(1, True, 'a', {}, True, 'AA'),
-            optB=ConfOpt(2, True, None, {}, False, 'AB'),
-            optC=ConfOpt(3, True, None, {}, True, 'AC'),
-            optBool=switch_opt(True, 'o', 'Abool'),
-        ),
-        'sectionB': Section(
-            optA=ConfOpt(4, True, None, {}, True, 'BA'),
-            optB=ConfOpt(5, True, None, {}, False, 'BB'),
-            optC=ConfOpt(6, False, None, {}, True, 'BC'),
-            optBool=switch_opt(False, 'o', 'Bbool'),
-        ),
-    }
-    return metas[request.param]
+@dataclass
+class SecA(Section):
+    optA: int = entry(val=1, doc="AA", cli_short='a')
+    optB: int = entry(val=2, doc="AB", in_file=False)
+    optC: int = entry(val=3, doc="AC")
+    optBool: bool = switch_opt(True, 'o', 'Abool')
+
+
+@dataclass
+class SecB(Section):
+    optA: int = entry(val=4, doc="BA")
+    optB: int = entry(val=5, doc="BB", in_file=False)
+    optC: int = entry(val=6, doc="BC", in_cli=False)
+    optBool: int = switch_opt(False, 'o', 'Bbool')
+
+
+@dataclass
+class Conf(ConfigBase):
+    sectionA: SecA
+    sectionB: SecB
 
 
 @pytest.fixture
-def conf(conf_def):
-    return ConfigurationManager(**conf_def)
+def conf() -> Conf:
+    return Conf.default_()
 
 
 @pytest.fixture(params=['subsA'])
@@ -51,13 +56,41 @@ def cfile(tmp_path):
     return tmp_path / 'config.toml'
 
 
-@pytest.fixture
-def nonexistent_file(tmp_path):
-    return tmp_path / 'dummy.toml'
+@dataclass
+class SectionA(Section):
+    some_n: int = 42
+    some_str: str = "foo"
 
 
 @pytest.fixture
-def illtoml(tmp_path):
-    path = tmp_path / 'ill.toml'
-    path.write_text('not}valid[toml\n')
-    return path
+def section_a() -> SectionA:
+    return SectionA()
+
+
+@dataclass
+class SectionB(Section):
+    some_path: Path = path_entry(".", "")
+    some_str: str = entry(val="bar", in_file=False)
+
+
+@pytest.fixture
+def section_b() -> SectionB:
+    return SectionB()
+
+
+@dataclass
+class SectionNotInFile(Section):
+    some_int: int = entry(val=0, in_file=False)
+    some_str: str = entry(val="baz", in_file=False)
+
+
+@dataclass
+class MyConfig(ConfigBase):
+    section_a: SectionA
+    section_b: SectionB
+    section_not_in_file: SectionNotInFile
+
+
+@pytest.fixture
+def my_config() -> MyConfig:
+    return MyConfig.default_()

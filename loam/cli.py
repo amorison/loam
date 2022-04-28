@@ -1,5 +1,6 @@
 """Definition of CLI manager."""
 from __future__ import annotations
+from dataclasses import fields
 import argparse
 import copy
 import pathlib
@@ -13,7 +14,7 @@ if typing.TYPE_CHECKING:
     from typing import Dict, List, Any, Optional, Mapping, TextIO, Union
     from argparse import ArgumentParser, Namespace
     from os import PathLike
-    from .manager import Section, ConfigurationManager
+    from .base import Section, ConfigBase
 
 
 BLK = ' \\\n'  # cutting line in scripts
@@ -21,17 +22,19 @@ BLK = ' \\\n'  # cutting line in scripts
 
 def _names(section: Section, option: str) -> List[str]:
     """List of cli strings for a given option."""
-    meta = section.def_[option]
-    action = meta.cmd_kwargs.get('action')
+    entry = section.meta_(option).entry
+    action = entry.cli_kwargs.get('action')
     if action is _internal.Switch:
         names = [f'-{option}', f'+{option}']
-        if meta.shortname is not None:
-            names.append(f'-{meta.shortname}')
-            names.append(f'+{meta.shortname}')
+        short = entry.cli_short
+        if short is not None:
+            names.append(f'-{short}')
+            names.append(f'+{short}')
     else:
         names = [f'--{option}']
-        if meta.shortname is not None:
-            names.append(f'-{meta.shortname}')
+        short = entry.cli_short
+        if short is not None:
+            names.append(f'-{short}')
     return names
 
 
@@ -54,8 +57,7 @@ class CLIManager:
     """CLI manager.
 
     Args:
-        conf_manager_: the :class:`~loam.manager.ConfigurationManager` holding
-            option definitions.
+        config_: the :class:`~loam.base.ConfigBase` holding option definitions.
         common_: special subcommand, used to define the general description
             of the CLI tool as well as configuration sections used by every
             subcommand.
@@ -67,11 +69,11 @@ class CLIManager:
             this function.
     """
 
-    def __init__(self, conf_manager_: ConfigurationManager,
+    def __init__(self, config_: ConfigBase,
                  common_: Optional[Subcmd] = None,
                  bare_: Optional[Subcmd] = None,
                  **subcmds: Subcmd):
-        self._conf = conf_manager_
+        self._conf = config_
         self._subcmds = {}
         for sub_name, sub_meta in subcmds.items():
             if sub_name.isidentifier():
@@ -122,7 +124,7 @@ class CLIManager:
                 return sections
             return []
         sections.extend(self.subcmds[cmd].sections)
-        if cmd in self._conf:
+        if hasattr(self._conf, cmd):
             sections.append(cmd)
         return sections
 
@@ -131,8 +133,10 @@ class CLIManager:
         sections = self.sections_list(cmd_name)
         cmd_dict = self._opt_cmds[cmd_name] if cmd_name else self._opt_bare
         for sct in reversed(sections):
-            for opt, opt_meta in self._conf[sct].def_.items():
-                if not opt_meta.cmd_arg:
+            section: Section = getattr(self._conf, sct)
+            for fld in fields(section):
+                opt = fld.name
+                if not section.meta_(opt).entry.in_cli:
                     continue
                 if opt not in cmd_dict:
                     cmd_dict[opt] = sct
@@ -145,18 +149,16 @@ class CLIManager:
     def _add_options_to_parser(self, opts_dict: Mapping[str, str],
                                parser: ArgumentParser) -> None:
         """Add options to a parser."""
-        store_bool = ('store_true', 'store_false')
         for opt, sct in opts_dict.items():
-            meta = self._conf[sct].def_[opt]
-            kwargs = copy.deepcopy(meta.cmd_kwargs)
+            section: Section = getattr(self._conf, sct)
+            entry = section.meta_(opt).entry
+            kwargs = copy.deepcopy(entry.cli_kwargs)
             action = kwargs.get('action')
             if action is _internal.Switch:
                 kwargs.update(nargs=0)
-            elif meta.default is not None and action not in store_bool:
-                kwargs.setdefault('type', type(meta.default))
-            kwargs.update(help=meta.help)
-            kwargs.setdefault('default', self._conf[sct][opt])
-            parser.add_argument(*_names(self._conf[sct], opt), **kwargs)
+            kwargs.update(help=entry.doc)
+            kwargs.setdefault('default', getattr(section, opt))
+            parser.add_argument(*_names(section, opt), **kwargs)
 
     def _build_parser(self) -> ArgumentParser:
         """Build command line argument parser.
@@ -196,10 +198,14 @@ class CLIManager:
         sub_cmd = args.loam_sub_name
         if sub_cmd is None:
             for opt, sct in self._opt_bare.items():
-                self._conf[sct][opt] = getattr(args, opt, None)
+                section: Section = getattr(self._conf, sct)
+                val = getattr(args, opt, None)
+                section.set_safe_(opt, val)
         else:
             for opt, sct in self._opt_cmds[sub_cmd].items():
-                self._conf[sct][opt] = getattr(args, opt, None)
+                section = getattr(self._conf, sct)
+                val = getattr(args, opt, None)
+                section.set_safe_(opt, val)
         return args
 
     def _zsh_comp_command(self, zcf: TextIO, cmd: Optional[str],
@@ -222,16 +228,17 @@ class CLIManager:
         no_comp = ('store_true', 'store_false')
         cmd_dict = self._opt_cmds[cmd] if cmd else self._opt_bare
         for opt, sct in cmd_dict.items():
-            meta = self._conf[sct].def_[opt]
-            comprule = meta.comprule
-            if meta.cmd_kwargs.get('action') == 'append':
+            section: Section = getattr(self._conf, sct)
+            entry = section.meta_(opt).entry
+            comprule = entry.cli_zsh_comprule
+            if entry.cli_kwargs.get('action') == 'append':
                 grpfmt, optfmt = "+ '{}'", "'*{}[{}]{}'"
                 if comprule is None:
                     comprule = ''
             else:
                 grpfmt, optfmt = "+ '({})'", "'{}[{}]{}'"
-            if meta.cmd_kwargs.get('action') in no_comp \
-               or meta.cmd_kwargs.get('nargs') == 0:
+            if entry.cli_kwargs.get('action') in no_comp \
+               or entry.cli_kwargs.get('nargs') == 0:
                 comprule = None
             if comprule is None:
                 compstr = ''
@@ -243,8 +250,8 @@ class CLIManager:
                 compstr = f': :{comprule}'
             if grouping:
                 print(grpfmt.format(opt), end=BLK, file=zcf)
-            for name in _names(self._conf[sct], opt):
-                print(optfmt.format(name, meta.help.replace("'", "'\"'\"'"),
+            for name in _names(section, opt):
+                print(optfmt.format(name, entry.doc.replace("'", "'\"'\"'"),
                                     compstr), end=BLK, file=zcf)
 
     def zsh_complete(self, path: Union[str, PathLike], cmd: str, *cmds: str,
@@ -310,7 +317,8 @@ class CLIManager:
         out = ['-h', '--help'] if add_help else []
         cmd_dict = self._opt_cmds[cmd] if cmd else self._opt_bare
         for opt, sct in cmd_dict.items():
-            out.extend(_names(self._conf[sct], opt))
+            section: Section = getattr(self._conf, sct)
+            out.extend(_names(section, opt))
         return out
 
     def bash_complete(self, path: Union[str, PathLike], cmd: str,

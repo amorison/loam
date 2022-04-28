@@ -1,27 +1,57 @@
-"""Various helper functions and classes.
-
-They are designed to help you use :class:`~loam.manager.ConfigurationManager`.
-"""
+"""Various helper functions and classes."""
 
 from __future__ import annotations
-import pathlib
+from dataclasses import dataclass
+from pathlib import Path
 import subprocess
 import shlex
 import typing
 
-from . import error, _internal
-from .manager import ConfOpt
+from . import _internal
+from .base import Entry, Section
 
 if typing.TYPE_CHECKING:
-    from typing import Optional, Dict, List, Union
+    from typing import Optional, Union, Type
     from os import PathLike
-    from .manager import ConfigurationManager
+    from .base import ConfigBase
     from .cli import CLIManager
 
 
+def path_entry(
+    path: Union[str, PathLike],
+    doc: str,
+    in_file: bool = True,
+    in_cli: bool = True,
+    cli_short: Optional[str] = None,
+    cli_zsh_only_dirs: bool = False,
+    cli_zsh_comprule: Optional[str] = None
+) -> Path:
+    """Define a path option.
+
+    This creates a path option. See :class:`loam.base.Entry` for the meaning of
+    the arguments. By default, the zsh completion rule completes any file. You
+    can switch this to only directories with the `cli_zsh_only_dirs` option, or
+    set your own completion rule with `cli_zsh_comprule`.
+    """
+    if cli_zsh_comprule is None:
+        cli_zsh_comprule = "_files"
+        if cli_zsh_only_dirs:
+            cli_zsh_comprule += " -/"
+    return Entry(
+        val=Path(path),
+        doc=doc,
+        from_str=Path,
+        to_str=str,
+        in_file=in_file,
+        in_cli=in_cli,
+        cli_short=cli_short,
+        cli_zsh_comprule=cli_zsh_comprule,
+    ).field()
+
+
 def switch_opt(default: bool, shortname: Optional[str],
-               help_msg: str) -> ConfOpt:
-    """Define a switchable ConfOpt.
+               doc: str) -> bool:
+    """Define a switchable option.
 
     This creates a boolean option. If you use it in your CLI, it can be
     switched on and off by prepending + or - to its name: +opt / -opt.
@@ -30,16 +60,15 @@ def switch_opt(default: bool, shortname: Optional[str],
         default: the default value of the swith option.
         shortname: short name of the option, no shortname will be used if set
             to None.
-        help_msg: short description of the option.
-
-    Returns:
-        a :class:`~loam.manager.ConfOpt` with the relevant properties.
+        doc: short description of the option.
     """
-    return ConfOpt(bool(default), True, shortname,
-                   dict(action=_internal.Switch), True, help_msg, None)
+    return Entry(
+        val=default, doc=doc, cli_short=shortname,
+        cli_kwargs=dict(action=_internal.Switch), cli_zsh_comprule=None
+    ).field()
 
 
-def command_flag(shortname: Optional[str], help_msg: str) -> ConfOpt:
+def command_flag(doc: str, shortname: Optional[str] = None) -> bool:
     """Define a command line flag.
 
     The corresponding option is set to true if it is passed as a command line
@@ -48,98 +77,48 @@ def command_flag(shortname: Optional[str], help_msg: str) -> ConfOpt:
     switch it off from the command line.
 
     Args:
+        doc: short description of the option.
         shortname: short name of the option, no shortname will be used if set
             to None.
-        help_msg: short description of the option.
-
-    Returns:
-        a :class:`~loam.manager.ConfOpt` with the relevant properties.
     """
-    return ConfOpt(None, True, shortname, dict(action='store_true'), False,
-                   help_msg, None)
+    return Entry(  # previously, default value was None. Diff in cli?
+        val=False, doc=doc, in_file=False, cli_short=shortname,
+        cli_kwargs=dict(action="store_true"), cli_zsh_comprule=None
+    ).field()
 
 
-def config_conf_section() -> Dict[str, ConfOpt]:
-    """Define a configuration section handling config file.
+@dataclass
+class ConfigSection(Section):
+    """A configuration section handling config files."""
 
-    Returns:
-        definition of the 'create', 'create_local', 'update', 'edit' and
-        'editor' configuration options.
-    """
-    return dict(
-        create=command_flag(None, 'create most global config file'),
-        create_local=command_flag(None, 'create most local config file'),
-        update=command_flag(None, 'add missing entries to config file'),
-        edit=command_flag(None, 'open config file in a text editor'),
-        editor=ConfOpt('vim', conf_arg=True, help='text editor'),
-    )
+    create: bool = command_flag("create global config file")
+    update: bool = command_flag("add missing entries to config file")
+    edit: bool = command_flag("open config file in a text editor")
+    editor: str = Entry(val="vim", doc='text editor').field()
 
 
-def set_conf_opt(shortname: Optional[str] = None) -> ConfOpt:
-    """Define a Confopt to set a config option.
-
-    You can feed the value of this option to :func:`set_conf_str`.
-
-    Args:
-        shortname: shortname for the option if relevant.
-
-    Returns:
-        the option definition.
-    """
-    return ConfOpt(None, True, shortname,
-                   dict(action='append', metavar='section.option=value'),
-                   False, 'set configuration options')
-
-
-def set_conf_str(conf: ConfigurationManager, optstrs: List[str]) -> None:
-    """Set options from a list of section.option=value string.
-
-    Args:
-        conf: the :class:`~loam.manager.ConfigurationManager` to update.
-        optstrs: the list of 'section.option=value' formatted strings.
-    """
-    falsy = ['0', 'no', 'n', 'off', 'false', 'f']
-    bool_actions = ['store_true', 'store_false', _internal.Switch]
-    for optstr in optstrs:
-        opt, val = optstr.split('=', 1)
-        sec, opt = opt.split('.', 1)
-        if sec not in conf:
-            raise error.SectionError(sec)
-        if opt not in conf[sec]:
-            raise error.OptionError(opt)
-        meta = conf[sec].def_[opt]
-        if meta.default is None:
-            if 'type' in meta.cmd_kwargs:
-                cast = meta.cmd_kwargs['type']
-            else:
-                act = meta.cmd_kwargs.get('action')
-                cast = bool if act in bool_actions else str
-        else:
-            cast = type(meta.default)
-        if cast is bool and val.lower() in falsy:
-            val = ''
-        conf[sec][opt] = cast(val)
-
-
-def config_cmd_handler(conf: ConfigurationManager,
-                       config: str = 'config') -> None:
+def config_cmd_handler(
+        config: Union[ConfigBase, Type[ConfigBase]],
+        config_section: ConfigSection,
+        config_file: Path,
+) -> None:
     """Implement the behavior of a subcmd using config_conf_section.
 
     Args:
-        conf: a :class:`~loam.manager.ConfigurationManager` containing a
-            section created with :func:`config_conf_section` function.
-        config: name of the configuration section created with
-            :func:`config_conf_section` function.
+        config: the :class:`~loam.base.ConfigBase` to manage.
+        config_section: a :class:`ConfigSection` set as desired.
+        config_file: path to the config file.
     """
-    if conf[config].create or conf[config].update:
-        conf.create_config_(update=conf[config].update)
-    if conf[config].create_local:
-        conf.create_config_(index=-1, update=conf[config].update)
-    if conf[config].edit:
-        if not conf.config_files_[0].is_file():
-            conf.create_config_(update=conf[config].update)
-        subprocess.run(shlex.split('{} {}'.format(conf[config].editor,
-                                                  conf.config_files_[0])))
+    if config_section.update:
+        conf = config.default_()
+        if config_file.exists():
+            conf.update_from_file_(config_file)
+        conf.to_file_(config_file)
+    elif config_section.create or config_section.edit:
+        config.default_().to_file_(config_file)
+    if config_section.edit:
+        subprocess.run(shlex.split('{} {}'.format(config_section.editor,
+                                                  config_file)))
 
 
 def create_complete_files(climan: CLIManager, path: Union[str, PathLike],
@@ -159,7 +138,7 @@ def create_complete_files(climan: CLIManager, path: Union[str, PathLike],
         zsh_force_grouping: if True, assume zsh supports grouping of options.
             Otherwise, loam will attempt to check whether zsh >= 5.4.
     """
-    path = pathlib.Path(path)
+    path = Path(path)
     zsh_dir = path / 'zsh'
     zsh_dir.mkdir(parents=True, exist_ok=True)
     zsh_file = zsh_dir / f"_{cmd}.sh"
