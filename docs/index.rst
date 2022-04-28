@@ -18,6 +18,7 @@ Welcome to loam's documentation!
 
    sources/api/base
    sources/api/cli
+   sources/api/parsers
    sources/api/tools
    sources/api/error
 
