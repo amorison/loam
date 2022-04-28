@@ -17,34 +17,33 @@ configuration object with no config file nor argument parsing management.
 
 ::
 
-    from loam.manager import ConfigurationManager, ConfOpt
+    from dataclasses import dataclass
+    from typing import Optional
 
-    # A simple dictionary define all the options and their default values.
-    # The first level of keys are the section names, the second level of keys
-    # are the option names. Note that you can have the same option name living
-    # in two different sections.
-    conf_def = {
-        'sectionA': {'optionA': ConfOpt('foo'),
-                     'optionB': ConfOpt(42),
-                     'optionC': ConfOpt('bar')},
-        'sectionB': {'optionD': ConfOpt(None),
-                     'optionA': ConfOpt(3.14156)}
-    }
+    from loam.base import entry, Section, ConfigBase
 
-    conf = ConfigurationManager.from_dict_(conf_def)
+    # Dataclasses define the options and their default values.
+    @dataclass
+    class SectionA(Section):
+        option_a: str = "foo"
+        option_b: int = 42
+        option_c: str = "bar"
 
-    # you can access options value with attribute or item notation
-    assert conf.sectionA.optionA is conf.sectionA['optionA']
-    assert conf.sectionA is conf['sectionA']
+    # You can attach metadata to each option, such as an explanation
+    @dataclass
+    class SectionB(Section):
+        option_d: int = entry(val=0, doc="some number")
+        # you can have the same option name living in two different sections
+        option_a: float = entry(val=3.14159, doc="some float")
 
-    # you can set values (with attribute or item notation)
-    conf.sectionA.optionA = 'baz'
-    # and then reset it to its default value
-    del conf.sectionA.optionA
-    assert conf.sectionA.optionA == 'foo'
-    # you can also reset entire sections at once
-    del conf.sectionA
-    # or even all configuration options (note that all methods of
-    # ConfigurationManager have a postfixed _ to minimize the risk of collision
-    # with your section or option names).
-    conf.reset_()
+    # A ConfigBase dataclass groups the sections
+    @dataclass
+    class Config(ConfigBase):
+        section_a: SectionA
+        section_b: SectionB
+
+    conf = Config.default_()
+
+    # You can access options value and modify them
+    assert conf.section_a.option_a == "foo"
+    conf.section_b.option_d = 3
