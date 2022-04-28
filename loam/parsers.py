@@ -59,12 +59,12 @@ def slice_or_int_parser(arg: str) -> Union[slice, int]:
     return int(arg)
 
 
-def list_of(
+def tuple_of(
     from_str: Callable[[str], T], sep: str = ','
 ) -> Callable[[str], Tuple[T, ...]]:
     """Return a parser of a comma-separated list of a given type.
 
-    For example, `list_of(float)` can be use to parse `"3.2,4.5,12.8"` as
+    For example, `tuple_of(float)` can be use to parse `"3.2,4.5,12.8"` as
     `(3.2, 4.5, 12.8)`.  Each element is stripped before parsing, meaning
     `"3.2, 4.5, 12.8"` will also be accepted by the parser.
 
