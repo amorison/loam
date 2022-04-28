@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Optional
 
 import pytest
-import toml
 
 from loam.base import entry, Section, ConfigBase
 
@@ -104,39 +103,34 @@ def test_config_default(my_config):
     assert my_config.section_b.some_str == "bar"
 
 
-def test_to_from_toml(my_config, tmp_path):
-    toml_file = tmp_path / "conf.toml"
+def test_to_from_toml(my_config, cfile):
     my_config.section_a.some_n = 5
     my_config.section_b.some_path = Path("foo/bar")
-    my_config.to_file_(toml_file)
+    my_config.to_file_(cfile)
     new_config = my_config.default_()
-    new_config.update_from_file_(toml_file)
+    new_config.update_from_file_(cfile)
     assert my_config == new_config
 
 
-def test_to_toml_not_in_file(my_config, tmp_path):
-    toml_file = tmp_path / "conf.toml"
+def test_to_toml_not_in_file(my_config, cfile):
     my_config.section_b.some_str = "ignored"
-    my_config.to_file_(toml_file)
-    content = toml_file.read_text()
+    my_config.to_file_(cfile)
+    content = cfile.read_text()
     assert "ignored" not in content
     assert "section_not_in_file" not in content
 
 
-def test_from_toml_not_in_file(my_config, tmp_path):
-    toml_file = tmp_path / "conf.toml"
-    with toml_file.open("w") as tf:
-        toml.dump({"section_b": {"some_str": "ignored"}}, tf)
-    my_config.default_().update_from_file_(toml_file)
+def test_from_toml_not_in_file(my_config, cfile):
+    cfile.write_text('[section_b]\nsome_str="ignored"\n')
+    my_config.default_().update_from_file_(cfile)
     assert my_config.section_b.some_str == "bar"
 
 
-def test_to_file_exist_ok(my_config, tmp_path):
-    toml_file = tmp_path / "conf.toml"
-    my_config.to_file_(toml_file)
+def test_to_file_exist_ok(my_config, cfile):
+    my_config.to_file_(cfile)
     with pytest.raises(RuntimeError):
-        my_config.to_file_(toml_file, exist_ok=False)
-    my_config.to_file_(toml_file)
+        my_config.to_file_(cfile, exist_ok=False)
+    my_config.to_file_(cfile)
 
 
 def test_config_with_not_section():
