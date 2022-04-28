@@ -23,13 +23,14 @@ class Entry(Generic[T]):
     """Metadata of configuration options.
 
     Attributes:
-        val: default value. Use :attr`val_str` or :attr:`val_factory` instead
+        val: default value. Use :attr:`val_str` or :attr:`val_factory` instead
             if it is mutable.
         val_str: default value from a string representation. This requires
             :attr:`from_str`. The call to the latter is wrapped in a function
             to avoid issues if the obtained value is mutable.
-        val_factory: default value wrapped in a function, this is
-            useful if the default value is mutable.
+        val_factory: default value wrapped in a function, this is useful if the
+            default value is mutable. This can be used to set a default value
+            of `None`: `val_factory=lambda: None`.
         doc: short description of the option.
         in_file: whether the option can be set in the config file.
         in_cli: whether the option is a command line argument.
