@@ -79,9 +79,16 @@ def section_b() -> SectionB:
 
 
 @dataclass
+class SectionNotInFile(Section):
+    some_int: int = entry(val=0, in_file=False)
+    some_str: str = entry(val="baz", in_file=False)
+
+
+@dataclass
 class MyConfig(ConfigBase):
     section_a: SectionA
     section_b: SectionB
+    section_not_in_file: SectionNotInFile
 
 
 @pytest.fixture

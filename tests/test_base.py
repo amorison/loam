@@ -118,7 +118,9 @@ def test_to_toml_not_in_file(my_config, tmp_path):
     toml_file = tmp_path / "conf.toml"
     my_config.section_b.some_str = "ignored"
     my_config.to_file_(toml_file)
-    assert "ignored" not in toml_file.read_text()
+    content = toml_file.read_text()
+    assert "ignored" not in content
+    assert "section_not_in_file" not in content
 
 
 def test_from_toml_not_in_file(my_config, tmp_path):
