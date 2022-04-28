@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-import pathlib
+from pathlib import Path
 import subprocess
 import shlex
 import typing
@@ -11,11 +11,42 @@ from . import _internal
 from .base import Entry, Section
 
 if typing.TYPE_CHECKING:
-    from pathlib import Path
     from typing import Optional, Union, Type
     from os import PathLike
     from .base import ConfigBase
     from .cli import CLIManager
+
+
+def path_entry(
+    path: Union[str, PathLike],
+    doc: str,
+    in_file: bool = True,
+    in_cli: bool = True,
+    cli_short: Optional[str] = None,
+    cli_zsh_only_dirs: bool = False,
+    cli_zsh_comprule: Optional[str] = None
+) -> Path:
+    """Define a path option.
+
+    This creates a path option. See :class:`loam.base.Entry` for the meaning of
+    the arguments. By default, the zsh completion rule completes any file. You
+    can switch this to only directories with the `cli_zsh_only_dirs` option, or
+    set your own completion rule with `cli_zsh_comprule`.
+    """
+    if cli_zsh_comprule is None:
+        cli_zsh_comprule = "_files"
+        if cli_zsh_only_dirs:
+            cli_zsh_comprule += " -/"
+    return Entry(
+        val=Path(path),
+        doc=doc,
+        from_str=Path,
+        to_str=str,
+        in_file=in_file,
+        in_cli=in_cli,
+        cli_short=cli_short,
+        cli_zsh_comprule=cli_zsh_comprule,
+    ).field()
 
 
 def switch_opt(default: bool, shortname: Optional[str],
@@ -107,7 +138,7 @@ def create_complete_files(climan: CLIManager, path: Union[str, PathLike],
         zsh_force_grouping: if True, assume zsh supports grouping of options.
             Otherwise, loam will attempt to check whether zsh >= 5.4.
     """
-    path = pathlib.Path(path)
+    path = Path(path)
     zsh_dir = path / 'zsh'
     zsh_dir.mkdir(parents=True, exist_ok=True)
     zsh_file = zsh_dir / f"_{cmd}.sh"

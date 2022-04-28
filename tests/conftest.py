@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from loam.cli import Subcmd, CLIManager
-from loam.tools import switch_opt
+from loam.tools import switch_opt, path_entry
 from loam.base import entry, Section, ConfigBase
 
 
@@ -69,7 +69,7 @@ def section_a() -> SectionA:
 
 @dataclass
 class SectionB(Section):
-    some_path: Path = entry(val=Path(), to_str=str)
+    some_path: Path = path_entry(".", "")
     some_str: str = entry(val="bar", in_file=False)
 
 
