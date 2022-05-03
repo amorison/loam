@@ -14,7 +14,6 @@ if typing.TYPE_CHECKING:
     from typing import Optional, Union, Type
     from os import PathLike
     from .base import ConfigBase
-    from .cli import CLIManager
 
 
 def path_entry(
@@ -119,32 +118,3 @@ def config_cmd_handler(
     if config_section.edit:
         subprocess.run(shlex.split('{} {}'.format(config_section.editor,
                                                   config_file)))
-
-
-def create_complete_files(climan: CLIManager, path: Union[str, PathLike],
-                          cmd: str, *cmds: str, zsh_sourceable: bool = False,
-                          zsh_force_grouping: bool = False) -> None:
-    """Create completion files for bash and zsh.
-
-    Args:
-        climan: a :class:`~loam.cli.CLIManager`.
-        path: directory in which the config files should be created. It is
-            created if it doesn't exist.
-        cmd: command name that should be completed.
-        cmds: extra command names that should be completed.
-        zsh_sourceable: if True, the generated file will contain an explicit
-            call to ``compdef``, which means it can be sourced to activate CLI
-            completion.
-        zsh_force_grouping: if True, assume zsh supports grouping of options.
-            Otherwise, loam will attempt to check whether zsh >= 5.4.
-    """
-    path = Path(path)
-    zsh_dir = path / 'zsh'
-    zsh_dir.mkdir(parents=True, exist_ok=True)
-    zsh_file = zsh_dir / f"_{cmd}.sh"
-    bash_dir = path / 'bash'
-    bash_dir.mkdir(parents=True, exist_ok=True)
-    bash_file = bash_dir / f"{cmd}.sh"
-    climan.zsh_complete(zsh_file, cmd, *cmds, sourceable=zsh_sourceable,
-                        force_grouping=zsh_force_grouping)
-    climan.bash_complete(bash_file, cmd, *cmds)

@@ -1,6 +1,3 @@
-from loam.tools import create_complete_files
-
-
 EXPECTED_ZSH = r"""#compdef cmd
 
 function _cmd {
@@ -68,11 +65,15 @@ complete -F _cmd cmd
 """
 
 
-def test_create_complete_files(climan, tmp_path):
-    create_complete_files(climan, tmp_path, 'cmd', zsh_force_grouping=True)
-    script_zsh = tmp_path / 'zsh' / '_cmd.sh'
-    produced_zsh = script_zsh.read_text()
-    assert produced_zsh == EXPECTED_ZSH
-    script_bash = tmp_path / 'bash' / 'cmd.sh'
+def test_bash_complete_file(climan, tmp_path):
+    script_bash = tmp_path / "cmd.sh"
+    climan.bash_complete(script_bash, "cmd")
     produced_bash = script_bash.read_text()
     assert produced_bash == EXPECTED_BASH
+
+
+def test_zsh_complete_file(climan, tmp_path):
+    script_zsh = tmp_path / "_cmd.sh"
+    climan.zsh_complete(script_zsh, "cmd", force_grouping=True)
+    produced_zsh = script_zsh.read_text()
+    assert produced_zsh == EXPECTED_ZSH
