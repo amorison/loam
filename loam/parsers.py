@@ -1,6 +1,6 @@
 """Parsers for your CLI arguments.
 
-These functions can be used as `from_str` in :attr:`~loam.base.Entry`.
+These functions can be used as `from_toml` in :attr:`~loam.base.Entry`.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ if typing.TYPE_CHECKING:
     T = TypeVar('T')
 
 
-def strict_slice_parser(arg: str) -> slice:
+def strict_slice_parser(arg: object) -> slice:
     """Parse a string into a slice.
 
     Note that this errors out on a single integer with no `:`.  If you
@@ -25,7 +25,7 @@ def strict_slice_parser(arg: str) -> slice:
     return soi
 
 
-def slice_parser(arg: str) -> slice:
+def slice_parser(arg: object) -> slice:
     """Parse a string into a slice.
 
     Note that this treats a single integer as a slice from 0 to that
@@ -38,13 +38,15 @@ def slice_parser(arg: str) -> slice:
     return soi
 
 
-def slice_or_int_parser(arg: str) -> Union[slice, int]:
+def slice_or_int_parser(arg: object) -> Union[slice, int]:
     """Parse a string into a slice.
 
     Note that this treats a single integer as an integer value.  To error out
     on a single integer, use :func:`strict_slice_parser`.  To parse it as a
     slice, use :func:`slice_parser`.
     """
+    if not isinstance(arg, str):
+        raise TypeError("arg should be a str")
     if ':' in arg:
         idxs = arg.split(':')
         if len(idxs) > 3:
@@ -70,6 +72,8 @@ def tuple_of(
 
     Set `sep` to `None` to split on any whitespace (as does `str.split()`).
     """
-    def parser(arg: str) -> Tuple[T, ...]:
+    def parser(arg: object) -> Tuple[T, ...]:
+        if not isinstance(arg, str):
+            raise TypeError("arg should be str")
         return tuple(from_str(v) for v in map(str.strip, arg.split(sep)) if v)
     return parser

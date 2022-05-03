@@ -39,8 +39,9 @@ def path_entry(
     return Entry(
         val=Path(path),
         doc=doc,
-        from_str=Path,
-        to_str=str,
+        # TYPE SAFETY: Path behaves as needed
+        from_toml=Path,  # type: ignore
+        to_toml=str,
         in_file=in_file,
         in_cli=in_cli,
         cli_short=cli_short,

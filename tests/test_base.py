@@ -15,8 +15,11 @@ class MyMut:
         self.inner_list = inner_list
 
     @staticmethod
-    def from_str(s: str) -> MyMut:
-        return MyMut(list(map(float, s.split(","))))
+    def from_toml(s: object) -> MyMut:
+        if isinstance(s, str):
+            return MyMut(list(map(float, s.split(","))))
+        else:
+            raise TypeError
 
 
 def test_with_val():
@@ -33,12 +36,12 @@ def test_two_vals_fail():
         entry(val=5, val_factory=lambda: 5)
 
 
-def test_set_from_str_type_hint(section_a):
+def test_cast_and_set_type_hint(section_a):
     assert section_a.some_n == 42
     assert section_a.some_str == "foo"
-    section_a.set_from_str_("some_n", "5")
+    section_a.cast_and_set_("some_n", "5")
     assert section_a.some_n == 5
-    section_a.set_from_str_("some_str", "bar")
+    section_a.cast_and_set_("some_str", "bar")
     assert section_a.some_str == "bar"
 
 
@@ -50,16 +53,16 @@ def test_context(section_a):
     assert section_a.some_str == "foo"
 
 
-def test_context_from_str(section_b):
+def test_context_cast(section_b):
     with section_b.context_(some_path="my/path"):
         assert section_b.some_path == Path("my/path")
     assert section_b.some_path == Path()
 
 
-def test_with_str_mutable_protected():
+def test_cast_mutable_protected():
     @dataclass
     class MySection(Section):
-        some_mut: MyMut = entry(val_str="4.5,3.8", from_str=MyMut.from_str)
+        some_mut: MyMut = entry(val_toml="4.5,3.8", from_toml=MyMut.from_toml)
 
     MySection().some_mut.inner_list.append(5.6)
     assert MySection().some_mut.inner_list == [4.5, 3.8]
@@ -68,14 +71,14 @@ def test_with_str_mutable_protected():
 def test_type_hint_not_a_class():
     @dataclass
     class MySection(Section):
-        maybe_n: Optional[int] = entry(val_factory=lambda: None, from_str=int)
+        maybe_n: Optional[int] = entry(val_factory=lambda: None, from_toml=int)
     assert MySection().maybe_n is None
-    assert MySection("42").maybe_n == 42
+    assert MySection("42").maybe_n == "42"
 
 
-def test_with_str_no_from_str():
+def test_with_obj_no_from_toml():
     with pytest.raises(ValueError):
-        entry(val_str="5")
+        entry(val_toml="5")
 
 
 def test_init_wrong_type():
@@ -83,17 +86,17 @@ def test_init_wrong_type():
     class MySection(Section):
         some_n: int = 42
     with pytest.raises(TypeError):
-        MySection(42.0)
+        MySection("bla")
 
 
-def test_missing_from_str():
+def test_missing_from_toml():
     @dataclass
     class MySection(Section):
         my_mut: MyMut = entry(val_factory=lambda: MyMut([4.5]))
     sec = MySection()
     assert sec.my_mut.inner_list == [4.5]
-    with pytest.raises(ValueError):
-        sec.set_from_str_("my_mut", "4.5,3.8")
+    with pytest.raises(TypeError):
+        sec.cast_and_set_("my_mut", "4.5,3.8")
 
 
 def test_config_default(my_config):

@@ -23,15 +23,23 @@ class Entry(Generic[T]):
     """Metadata of configuration options.
 
     Attributes:
-        val: default value. Use :attr:`val_str` or :attr:`val_factory` instead
+        val: default value. Use :attr:`val_toml` or :attr:`val_factory` instead
             if it is mutable.
-        val_str: default value from a string representation. This requires
-            :attr:`from_str`. The call to the latter is wrapped in a function
-            to avoid issues if the obtained value is mutable.
+        val_toml: default value as a TOML value. :attr:`from_toml` is required.
+            The call to the latter is wrapped in a function to avoid issues if
+            the obtained value is mutable.
         val_factory: default value wrapped in a function, this is useful if the
             default value is mutable. This can be used to set a default value
             of `None`: `val_factory=lambda: None`.
         doc: short description of the option.
+        from_toml: function to cast a value that can be represented as a TOML
+            value to the type of the entry. When set, this is always called
+            when reading a TOML file and command line arguments. Make sure you
+            implement all the cases you want to support and raise a `TypeError`
+            in other cases.
+        to_toml: function to cast the entry to a type that can be represented
+            as a TOML value. This is called when writing :class:`ConfigBase`
+            instances to a TOML file via :meth:`ConfigBase.to_file_`.
         in_file: whether the option can be set in the config file.
         in_cli: whether the option is a command line argument.
         cli_short: short version of the command line argument.
@@ -42,11 +50,11 @@ class Entry(Generic[T]):
     """
 
     val: Optional[T] = None
-    val_str: Optional[str] = None
+    val_toml: Optional[str] = None
     val_factory: Optional[Callable[[], T]] = None
     doc: str = ""
-    from_str: Optional[Callable[[str], T]] = None
-    to_str: Optional[Callable[[T], str]] = None
+    from_toml: Optional[Callable[[object], T]] = None
+    to_toml: Optional[Callable[[T], object]] = None
     in_file: bool = True
     in_cli: bool = True
     cli_short: Optional[str] = None
@@ -56,34 +64,34 @@ class Entry(Generic[T]):
     def field(self) -> T:
         """Produce a :class:`dataclasses.Field` from the entry."""
         non_none_cout = (int(self.val is not None) +
-                         int(self.val_str is not None) +
+                         int(self.val_toml is not None) +
                          int(self.val_factory is not None))
         if non_none_cout != 1:
             raise ValueError(
-                "Exactly one of val, val_str, and val_factory should be set.")
+                "Exactly one of val, val_toml, and val_factory should be set.")
 
         if self.val is not None:
             return field(default=self.val, metadata=dict(loam_entry=self))
         if self.val_factory is not None:
             func = self.val_factory
         else:
-            if self.from_str is None:
-                raise ValueError("Need `from_str` to use val_str")
+            if self.from_toml is None:
+                raise ValueError("Need `from_toml` to use val_toml")
 
             def func() -> T:
                 # TYPE SAFETY: previous checks ensure this is valid
-                return self.from_str(self.val_str)  # type: ignore
+                return self.from_toml(self.val_toml)  # type: ignore
 
         return field(default_factory=func, metadata=dict(loam_entry=self))
 
 
 def entry(
     val: Optional[T] = None,
-    val_str: Optional[str] = None,
+    val_toml: Optional[str] = None,
     val_factory: Optional[Callable[[], T]] = None,
     doc: str = "",
-    from_str: Optional[Callable[[str], T]] = None,
-    to_str: Optional[Callable[[T], str]] = None,
+    from_toml: Optional[Callable[[object], T]] = None,
+    to_toml: Optional[Callable[[T], object]] = None,
     in_file: bool = True,
     in_cli: bool = True,
     cli_short: Optional[str] = None,
@@ -95,11 +103,11 @@ def entry(
         cli_kwargs = {}
     return Entry(
         val=val,
-        val_str=val_str,
+        val_toml=val_toml,
         val_factory=val_factory,
         doc=doc,
-        from_str=from_str,
-        to_str=to_str,
+        from_toml=from_toml,
+        to_toml=to_toml,
         in_file=in_file,
         in_cli=in_cli,
         cli_short=cli_short,
@@ -146,51 +154,35 @@ class Section:
                 thint = object
             self._loam_meta[fld.name] = Meta(fld, meta, thint)
             current_val = getattr(self, fld.name)
-            if isinstance(current_val, str) or not isinstance(current_val,
-                                                              thint):
-                self.set_safe_(fld.name, current_val)
+            if not isinstance(current_val, thint):
+                self.cast_and_set_(fld.name, current_val)
 
     def meta_(self, entry_name: str) -> Meta:
         """Metadata for the given entry name."""
         return self._loam_meta[entry_name]
 
-    def set_safe_(self, entry_name: str, value: Any) -> None:
-        """Set an option from a value or a string.
-
-        This method is only meant as a convenience to manipulate
-        :class:`Section` instances in a dynamic way.  It parses strings if
-        necessary and raises `TypeError` when the type can be determined to be
-        incorrect.  When possible, either prefer directly setting the attribute
-        or calling :meth:`set_from_str_` as those can be statically checked.
-        """
-        if isinstance(value, str):
-            self.set_from_str_(entry_name, value)
-        else:
-            typ = self.meta_(entry_name).type_hint
-            if isinstance(value, typ):
-                setattr(self, entry_name, value)
-            else:
-                typg = type(value)
-                raise TypeError(
-                    f"Expected a {typ} for {entry_name}, received a {typg}.")
-
-    def set_from_str_(self, field_name: str, value_as_str: str) -> None:
+    def cast_and_set_(self, field_name: str, value_to_cast: object) -> None:
         """Set an option from the string representation of the value.
 
-        This uses :meth:`Entry.from_str` to parse the given string, and
-        fall back on the type annotation if it resolves to a class.
+        This uses :meth:`Entry.from_toml` (if present) to cast the given value.
+        If :meth:`Entry.from_toml` is not present and the type of
+        `value_to_cast`do not match the type hint, this calls the type hint to
+        attempt a cast. This should only be used when setting an option to a
+        value whose type cannot be controlled. Wherever possible, directly set
+        the option value with the correct type instead of calling this method.
         """
         meta = self._loam_meta[field_name]
-        if issubclass(meta.type_hint, str):
-            value = value_as_str
-        elif meta.entry.from_str is not None:
-            value = meta.entry.from_str(value_as_str)
-        else:
+        if meta.entry.from_toml is not None:
+            value = meta.entry.from_toml(value_to_cast)
+        elif not isinstance(value_to_cast, meta.type_hint):
             try:
-                value = meta.type_hint(value_as_str)
-            except TypeError:
-                raise ValueError(
-                    f"Please specify a `from_str` for {field_name}.")
+                value = meta.type_hint(value_to_cast)
+            except Exception:
+                raise TypeError(
+                    f"Couldn't cast {value_to_cast!r} to a {meta.type_hint}, "
+                    f"you might need to specify `from_toml` for {field_name}.")
+        else:
+            value = value_to_cast
         setattr(self, field_name, value)
 
     def context_(self, **options: Any) -> ContextManager[None]:
@@ -200,10 +192,10 @@ class Section:
         """
         return _internal.SectionContext(self, options)
 
-    def update_from_dict_(self, options: Mapping[str, Any]) -> None:
-        """Update options from a mapping, parsing str as needed."""
+    def update_from_dict_(self, options: Mapping[str, object]) -> None:
+        """Update options from a mapping, casting values as needed."""
         for opt, val in options.items():
-            self.set_safe_(opt, val)
+            self.cast_and_set_(opt, val)
 
 
 TConfig = TypeVar("TConfig", bound="ConfigBase")
@@ -271,8 +263,8 @@ class ConfigBase:
                 if not entry.in_file:
                     continue
                 value = sec_dict[fld.name]
-                if entry.to_str is not None:
-                    value = entry.to_str(value)
+                if entry.to_toml is not None:
+                    value = entry.to_toml(value)
                 to_dump[sec_name][fld.name] = value
             if not to_dump[sec_name]:
                 del to_dump[sec_name]
