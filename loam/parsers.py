@@ -7,8 +7,7 @@ from __future__ import annotations
 import typing
 
 if typing.TYPE_CHECKING:
-    from typing import Union, Callable, TypeVar, Tuple
-    T = TypeVar('T')
+    from typing import Union
 
 
 def strict_slice_parser(arg: object) -> slice:
@@ -59,21 +58,3 @@ def slice_or_int_parser(arg: object) -> Union[slice, int]:
             slice_parts.append(None)
         return slice(*slice_parts)
     return int(arg)
-
-
-def tuple_of(
-    from_str: Callable[[str], T], sep: str = ','
-) -> Callable[[str], Tuple[T, ...]]:
-    """Return a parser of a comma-separated list of a given type.
-
-    For example, `tuple_of(float)` can be use to parse `"3.2,4.5,12.8"` as
-    `(3.2, 4.5, 12.8)`.  Each element is stripped before parsing, meaning
-    `"3.2, 4.5, 12.8"` will also be accepted by the parser.
-
-    Set `sep` to `None` to split on any whitespace (as does `str.split()`).
-    """
-    def parser(arg: object) -> Tuple[T, ...]:
-        if not isinstance(arg, str):
-            raise TypeError("arg should be str")
-        return tuple(from_str(v) for v in map(str.strip, arg.split(sep)) if v)
-    return parser
