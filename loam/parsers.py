@@ -4,10 +4,7 @@ These functions can be used as `from_toml` in :attr:`~loam.base.Entry`.
 """
 
 from __future__ import annotations
-import typing
-
-if typing.TYPE_CHECKING:
-    from typing import Union
+from typing import Union
 
 
 def strict_slice_parser(arg: object) -> slice:
@@ -44,8 +41,12 @@ def slice_or_int_parser(arg: object) -> Union[slice, int]:
     on a single integer, use :func:`strict_slice_parser`.  To parse it as a
     slice, use :func:`slice_parser`.
     """
+    if isinstance(arg, int):
+        return arg
+    if isinstance(arg, slice):
+        return arg
     if not isinstance(arg, str):
-        raise TypeError("arg should be a str")
+        raise TypeError("arg should be an int, slice, or str")
     if ':' in arg:
         idxs = arg.split(':')
         if len(idxs) > 3:
