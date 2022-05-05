@@ -166,7 +166,7 @@ class Section:
 
         This uses :meth:`Entry.from_toml` (if present) to cast the given value.
         If :meth:`Entry.from_toml` is not present and the type of
-        `value_to_cast`do not match the type hint, this calls the type hint to
+        `value_to_cast` do not match the type hint, this calls the type hint to
         attempt a cast. This should only be used when setting an option to a
         value whose type cannot be controlled. Wherever possible, directly set
         the option value with the correct type instead of calling this method.
