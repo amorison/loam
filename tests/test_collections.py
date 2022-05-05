@@ -16,25 +16,21 @@ def tpl():
 
 
 @dataclass
-class TplCliList(Section):
-    tpl: Tuple[int] = TupleEntry(inner_from_toml=int).entry(
+class SecA(Section):
+    tpl_list: Tuple[int] = TupleEntry(inner_from_toml=int).entry(
         default=[], in_cli_as="list")
 
 
 @dataclass
-class TplCliStr(Section):
-    tpl: Tuple[int] = TupleEntry(inner_from_toml=int).entry(
+class SecB(Section):
+    tpl_str: Tuple[int] = TupleEntry(inner_from_toml=int).entry(
         default=[], in_cli_as="str")
 
 
 @dataclass
-class ConfigCliList(ConfigBase):
-    tplsec: TplCliList
-
-
-@dataclass
-class ConfigCliStr(ConfigBase):
-    tplsec: TplCliStr
+class Config(ConfigBase):
+    sec_a: SecA
+    sec_b: SecB
 
 
 def test_tuple_entry_int(tpl):
@@ -85,16 +81,16 @@ def test_tuple_entry_cli_as_invalid(tpl):
 
 
 def test_tuple_entry_cli_as_list():
-    conf = ConfigCliList.default_()
-    assert conf.tplsec.tpl == tuple()
-    climan = CLIManager(conf, bare_=Subcmd("", "tplsec"))
-    climan.parse_args(shsplit("--tpl 1 2 3"))
-    assert conf.tplsec.tpl == (1, 2, 3)
+    conf = Config.default_()
+    assert conf.sec_a.tpl_list == tuple()
+    climan = CLIManager(conf, bare_=Subcmd("", "sec_a"))
+    climan.parse_args(shsplit("--tpl_list 1 2 3"))
+    assert conf.sec_a.tpl_list == (1, 2, 3)
 
 
 def test_tuple_entry_cli_as_str():
-    conf = ConfigCliStr.default_()
-    assert conf.tplsec.tpl == tuple()
-    climan = CLIManager(conf, bare_=Subcmd("", "tplsec"))
-    climan.parse_args(shsplit("--tpl 1,2,3"))
-    assert conf.tplsec.tpl == (1, 2, 3)
+    conf = Config.default_()
+    assert conf.sec_b.tpl_str == tuple()
+    climan = CLIManager(conf, bare_=Subcmd("", "sec_b"))
+    climan.parse_args(shsplit("--tpl_str 1,2,3"))
+    assert conf.sec_b.tpl_str == (1, 2, 3)
