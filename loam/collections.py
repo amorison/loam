@@ -64,7 +64,7 @@ class TupleEntry(Generic[T]):
         - "list" (the default), meaning the CLI argument accepts several
           values, e.g ``--arg elt_a elt_b elt_c``;
         - "str", meaning the CLI argument accepts one string value, e.g.
-          ``--arg "elt_a, elt_b, elt_c";
+          ``--arg "elt_a, elt_b, elt_c"``;
         - `None`, meaning the entry is not part of the CLI.
         """
         cli_kwargs = {}
@@ -108,3 +108,61 @@ class TupleEntry(Generic[T]):
         if self.inner_to_toml is None:
             return val
         return tuple(map(self.inner_to_toml, val))
+
+
+@dataclass
+class MaybeEntry(Generic[T]):
+    """Represent an Optional[T] entry."""
+
+    inner_from_toml: Callable[[object], T]
+    inner_to_toml: Optional[Callable[[T], object]] = None
+    none_to_toml: object = ""
+
+    def entry(self, default: Optional[T], doc: str = "", in_file: bool = True,
+              in_cli_as: Optional[str] = "optional",
+              cli_short: Optional[str] = None,
+              cli_zsh_comprule: Optional[str] = "") -> Optional[T]:
+        """Produce a :class:`dataclasses.Field` with desired options.
+
+        See :class:`~loam.base.Entry` for an explanation on the parameters.
+        The `in_cli_as` option controls the CLI argument, it can be either of:
+
+        - "optional" (the default), meaning the CLI argument can be fed an
+          empty value, resulting in None, e.g ``--arg``;
+        - "mandatory", meaning the CLI argument has to be fed a value, e.g.
+          ``--arg 42"``;
+        - `None`, meaning the entry is not part of the CLI.
+        """
+        cli_kwargs = {}
+        if in_cli_as is not None:
+            if in_cli_as == "optional":
+                cli_kwargs = {"nargs": "?", "const": None}
+            elif in_cli_as != "mandatory":
+                raise ValueError(
+                    "in_cli_as should be one of 'optional', 'mandatory', "
+                    f"or None; {in_cli_as} received")
+        return Entry(
+            val_factory=lambda: default,
+            doc=doc,
+            from_toml=self.from_toml,
+            to_toml=self.to_toml,
+            in_file=in_file,
+            in_cli=in_cli_as is not None,
+            cli_short=cli_short,
+            cli_kwargs=cli_kwargs,
+            cli_zsh_comprule=cli_zsh_comprule,
+        ).field()
+
+    def from_toml(self, obj: object) -> Optional[T]:
+        """Build an Optional[T] from a TOML object."""
+        if obj is None or self.none_to_toml == obj:
+            return None
+        return self.inner_from_toml(obj)
+
+    def to_toml(self, val: Optional[T]) -> object:
+        """Transform into a TOML object."""
+        if val is None:
+            return self.none_to_toml
+        if self.inner_to_toml is not None:
+            return self.inner_to_toml(val)
+        return val
