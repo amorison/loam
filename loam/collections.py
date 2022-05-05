@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Generic, TypeVar, Callable, Optional, Tuple, Type, Union
+from typing import Any, Generic, TypeVar, Callable, Optional, Tuple
 
 from .base import Entry
 
@@ -33,7 +33,7 @@ class TupleEntry(Generic[T]):
     already representable as a toml object.
     """
 
-    inner_from_toml: Union[Type[T], Callable[[object], T]]
+    inner_from_toml: Callable[[Any], T]
     inner_to_toml: Optional[Callable[[T], object]] = None
     str_sep: Optional[str] = ","
 
@@ -114,7 +114,7 @@ class TupleEntry(Generic[T]):
 class MaybeEntry(Generic[T]):
     """Represent an Optional[T] entry."""
 
-    inner_from_toml: Union[Type[T], Callable[[object], T]]
+    inner_from_toml: Callable[[Any], T]
     inner_to_toml: Optional[Callable[[T], object]] = None
     none_to_toml: object = ""
 
