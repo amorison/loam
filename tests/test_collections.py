@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 from pathlib import Path
 from shlex import split as shsplit
-from typing import Tuple
+from typing import Optional, Tuple
 
 import pytest
 
 from loam.base import Section, ConfigBase
 from loam.cli import CLIManager, Subcmd
-from loam.collections import TupleEntry
+from loam.collections import MaybeEntry, TupleEntry
 
 
 @pytest.fixture
@@ -19,18 +19,25 @@ def tpl():
 class SecA(Section):
     tpl_list: Tuple[int] = TupleEntry(inner_from_toml=int).entry(
         default=[], in_cli_as="list")
+    mfloat: Optional[float] = MaybeEntry(float).entry(default=None)
 
 
 @dataclass
 class SecB(Section):
     tpl_str: Tuple[int] = TupleEntry(inner_from_toml=int).entry(
         default=[], in_cli_as="str")
+    mpath: Optional[Path] = MaybeEntry(Path, str).entry(default=None)
 
 
 @dataclass
 class Config(ConfigBase):
     sec_a: SecA
     sec_b: SecB
+
+
+@pytest.fixture
+def conf() -> Config:
+    return Config.default_()
 
 
 def test_tuple_entry_int(tpl):
@@ -80,17 +87,31 @@ def test_tuple_entry_cli_as_invalid(tpl):
         tpl.entry([], in_cli_as="invalid")
 
 
-def test_tuple_entry_cli_as_list():
-    conf = Config.default_()
+def test_tuple_entry_cli_as_list(conf):
     assert conf.sec_a.tpl_list == tuple()
     climan = CLIManager(conf, bare_=Subcmd("", "sec_a"))
     climan.parse_args(shsplit("--tpl_list 1 2 3"))
     assert conf.sec_a.tpl_list == (1, 2, 3)
 
 
-def test_tuple_entry_cli_as_str():
-    conf = Config.default_()
+def test_tuple_entry_cli_as_str(conf):
     assert conf.sec_b.tpl_str == tuple()
     climan = CLIManager(conf, bare_=Subcmd("", "sec_b"))
     climan.parse_args(shsplit("--tpl_str 1,2,3"))
     assert conf.sec_b.tpl_str == (1, 2, 3)
+
+
+def test_maybe_entry_cli_empty(conf):
+    climan = CLIManager(conf, bare_=Subcmd("", "sec_a", "sec_b"))
+    conf.sec_a.mfloat = 1.0
+    conf.sec_b.mpath = Path()
+    climan.parse_args(shsplit("--mfloat --mpath"))
+    assert conf.sec_a.mfloat is None
+    assert conf.sec_b.mpath is None
+
+
+def test_maybe_entry_cli_val(conf):
+    climan = CLIManager(conf, bare_=Subcmd("", "sec_a", "sec_b"))
+    climan.parse_args(shsplit("--mfloat 3.14 --mpath foo/bar"))
+    assert conf.sec_a.mfloat == 3.14
+    assert conf.sec_b.mpath == Path("foo") / "bar"
