@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Generic, TypeVar, Callable, Optional, Iterable, Tuple
+from typing import Generic, TypeVar, Callable, Optional, Tuple
 
 from .base import Entry
 
@@ -52,7 +52,7 @@ class TupleEntry(Generic[T]):
             str_sep=str_sep,
         )
 
-    def entry(self, default: Iterable[T], doc: str = "", in_file: bool = True,
+    def entry(self, default: object, doc: str = "", in_file: bool = True,
               in_cli_as: Optional[str] = "list",
               cli_short: Optional[str] = None,
               cli_zsh_comprule: Optional[str] = "") -> Tuple[T, ...]:
@@ -78,7 +78,7 @@ class TupleEntry(Generic[T]):
                     "in_cli_as should be one of 'list', 'str', or None;"
                     f" {in_cli_as} received")
         return Entry(
-            val=tuple(default),
+            val=self.from_toml(default),
             doc=doc,
             from_toml=self.from_toml,
             to_toml=self.to_toml,
@@ -118,7 +118,7 @@ class MaybeEntry(Generic[T]):
     inner_to_toml: Optional[Callable[[T], object]] = None
     none_to_toml: object = ""
 
-    def entry(self, default: Optional[T], doc: str = "", in_file: bool = True,
+    def entry(self, default: object, doc: str = "", in_file: bool = True,
               in_cli_as: Optional[str] = "optional",
               cli_short: Optional[str] = None,
               cli_zsh_comprule: Optional[str] = "") -> Optional[T]:
@@ -130,7 +130,7 @@ class MaybeEntry(Generic[T]):
         - "optional" (the default), meaning the CLI argument can be fed an
           empty value, resulting in None, e.g ``--arg``;
         - "mandatory", meaning the CLI argument has to be fed a value, e.g.
-          ``--arg 42"``;
+          ``--arg 42``;
         - `None`, meaning the entry is not part of the CLI.
         """
         cli_kwargs = {}
@@ -142,7 +142,7 @@ class MaybeEntry(Generic[T]):
                     "in_cli_as should be one of 'optional', 'mandatory', "
                     f"or None; {in_cli_as} received")
         return Entry(
-            val_factory=lambda: default,
+            val_factory=lambda: self.from_toml(default),
             doc=doc,
             from_toml=self.from_toml,
             to_toml=self.to_toml,
