@@ -119,37 +119,21 @@ class MaybeEntry(Generic[T]):
     none_to_toml: object = ""
 
     def entry(self, default: object, doc: str = "", in_file: bool = True,
-              in_cli_as: Optional[str] = "optional",
-              cli_short: Optional[str] = None,
+              in_cli: bool = True, cli_short: Optional[str] = None,
               cli_zsh_comprule: Optional[str] = "") -> Optional[T]:
         """Produce a :class:`dataclasses.Field` with desired options.
 
         See :class:`~loam.base.Entry` for an explanation on the parameters.
-        The `in_cli_as` option controls the CLI argument, it can be either of:
-
-        - "optional" (the default), meaning the CLI argument can be fed an
-          empty value, resulting in None, e.g ``--arg``;
-        - "mandatory", meaning the CLI argument has to be fed a value, e.g.
-          ``--arg 42``;
-        - `None`, meaning the entry is not part of the CLI.
         """
-        cli_kwargs = {}
-        if in_cli_as is not None:
-            if in_cli_as == "optional":
-                cli_kwargs = {"nargs": "?", "const": None}
-            elif in_cli_as != "mandatory":
-                raise ValueError(
-                    "in_cli_as should be one of 'optional', 'mandatory', "
-                    f"or None; {in_cli_as} received")
         return Entry(
             val_factory=lambda: self.from_toml(default),
             doc=doc,
             from_toml=self.from_toml,
             to_toml=self.to_toml,
             in_file=in_file,
-            in_cli=in_cli_as is not None,
+            in_cli=in_cli,
             cli_short=cli_short,
-            cli_kwargs=cli_kwargs,
+            cli_kwargs={"nargs": "?", "const": None} if in_cli else {},
             cli_zsh_comprule=cli_zsh_comprule,
         ).field()
 
