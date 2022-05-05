@@ -15,6 +15,16 @@ def tpl():
     return TupleEntry(inner_from_toml=int)
 
 
+@pytest.fixture
+def maybe_int():
+    return MaybeEntry(int, none_to_toml="none")
+
+
+@pytest.fixture
+def maybe_path():
+    return MaybeEntry(Path, str)
+
+
 @dataclass
 class SecA(Section):
     tpl_list: Tuple[int] = TupleEntry(inner_from_toml=int).entry(
@@ -102,6 +112,30 @@ def test_tuple_entry_cli_as_str(conf, climan):
     assert conf.sec_b.tpl_str == tuple()
     climan.parse_args(shsplit("--tpl_str 1,2,3"))
     assert conf.sec_b.tpl_str == (1, 2, 3)
+
+
+def test_maybe_entry_from_none(maybe_path, maybe_int):
+    assert maybe_path.from_toml(None) is None
+    assert maybe_path.from_toml("") is None
+    assert maybe_int.from_toml(None) is None
+    assert maybe_int.from_toml("none") is None
+
+
+def test_maybe_entry_from_val(maybe_path, maybe_int):
+    assert maybe_path.from_toml("foo/bar") == Path("foo/bar")
+    assert maybe_path.from_toml(Path()) == Path()
+    assert maybe_int.from_toml("2") == 2
+    assert maybe_int.from_toml(42) == 42
+
+
+def test_maybe_entry_none_to_toml(maybe_path, maybe_int):
+    assert maybe_path.to_toml(None) == ""
+    assert maybe_int.to_toml(None) == "none"
+
+
+def test_maybe_entry_val_to_toml(maybe_path, maybe_int):
+    assert maybe_path.to_toml(Path("foo/bar")) == "foo/bar"
+    assert maybe_int.to_toml(5) == 5
 
 
 def test_maybe_entry_cli_empty(conf, climan):
