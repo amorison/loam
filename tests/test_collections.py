@@ -40,6 +40,11 @@ def conf() -> Config:
     return Config.default_()
 
 
+@pytest.fixture
+def climan(conf) -> CLIManager:
+    return CLIManager(conf, bare_=Subcmd("", "sec_a", "sec_b"))
+
+
 def test_tuple_entry_int(tpl):
     assert tpl.from_toml("5, 6,7,1") == (5, 6, 7, 1)
     assert tpl.to_toml((3, 4, 5)) == (3, 4, 5)
@@ -87,22 +92,19 @@ def test_tuple_entry_cli_as_invalid(tpl):
         tpl.entry([], in_cli_as="invalid")
 
 
-def test_tuple_entry_cli_as_list(conf):
+def test_tuple_entry_cli_as_list(conf, climan):
     assert conf.sec_a.tpl_list == tuple()
-    climan = CLIManager(conf, bare_=Subcmd("", "sec_a"))
     climan.parse_args(shsplit("--tpl_list 1 2 3"))
     assert conf.sec_a.tpl_list == (1, 2, 3)
 
 
-def test_tuple_entry_cli_as_str(conf):
+def test_tuple_entry_cli_as_str(conf, climan):
     assert conf.sec_b.tpl_str == tuple()
-    climan = CLIManager(conf, bare_=Subcmd("", "sec_b"))
     climan.parse_args(shsplit("--tpl_str 1,2,3"))
     assert conf.sec_b.tpl_str == (1, 2, 3)
 
 
-def test_maybe_entry_cli_empty(conf):
-    climan = CLIManager(conf, bare_=Subcmd("", "sec_a", "sec_b"))
+def test_maybe_entry_cli_empty(conf, climan):
     conf.sec_a.mfloat = 1.0
     conf.sec_b.mpath = Path()
     climan.parse_args(shsplit("--mfloat --mpath"))
@@ -110,8 +112,7 @@ def test_maybe_entry_cli_empty(conf):
     assert conf.sec_b.mpath is None
 
 
-def test_maybe_entry_cli_val(conf):
-    climan = CLIManager(conf, bare_=Subcmd("", "sec_a", "sec_b"))
+def test_maybe_entry_cli_val(conf, climan):
     climan.parse_args(shsplit("--mfloat 3.14 --mpath foo/bar"))
     assert conf.sec_a.mfloat == 3.14
     assert conf.sec_b.mpath == Path("foo") / "bar"
