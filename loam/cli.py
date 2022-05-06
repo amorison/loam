@@ -238,7 +238,7 @@ class CLIManager:
             else:
                 grpfmt, optfmt = "+ '({})'", "'{}[{}]{}'"
             if entry.cli_kwargs.get('action') in no_comp \
-               or entry.cli_kwargs.get('nargs') in (0, "*", "?"):
+               or entry.cli_kwargs.get('nargs') == 0:
                 comprule = None
             if comprule is None:
                 compstr = ''
