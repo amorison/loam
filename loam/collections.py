@@ -27,7 +27,6 @@ class TupleEntry(Generic[T]):
       None to raise a TypeError when attempting to parse a string into a tuple.
     - dump the tuple as a TOML array using `inner_to_toml` to convert each
       element into a type with a TOML representation.
-    - see :meth:`entry` for comments on the CLI capabilities.
 
     Note that you don't have to specify `inner_to_toml` if the inner type is
     already representable as a toml object.
@@ -53,39 +52,21 @@ class TupleEntry(Generic[T]):
         )
 
     def entry(self, default: object, doc: str = "", in_file: bool = True,
-              in_cli_as: Optional[str] = "list",
-              cli_short: Optional[str] = None,
+              in_cli: bool = True, cli_short: Optional[str] = None,
               cli_zsh_comprule: Optional[str] = "") -> Tuple[T, ...]:
         """Produce a :class:`dataclasses.Field` with desired options.
 
         See :class:`~loam.base.Entry` for an explanation on the parameters.
-        The `in_cli_as` option controls the CLI arguments, it can be either of:
-
-        - "list" (the default), meaning the CLI argument accepts several
-          values, e.g ``--arg elt_a elt_b elt_c``;
-        - "str", meaning the CLI argument accepts one string value, e.g.
-          ``--arg "elt_a, elt_b, elt_c"``;
-        - `None`, meaning the entry is not part of the CLI.
         """
-        cli_kwargs = {}
-        if in_cli_as is not None:
-            if in_cli_as == "list":
-                cli_kwargs = {"nargs": "*"}
-            elif in_cli_as == "str":
-                cli_kwargs = {"nargs": "?", "const": ""}
-            else:
-                raise ValueError(
-                    "in_cli_as should be one of 'list', 'str', or None;"
-                    f" {in_cli_as} received")
         return Entry(
             val=self.from_toml(default),
             doc=doc,
             from_toml=self.from_toml,
             to_toml=self.to_toml,
             in_file=in_file,
-            in_cli=in_cli_as is not None,
+            in_cli=in_cli,
             cli_short=cli_short,
-            cli_kwargs=cli_kwargs,
+            cli_kwargs={"nargs": "?", "const": ""} if in_cli else {},
             cli_zsh_comprule=cli_zsh_comprule,
         ).field()
 
