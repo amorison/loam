@@ -51,7 +51,7 @@ class TupleEntry(Generic[T]):
             str_sep=str_sep,
         )
 
-    def entry(self, default: object, doc: str = "", in_file: bool = True,
+    def entry(self, default: object = (), doc: str = "", in_file: bool = True,
               in_cli: bool = True, cli_short: Optional[str] = None,
               cli_zsh_comprule: Optional[str] = "") -> Tuple[T, ...]:
         """Produce a :class:`dataclasses.Field` with desired options.
@@ -99,8 +99,9 @@ class MaybeEntry(Generic[T]):
     inner_to_toml: Optional[Callable[[T], object]] = None
     none_to_toml: object = ""
 
-    def entry(self, default: object, doc: str = "", in_file: bool = True,
-              in_cli: bool = True, cli_short: Optional[str] = None,
+    def entry(self, default: object = None, doc: str = "",
+              in_file: bool = True, in_cli: bool = True,
+              cli_short: Optional[str] = None,
               cli_zsh_comprule: Optional[str] = "") -> Optional[T]:
         """Produce a :class:`dataclasses.Field` with desired options.
 

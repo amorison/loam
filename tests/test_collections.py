@@ -27,9 +27,9 @@ def maybe_path():
 
 @dataclass
 class Sec(Section):
-    tpl: Tuple[int] = TupleEntry(int).entry(default=[])
-    mfloat: Optional[float] = MaybeEntry(float).entry(default=None)
-    mpath: Optional[Path] = MaybeEntry(Path, str).entry(default=None)
+    tpl: Tuple[int] = TupleEntry(int).entry()
+    mfloat: Optional[float] = MaybeEntry(float).entry()
+    mpath: Optional[Path] = MaybeEntry(Path, str).entry()
 
 
 @dataclass
@@ -90,7 +90,7 @@ def test_tuple_entry_nested(tpl):
 
 
 def test_tuple_entry_cli(conf, climan):
-    assert conf.sec.tpl == tuple()
+    assert conf.sec.tpl == ()
     climan.parse_args(shsplit("--tpl 1,2,3"))
     assert conf.sec.tpl == (1, 2, 3)
 
