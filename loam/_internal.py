@@ -63,5 +63,5 @@ def zsh_version() -> Tuple[int, ...]:
                              stdout=subprocess.PIPE).stdout
     except (FileNotFoundError, subprocess.CalledProcessError):
         return (0, 0)
-    match = re.search(br'[0-9]+\.[0-9]+', out)
-    return tuple(map(int, match.group(0).split(b'.'))) if match else (0, 0)
+    v_match = re.search(br'[0-9]+\.[0-9]+', out)
+    return tuple(map(int, v_match.group(0).split(b'.'))) if v_match else (0, 0)
