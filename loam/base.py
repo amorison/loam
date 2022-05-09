@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict, fields, field, Field
+from dataclasses import dataclass, fields, field, Field
 from os import PathLike
 from pathlib import Path
 from typing import (
@@ -253,20 +253,20 @@ class ConfigBase:
         if not exist_ok and path.is_file():
             raise RuntimeError(f"{path} already exists")
         path.parent.mkdir(parents=True, exist_ok=True)
-        dct = asdict(self)
+        sections = fields(self)
         to_dump: Dict[str, Dict[str, Any]] = {}
-        for sec_name, sec_dict in dct.items():
-            to_dump[sec_name] = {}
-            section: Section = getattr(self, sec_name)
+        for sec in sections:
+            to_dump[sec.name] = {}
+            section: Section = getattr(self, sec.name)
             for fld in fields(section):
                 entry = section.meta_(fld.name).entry
                 if not entry.in_file:
                     continue
-                value = sec_dict[fld.name]
+                value = getattr(section, fld.name)
                 if entry.to_toml is not None:
                     value = entry.to_toml(value)
-                to_dump[sec_name][fld.name] = value
-            if not to_dump[sec_name]:
-                del to_dump[sec_name]
+                to_dump[sec.name][fld.name] = value
+            if not to_dump[sec.name]:
+                del to_dump[sec.name]
         with path.open('w') as pf:
             toml.dump(to_dump, pf)
