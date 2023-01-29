@@ -106,7 +106,7 @@ def entry(
     in_file: bool = True,
     in_cli: bool = True,
     cli_short: Optional[str] = None,
-    cli_kwargs: Dict[str, Any] = None,
+    cli_kwargs: Optional[Dict[str, Any]] = None,
     cli_zsh_comprule: Optional[str] = "",
 ) -> T:
     """Build Entry(...).field()."""

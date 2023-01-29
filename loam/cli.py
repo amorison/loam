@@ -186,8 +186,9 @@ class CLIManager:
 
         subparsers = main_parser.add_subparsers(dest="loam_sub_name")
         for cmd_name, meta in self.subcmds.items():
-            kwargs = {"prefix_chars": "+-", "help": meta.help}
-            dummy_parser = subparsers.add_parser(cmd_name, **kwargs)
+            dummy_parser = subparsers.add_parser(
+                cmd_name, prefix_chars="+-", help=meta.help
+            )
             self._add_options_to_parser(self._opt_cmds[cmd_name], dummy_parser)
             dummy_parser.set_defaults(**meta.defaults)
 
