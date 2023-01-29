@@ -4,6 +4,7 @@ These functions can be used as `from_toml` in :attr:`~loam.base.Entry`.
 """
 
 from __future__ import annotations
+
 from typing import Union
 
 
@@ -47,12 +48,14 @@ def slice_or_int_parser(arg: object) -> Union[slice, int]:
         return arg
     if not isinstance(arg, str):
         raise TypeError("arg should be an int, slice, or str")
-    if ':' in arg:
-        idxs = arg.split(':')
+    if ":" in arg:
+        idxs = arg.split(":")
         if len(idxs) > 3:
-            raise ValueError(f'{arg} is an invalid slice')
-        slice_parts = [int(idxs[0]) if idxs[0] else None,
-                       int(idxs[1]) if idxs[1] else None]
+            raise ValueError(f"{arg} is an invalid slice")
+        slice_parts = [
+            int(idxs[0]) if idxs[0] else None,
+            int(idxs[1]) if idxs[1] else None,
+        ]
         if len(idxs) == 3:
             slice_parts.append(int(idxs[2]) if idxs[2] else None)
         else:

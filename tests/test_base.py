@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
 import pytest
 
-from loam.base import entry, Section, ConfigBase
+from loam.base import ConfigBase, Section, entry
 
 
 class MyMut:
@@ -72,6 +73,7 @@ def test_type_hint_not_a_class():
     @dataclass
     class MySection(Section):
         maybe_n: Optional[int] = entry(val_factory=lambda: None, from_toml=int)
+
     assert MySection().maybe_n is None
     assert MySection("42").maybe_n == "42"
 
@@ -85,6 +87,7 @@ def test_init_wrong_type():
     @dataclass
     class MySection(Section):
         some_n: int = 42
+
     with pytest.raises(TypeError):
         MySection("bla")
 
@@ -93,6 +96,7 @@ def test_missing_from_toml():
     @dataclass
     class MySection(Section):
         my_mut: MyMut = entry(val_factory=lambda: MyMut([4.5]))
+
     sec = MySection()
     assert sec.my_mut.inner_list == [4.5]
     with pytest.raises(TypeError):
@@ -140,16 +144,16 @@ def test_config_with_not_section():
     @dataclass
     class MyConfig(ConfigBase):
         dummy: int = 5
+
     with pytest.raises(TypeError):
         MyConfig.default_()
 
 
 def test_update_opt(conf):
-    conf.sectionA.update_from_dict_({'optA': 42, 'optC': 43})
+    conf.sectionA.update_from_dict_({"optA": 42, "optC": 43})
     assert conf.sectionA.optA == 42 and conf.sectionA.optC == 43
 
 
 def test_update_section(conf):
-    conf.update_from_dict_(
-        {'sectionA': {'optA': 42}, 'sectionB': {'optA': 43}})
+    conf.update_from_dict_({"sectionA": {"optA": 42}, "sectionB": {"optA": 43}})
     assert conf.sectionA.optA == 42 and conf.sectionB.optA == 43

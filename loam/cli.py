@@ -1,40 +1,42 @@
 """Definition of CLI manager."""
 from __future__ import annotations
-from dataclasses import fields
+
 import argparse
 import copy
 import pathlib
 import typing
 import warnings
+from dataclasses import fields
 from types import MappingProxyType
 
-from . import error, _internal
+from . import _internal, error
 
 if typing.TYPE_CHECKING:
-    from typing import Dict, List, Any, Optional, Mapping, TextIO, Union
     from argparse import ArgumentParser, Namespace
     from os import PathLike
-    from .base import Section, ConfigBase
+    from typing import Any, Dict, List, Mapping, Optional, TextIO, Union
+
+    from .base import ConfigBase, Section
 
 
-BLK = ' \\\n'  # cutting line in scripts
+BLK = " \\\n"  # cutting line in scripts
 
 
 def _names(section: Section, option: str) -> List[str]:
     """List of cli strings for a given option."""
     entry = section.meta_(option).entry
-    action = entry.cli_kwargs.get('action')
+    action = entry.cli_kwargs.get("action")
     if action is _internal.Switch:
-        names = [f'-{option}', f'+{option}']
+        names = [f"-{option}", f"+{option}"]
         short = entry.cli_short
         if short is not None:
-            names.append(f'-{short}')
-            names.append(f'+{short}')
+            names.append(f"-{short}")
+            names.append(f"+{short}")
     else:
-        names = [f'--{option}']
+        names = [f"--{option}"]
         short = entry.cli_short
         if short is not None:
-            names.append(f'-{short}')
+            names.append(f"-{short}")
     return names
 
 
@@ -69,10 +71,13 @@ class CLIManager:
             this function.
     """
 
-    def __init__(self, config_: ConfigBase,
-                 common_: Optional[Subcmd] = None,
-                 bare_: Optional[Subcmd] = None,
-                 **subcmds: Subcmd):
+    def __init__(
+        self,
+        config_: ConfigBase,
+        common_: Optional[Subcmd] = None,
+        bare_: Optional[Subcmd] = None,
+        **subcmds: Subcmd,
+    ):
         self._conf = config_
         self._subcmds = {}
         for sub_name, sub_meta in subcmds.items():
@@ -80,7 +85,7 @@ class CLIManager:
                 self._subcmds[sub_name] = sub_meta
             else:
                 raise error.SubcmdError(sub_name)
-        self._common = common_ if common_ is not None else Subcmd('')
+        self._common = common_ if common_ is not None else Subcmd("")
         self._bare = bare_
         # dict of dict [command][option] = section
         self._opt_cmds: Dict[str, Dict[str, str]] = {}
@@ -142,22 +147,26 @@ class CLIManager:
                     cmd_dict[opt] = sct
                 else:
                     warnings.warn(
-                        'Command <{0}>: {1}.{2} shadowed by {3}.{2}'.format(
-                            cmd_name, sct, opt, cmd_dict[opt]),
-                        error.LoamWarning, stacklevel=4)
+                        "Command <{0}>: {1}.{2} shadowed by {3}.{2}".format(
+                            cmd_name, sct, opt, cmd_dict[opt]
+                        ),
+                        error.LoamWarning,
+                        stacklevel=4,
+                    )
 
-    def _add_options_to_parser(self, opts_dict: Mapping[str, str],
-                               parser: ArgumentParser) -> None:
+    def _add_options_to_parser(
+        self, opts_dict: Mapping[str, str], parser: ArgumentParser
+    ) -> None:
         """Add options to a parser."""
         for opt, sct in opts_dict.items():
             section: Section = getattr(self._conf, sct)
             entry = section.meta_(opt).entry
             kwargs = copy.deepcopy(entry.cli_kwargs)
-            action = kwargs.get('action')
+            action = kwargs.get("action")
             if action is _internal.Switch:
                 kwargs.update(nargs=0)
             kwargs.update(help=entry.doc)
-            kwargs.setdefault('default', getattr(section, opt))
+            kwargs.setdefault("default", getattr(section, opt))
             parser.add_argument(*_names(section, opt), **kwargs)
 
     def _build_parser(self) -> ArgumentParser:
@@ -166,17 +175,18 @@ class CLIManager:
         Returns:
             the command line argument parser.
         """
-        main_parser = argparse.ArgumentParser(description=self.common.help,
-                                              prefix_chars='-+')
+        main_parser = argparse.ArgumentParser(
+            description=self.common.help, prefix_chars="-+"
+        )
 
         self._add_options_to_parser(self._opt_bare, main_parser)
         main_parser.set_defaults(**self.common.defaults)
         if self.bare is not None:
             main_parser.set_defaults(**self.bare.defaults)
 
-        subparsers = main_parser.add_subparsers(dest='loam_sub_name')
+        subparsers = main_parser.add_subparsers(dest="loam_sub_name")
         for cmd_name, meta in self.subcmds.items():
-            kwargs = {'prefix_chars': '+-', 'help': meta.help}
+            kwargs = {"prefix_chars": "+-", "help": meta.help}
             dummy_parser = subparsers.add_parser(cmd_name, **kwargs)
             self._add_options_to_parser(self._opt_cmds[cmd_name], dummy_parser)
             dummy_parser.set_defaults(**meta.defaults)
@@ -208,8 +218,9 @@ class CLIManager:
                 section.cast_and_set_(opt, val)
         return args
 
-    def _zsh_comp_command(self, zcf: TextIO, cmd: Optional[str],
-                          grouping: bool, add_help: bool = True) -> None:
+    def _zsh_comp_command(
+        self, zcf: TextIO, cmd: Optional[str], grouping: bool, add_help: bool = True
+    ) -> None:
         """Write zsh _arguments compdef for a given command.
 
         Args:
@@ -225,38 +236,48 @@ class CLIManager:
             print("'-h[show help message]'", end=BLK, file=zcf)
         # could deal with duplicate by iterating in reverse and keep set of
         # already defined opts.
-        no_comp = ('store_true', 'store_false')
+        no_comp = ("store_true", "store_false")
         cmd_dict = self._opt_cmds[cmd] if cmd else self._opt_bare
         for opt, sct in cmd_dict.items():
             section: Section = getattr(self._conf, sct)
             entry = section.meta_(opt).entry
             comprule = entry.cli_zsh_comprule
-            if entry.cli_kwargs.get('action') == 'append':
+            if entry.cli_kwargs.get("action") == "append":
                 grpfmt, optfmt = "+ '{}'", "'*{}[{}]{}'"
                 if comprule is None:
-                    comprule = ''
+                    comprule = ""
             else:
                 grpfmt, optfmt = "+ '({})'", "'{}[{}]{}'"
-            if entry.cli_kwargs.get('action') in no_comp \
-               or entry.cli_kwargs.get('nargs') == 0:
+            if (
+                entry.cli_kwargs.get("action") in no_comp
+                or entry.cli_kwargs.get("nargs") == 0
+            ):
                 comprule = None
             if comprule is None:
-                compstr = ''
-            elif comprule == '':
-                optfmt = optfmt.replace('[', '=[')
-                compstr = ': :( )'
+                compstr = ""
+            elif comprule == "":
+                optfmt = optfmt.replace("[", "=[")
+                compstr = ": :( )"
             else:
-                optfmt = optfmt.replace('[', '=[')
-                compstr = f': :{comprule}'
+                optfmt = optfmt.replace("[", "=[")
+                compstr = f": :{comprule}"
             if grouping:
                 print(grpfmt.format(opt), end=BLK, file=zcf)
             for name in _names(section, opt):
-                print(optfmt.format(name, entry.doc.replace("'", "'\"'\"'"),
-                                    compstr), end=BLK, file=zcf)
+                print(
+                    optfmt.format(name, entry.doc.replace("'", "'\"'\"'"), compstr),
+                    end=BLK,
+                    file=zcf,
+                )
 
-    def zsh_complete(self, path: Union[str, PathLike], cmd: str, *cmds: str,
-                     sourceable: bool = False,
-                     force_grouping: bool = False) -> None:
+    def zsh_complete(
+        self,
+        path: Union[str, PathLike],
+        cmd: str,
+        *cmds: str,
+        sourceable: bool = False,
+        force_grouping: bool = False,
+    ) -> None:
         """Write zsh compdef script.
 
         Args:
@@ -271,40 +292,41 @@ class CLIManager:
         """
         grouping = force_grouping or _internal.zsh_version() >= (5, 4)
         path = pathlib.Path(path)
-        firstline = ['#compdef', cmd]
+        firstline = ["#compdef", cmd]
         firstline.extend(cmds)
         subcmds = list(self.subcmds.keys())
-        with path.open('w') as zcf:
-            print(*firstline, end='\n\n', file=zcf)
+        with path.open("w") as zcf:
+            print(*firstline, end="\n\n", file=zcf)
             # main function
-            print(f'function _{cmd} {{', file=zcf)
-            print('local line', file=zcf)
-            print('_arguments -C', end=BLK, file=zcf)
+            print(f"function _{cmd} {{", file=zcf)
+            print("local line", file=zcf)
+            print("_arguments -C", end=BLK, file=zcf)
             if subcmds:
                 # list of subcommands and their description
-                substrs = [rf"{sub}\:'{self.subcmds[sub].help}'"
-                           for sub in subcmds]
-                print('"1:Commands:(({}))"'.format(' '.join(substrs)),
-                      end=BLK, file=zcf)
+                substrs = [rf"{sub}\:'{self.subcmds[sub].help}'" for sub in subcmds]
+                print(
+                    '"1:Commands:(({}))"'.format(" ".join(substrs)), end=BLK, file=zcf
+                )
             self._zsh_comp_command(zcf, None, grouping)
             if subcmds:
                 print("'*::arg:->args'", file=zcf)
-                print('case $line[1] in', file=zcf)
+                print("case $line[1] in", file=zcf)
                 for sub in subcmds:
-                    print(f'{sub}) _{cmd}_{sub} ;;', file=zcf)
-                print('esac', file=zcf)
-            print('}', file=zcf)
+                    print(f"{sub}) _{cmd}_{sub} ;;", file=zcf)
+                print("esac", file=zcf)
+            print("}", file=zcf)
             # all subcommand completion handlers
             for sub in subcmds:
-                print(f'\nfunction _{cmd}_{sub} {{', file=zcf)
-                print('_arguments', end=BLK, file=zcf)
+                print(f"\nfunction _{cmd}_{sub} {{", file=zcf)
+                print("_arguments", end=BLK, file=zcf)
                 self._zsh_comp_command(zcf, sub, grouping)
-                print('}', file=zcf)
+                print("}", file=zcf)
             if sourceable:
-                print(f'\ncompdef _{cmd} {cmd}', *cmds, file=zcf)
+                print(f"\ncompdef _{cmd} {cmd}", *cmds, file=zcf)
 
-    def _bash_comp_command(self, cmd: Optional[str],
-                           add_help: bool = True) -> List[str]:
+    def _bash_comp_command(
+        self, cmd: Optional[str], add_help: bool = True
+    ) -> List[str]:
         """Build a list of all options for a given command.
 
         Args:
@@ -314,15 +336,14 @@ class CLIManager:
         Returns:
             list of CLI options strings.
         """
-        out = ['-h', '--help'] if add_help else []
+        out = ["-h", "--help"] if add_help else []
         cmd_dict = self._opt_cmds[cmd] if cmd else self._opt_bare
         for opt, sct in cmd_dict.items():
             section: Section = getattr(self._conf, sct)
             out.extend(_names(section, opt))
         return out
 
-    def bash_complete(self, path: Union[str, PathLike], cmd: str,
-                      *cmds: str) -> None:
+    def bash_complete(self, path: Union[str, PathLike], cmd: str, *cmds: str) -> None:
         """Write bash complete script.
 
         Args:
@@ -332,34 +353,37 @@ class CLIManager:
         """
         path = pathlib.Path(path)
         subcmds = list(self.subcmds.keys())
-        with path.open('w') as bcf:
+        with path.open("w") as bcf:
             # main function
-            print(f'_{cmd}() {{', file=bcf)
-            print('COMPREPLY=()', file=bcf)
-            print(r'local cur=${COMP_WORDS[COMP_CWORD]}', end='\n\n', file=bcf)
-            optstr = ' '.join(self._bash_comp_command(None))
-            print(f'local options="{optstr}"', end='\n\n', file=bcf)
+            print(f"_{cmd}() {{", file=bcf)
+            print("COMPREPLY=()", file=bcf)
+            print(r"local cur=${COMP_WORDS[COMP_CWORD]}", end="\n\n", file=bcf)
+            optstr = " ".join(self._bash_comp_command(None))
+            print(f'local options="{optstr}"', end="\n\n", file=bcf)
             if subcmds:
-                print('local commands="{}"'.format(' '.join(subcmds)),
-                      file=bcf)
-                print('declare -A suboptions', file=bcf)
+                print('local commands="{}"'.format(" ".join(subcmds)), file=bcf)
+                print("declare -A suboptions", file=bcf)
             for sub in subcmds:
-                optstr = ' '.join(self._bash_comp_command(sub))
+                optstr = " ".join(self._bash_comp_command(sub))
                 print(f'suboptions[{sub}]="{optstr}"', file=bcf)
-            condstr = 'if'
+            condstr = "if"
             for sub in subcmds:
-                print(condstr, r'[[ "${COMP_LINE}" == *"', sub, '"* ]] ; then',
-                      file=bcf)
-                print(r'COMPREPLY=( `compgen -W "${suboptions[', sub,
-                      r']}" -- ${cur}` )', sep='', file=bcf)
-                condstr = 'elif'
-            print(condstr, r'[[ ${cur} == -* ]] ; then', file=bcf)
-            print(r'COMPREPLY=( `compgen -W "${options}" -- ${cur}`)',
-                  file=bcf)
+                print(
+                    condstr, r'[[ "${COMP_LINE}" == *"', sub, '"* ]] ; then', file=bcf
+                )
+                print(
+                    r'COMPREPLY=( `compgen -W "${suboptions[',
+                    sub,
+                    r']}" -- ${cur}` )',
+                    sep="",
+                    file=bcf,
+                )
+                condstr = "elif"
+            print(condstr, r"[[ ${cur} == -* ]] ; then", file=bcf)
+            print(r'COMPREPLY=( `compgen -W "${options}" -- ${cur}`)', file=bcf)
             if subcmds:
-                print(r'else', file=bcf)
-                print(r'COMPREPLY=( `compgen -W "${commands}" -- ${cur}`)',
-                      file=bcf)
-            print('fi', file=bcf)
-            print('}', end='\n\n', file=bcf)
-            print(f'complete -F _{cmd} {cmd}', *cmds, file=bcf)
+                print(r"else", file=bcf)
+                print(r'COMPREPLY=( `compgen -W "${commands}" -- ${cur}`)', file=bcf)
+            print("fi", file=bcf)
+            print("}", end="\n\n", file=bcf)
+            print(f"complete -F _{cmd} {cmd}", *cmds, file=bcf)

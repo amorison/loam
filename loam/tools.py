@@ -1,18 +1,20 @@
 """Various helper functions and classes."""
 
 from __future__ import annotations
+
+import shlex
+import subprocess
+import typing
 from dataclasses import dataclass
 from pathlib import Path
-import subprocess
-import shlex
-import typing
 
 from . import _internal
 from .base import Entry, Section
 
 if typing.TYPE_CHECKING:
-    from typing import Optional, Union, Type
     from os import PathLike
+    from typing import Optional, Type, Union
+
     from .base import ConfigBase
 
 
@@ -23,7 +25,7 @@ def path_entry(
     in_cli: bool = True,
     cli_short: Optional[str] = None,
     cli_zsh_only_dirs: bool = False,
-    cli_zsh_comprule: Optional[str] = None
+    cli_zsh_comprule: Optional[str] = None,
 ) -> Path:
     """Define a path option.
 
@@ -49,8 +51,7 @@ def path_entry(
     ).field()
 
 
-def switch_opt(default: bool, shortname: Optional[str],
-               doc: str) -> bool:
+def switch_opt(default: bool, shortname: Optional[str], doc: str) -> bool:
     """Define a switchable option.
 
     This creates a boolean option. If you use it in your CLI, it can be
@@ -63,8 +64,11 @@ def switch_opt(default: bool, shortname: Optional[str],
         doc: short description of the option.
     """
     return Entry(
-        val=default, doc=doc, cli_short=shortname,
-        cli_kwargs=dict(action=_internal.Switch), cli_zsh_comprule=None
+        val=default,
+        doc=doc,
+        cli_short=shortname,
+        cli_kwargs=dict(action=_internal.Switch),
+        cli_zsh_comprule=None,
     ).field()
 
 
@@ -82,8 +86,12 @@ def command_flag(doc: str, shortname: Optional[str] = None) -> bool:
             to None.
     """
     return Entry(  # previously, default value was None. Diff in cli?
-        val=False, doc=doc, in_file=False, cli_short=shortname,
-        cli_kwargs=dict(action="store_true"), cli_zsh_comprule=None
+        val=False,
+        doc=doc,
+        in_file=False,
+        cli_short=shortname,
+        cli_kwargs=dict(action="store_true"),
+        cli_zsh_comprule=None,
     ).field()
 
 
@@ -94,13 +102,13 @@ class ConfigSection(Section):
     create: bool = command_flag("create global config file")
     update: bool = command_flag("add missing entries to config file")
     edit: bool = command_flag("open config file in a text editor")
-    editor: str = Entry(val="vim", doc='text editor').field()
+    editor: str = Entry(val="vim", doc="text editor").field()
 
 
 def config_cmd_handler(
-        config: Union[ConfigBase, Type[ConfigBase]],
-        config_section: ConfigSection,
-        config_file: Path,
+    config: Union[ConfigBase, Type[ConfigBase]],
+    config_section: ConfigSection,
+    config_file: Path,
 ) -> None:
     """Implement the behavior of a subcmd using config_conf_section.
 
@@ -117,5 +125,4 @@ def config_cmd_handler(
     elif config_section.create or config_section.edit:
         config.default_().to_file_(config_file)
     if config_section.edit:
-        subprocess.run(shlex.split('{} {}'.format(config_section.editor,
-                                                  config_file)))
+        subprocess.run(shlex.split("{} {}".format(config_section.editor, config_file)))

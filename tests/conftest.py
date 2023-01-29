@@ -3,17 +3,17 @@ from pathlib import Path
 
 import pytest
 
-from loam.cli import Subcmd, CLIManager
-from loam.tools import switch_opt, path_entry
-from loam.base import entry, Section, ConfigBase
+from loam.base import ConfigBase, Section, entry
+from loam.cli import CLIManager, Subcmd
+from loam.tools import path_entry, switch_opt
 
 
 @dataclass
 class SecA(Section):
-    optA: int = entry(val=1, doc="AA", cli_short='a')
+    optA: int = entry(val=1, doc="AA", cli_short="a")
     optB: int = entry(val=2, doc="AB", in_file=False)
     optC: int = entry(val=3, doc="AC")
-    optBool: bool = switch_opt(True, 'o', 'Abool')
+    optBool: bool = switch_opt(True, "o", "Abool")
 
 
 @dataclass
@@ -21,7 +21,7 @@ class SecB(Section):
     optA: int = entry(val=4, doc="BA")
     optB: int = entry(val=5, doc="BB", in_file=False)
     optC: int = entry(val=6, doc="BC", in_cli=False)
-    optBool: int = switch_opt(False, 'o', 'Bbool')
+    optBool: int = switch_opt(False, "o", "Bbool")
 
 
 @dataclass
@@ -35,13 +35,13 @@ def conf() -> Conf:
     return Conf.default_()
 
 
-@pytest.fixture(params=['subsA'])
+@pytest.fixture(params=["subsA"])
 def sub_cmds(request):
     subs = {}
-    subs['subsA'] = {
-        'common_': Subcmd('subsA loam test'),
-        'bare_': Subcmd(None, 'sectionA'),
-        'sectionB': Subcmd('sectionB subcmd help'),
+    subs["subsA"] = {
+        "common_": Subcmd("subsA loam test"),
+        "bare_": Subcmd(None, "sectionA"),
+        "sectionB": Subcmd("sectionB subcmd help"),
     }
     return subs[request.param]
 
@@ -53,7 +53,7 @@ def climan(conf, sub_cmds):
 
 @pytest.fixture
 def cfile(tmp_path):
-    return tmp_path / 'config.toml'
+    return tmp_path / "config.toml"
 
 
 @dataclass

@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 
 import pytest
 
-from loam.base import Section, ConfigBase
+from loam.base import ConfigBase, Section
 from loam.cli import CLIManager, Subcmd
 from loam.collections import MaybeEntry, TupleEntry
 

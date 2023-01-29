@@ -25,4 +25,4 @@ class SubcmdError(LoamError):
 
     def __init__(self, option: str):
         self.option = option
-        super().__init__(f'invalid subcommand name: {option}')
+        super().__init__(f"invalid subcommand name: {option}")

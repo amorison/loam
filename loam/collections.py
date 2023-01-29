@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Generic, TypeVar, Callable, Optional, Tuple
+from typing import Any, Callable, Generic, Optional, Tuple, TypeVar
 
 from .base import Entry
-
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -51,9 +50,15 @@ class TupleEntry(Generic[T]):
             str_sep=str_sep,
         )
 
-    def entry(self, default: object = (), doc: str = "", in_file: bool = True,
-              in_cli: bool = True, cli_short: Optional[str] = None,
-              cli_zsh_comprule: Optional[str] = "") -> Tuple[T, ...]:
+    def entry(
+        self,
+        default: object = (),
+        doc: str = "",
+        in_file: bool = True,
+        in_cli: bool = True,
+        cli_short: Optional[str] = None,
+        cli_zsh_comprule: Optional[str] = "",
+    ) -> Tuple[T, ...]:
         """Produce a :class:`dataclasses.Field` with desired options.
 
         See :class:`~loam.base.Entry` for an explanation on the parameters.
@@ -75,14 +80,12 @@ class TupleEntry(Generic[T]):
         if isinstance(obj, str):
             sep = self.str_sep
             if sep is None:
-                raise TypeError(
-                    "Cannot parse str into a Tuple as str_sep is None")
+                raise TypeError("Cannot parse str into a Tuple as str_sep is None")
             sep = sep if sep != "" else None
             obj = tuple(map(str.strip, obj.split(sep)))
         if isinstance(obj, (list, tuple)):
             return tuple(map(self.inner_from_toml, obj))
-        raise TypeError(
-            f"obj should be a str, tuple, or list; got a {obj.__class__}")
+        raise TypeError(f"obj should be a str, tuple, or list; got a {obj.__class__}")
 
     def to_toml(self, val: Tuple[T, ...]) -> Tuple[object, ...]:
         """Transform into a TOML array."""
@@ -99,10 +102,15 @@ class MaybeEntry(Generic[T]):
     inner_to_toml: Optional[Callable[[T], object]] = None
     none_to_toml: object = ""
 
-    def entry(self, default: object = None, doc: str = "",
-              in_file: bool = True, in_cli: bool = True,
-              cli_short: Optional[str] = None,
-              cli_zsh_comprule: Optional[str] = "") -> Optional[T]:
+    def entry(
+        self,
+        default: object = None,
+        doc: str = "",
+        in_file: bool = True,
+        in_cli: bool = True,
+        cli_short: Optional[str] = None,
+        cli_zsh_comprule: Optional[str] = "",
+    ) -> Optional[T]:
         """Produce a :class:`dataclasses.Field` with desired options.
 
         See :class:`~loam.base.Entry` for an explanation on the parameters.

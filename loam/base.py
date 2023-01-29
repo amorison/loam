@@ -2,13 +2,21 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, fields, field, Field
+from dataclasses import Field, dataclass, field, fields
 from os import PathLike
 from pathlib import Path
 from typing import (
+    Any,
+    Callable,
+    ContextManager,
+    Dict,
+    Generic,
+    Mapping,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
     get_type_hints,
-    TypeVar, Generic, Callable, Optional, Dict, Any, Type, Union, Mapping,
-    ContextManager
 )
 
 import toml
@@ -59,16 +67,19 @@ class Entry(Generic[T]):
     in_cli: bool = True
     cli_short: Optional[str] = None
     cli_kwargs: Dict[str, Any] = field(default_factory=dict)
-    cli_zsh_comprule: Optional[str] = ''
+    cli_zsh_comprule: Optional[str] = ""
 
     def field(self) -> T:
         """Produce a :class:`dataclasses.Field` from the entry."""
-        non_none_cout = (int(self.val is not None) +
-                         int(self.val_toml is not None) +
-                         int(self.val_factory is not None))
+        non_none_cout = (
+            int(self.val is not None)
+            + int(self.val_toml is not None)
+            + int(self.val_factory is not None)
+        )
         if non_none_cout != 1:
             raise ValueError(
-                "Exactly one of val, val_toml, and val_factory should be set.")
+                "Exactly one of val, val_toml, and val_factory should be set."
+            )
 
         if self.val is not None:
             return field(default=self.val, metadata=dict(loam_entry=self))
@@ -96,7 +107,7 @@ def entry(
     in_cli: bool = True,
     cli_short: Optional[str] = None,
     cli_kwargs: Dict[str, Any] = None,
-    cli_zsh_comprule: Optional[str] = '',
+    cli_zsh_comprule: Optional[str] = "",
 ) -> T:
     """Build Entry(...).field()."""
     if cli_kwargs is None:
@@ -180,7 +191,8 @@ class Section:
             except Exception:
                 raise TypeError(
                     f"Couldn't cast {value_to_cast!r} to a {meta.type_hint}, "
-                    f"you might need to specify `from_toml` for {field_name}.")
+                    f"you might need to specify `from_toml` for {field_name}."
+                )
         else:
             value = value_to_cast
         setattr(self, field_name, value)
@@ -219,7 +231,8 @@ class ConfigBase:
             if not (isinstance(thint, type) and issubclass(thint, Section)):
                 raise TypeError(
                     f"Could not resolve type hint of {fld.name} to a Section "
-                    f"(got {thint})")
+                    f"(got {thint})"
+                )
             sections[fld.name] = thint()
         return cls(**sections)
 
@@ -237,17 +250,13 @@ class ConfigBase:
         }
         self.update_from_dict_(pars)
 
-    def update_from_dict_(
-        self, options: Mapping[str, Mapping[str, Any]]
-    ) -> None:
+    def update_from_dict_(self, options: Mapping[str, Mapping[str, Any]]) -> None:
         """Update configuration from a dictionary."""
         for sec, opts in options.items():
             section: Section = getattr(self, sec)
             section.update_from_dict_(opts)
 
-    def to_file_(
-        self, path: Union[str, PathLike], exist_ok: bool = True
-    ) -> None:
+    def to_file_(self, path: Union[str, PathLike], exist_ok: bool = True) -> None:
         """Write configuration in toml file."""
         path = Path(path)
         if not exist_ok and path.is_file():
@@ -268,5 +277,5 @@ class ConfigBase:
                 to_dump[sec.name][fld.name] = value
             if not to_dump[sec.name]:
                 del to_dump[sec.name]
-        with path.open('w') as pf:
+        with path.open("w") as pf:
             toml.dump(to_dump, pf)
