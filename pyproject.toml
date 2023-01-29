@@ -1,6 +1,41 @@
 [build-system]
-requires = ["setuptools>=51", "setuptools_scm>=6.3.2"]
+requires = ["setuptools>=61", "setuptools_scm>=7.0"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "loam"
+dynamic = ["version"]
+description = "Light configuration manager"
+readme = "README.rst"
+authors = [
+    {name = "Adrien Morison", email = "adrien.morison@gmail.com"},
+]
+maintainers = [
+    {name = "Adrien Morison", email = "adrien.morison@gmail.com"},
+]
+license = {file = "LICENSE"}
+urls = {homepage = "https://github.com/amorison/loam"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+requires-python = ">=3.7"
+dependencies = [
+    "toml>=0.10.2",
+]
+
+[tool.setuptools.packages.find]
+include = ["loam"]
+namespaces = false
+
+[tool.setuptools.package-data]
+stagpy = ["py.typed"]
 
 [tool.setuptools_scm]
 write_to = "loam/_version.py"
