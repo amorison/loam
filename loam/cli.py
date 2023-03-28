@@ -25,6 +25,7 @@ BLK = " \\\n"  # cutting line in scripts
 def _names(section: Section, option: str) -> List[str]:
     """List of cli strings for a given option."""
     entry = section.meta_(option).entry
+    option = option.replace("_", "-")
     action = entry.cli_kwargs.get("action")
     if action is _internal.Switch:
         names = [f"-{option}", f"+{option}"]
