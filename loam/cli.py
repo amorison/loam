@@ -159,8 +159,15 @@ class CLIManager:
         self, opts_dict: Mapping[str, str], parser: ArgumentParser
     ) -> None:
         """Add options to a parser."""
+        groups = {}
         for opt, sct in opts_dict.items():
             section: Section = getattr(self._conf, sct)
+            section_t = type(section)
+            if section_t not in groups:
+                group_doc = section.__doc__ or section_t.__name__
+                group_doc = group_doc.splitlines()[0].strip(".")
+                groups[section_t] = parser.add_argument_group(group_doc)
+            group = groups[section_t]
             entry = section.meta_(opt).entry
             kwargs = copy.deepcopy(entry.cli_kwargs)
             action = kwargs.get("action")
@@ -168,7 +175,7 @@ class CLIManager:
                 kwargs.update(nargs=0)
             kwargs.update(help=entry.doc)
             kwargs.setdefault("default", getattr(section, opt))
-            parser.add_argument(*_names(section, opt), **kwargs)
+            group.add_argument(*_names(section, opt), **kwargs)
 
     def _build_parser(self) -> ArgumentParser:
         """Build command line argument parser.
