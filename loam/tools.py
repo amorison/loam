@@ -2,20 +2,15 @@
 
 from __future__ import annotations
 
-import shlex
-import subprocess
 import typing
-from dataclasses import dataclass
 from pathlib import Path
 
 from . import _internal
-from .base import Entry, Section
+from .base import Entry
 
 if typing.TYPE_CHECKING:
     from os import PathLike
-    from typing import Optional, Type, Union
-
-    from .base import ConfigBase
+    from typing import Optional, Union
 
 
 def path_entry(
@@ -93,36 +88,3 @@ def command_flag(doc: str, shortname: Optional[str] = None) -> bool:
         cli_kwargs=dict(action="store_true"),
         cli_zsh_comprule=None,
     ).field()
-
-
-@dataclass
-class ConfigSection(Section):
-    """A configuration section handling config files."""
-
-    create: bool = command_flag("create global config file")
-    update: bool = command_flag("add missing entries to config file")
-    edit: bool = command_flag("open config file in a text editor")
-    editor: str = Entry(val="vim", doc="text editor").field()
-
-
-def config_cmd_handler(
-    config: Union[ConfigBase, Type[ConfigBase]],
-    config_section: ConfigSection,
-    config_file: Path,
-) -> None:
-    """Implement the behavior of a subcmd using config_conf_section.
-
-    Args:
-        config: the :class:`~loam.base.ConfigBase` to manage.
-        config_section: a :class:`ConfigSection` set as desired.
-        config_file: path to the config file.
-    """
-    if config_section.update:
-        conf = config.default_()
-        if config_file.exists():
-            conf.update_from_file_(config_file)
-        conf.to_file_(config_file)
-    elif config_section.create or config_section.edit:
-        config.default_().to_file_(config_file)
-    if config_section.edit:
-        subprocess.run(shlex.split("{} {}".format(config_section.editor, config_file)))
