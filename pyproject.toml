@@ -41,5 +41,9 @@ stagpy = ["py.typed"]
 [tool.setuptools_scm]
 write_to = "loam/_version.py"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
 [tool.mypy]
 disallow_untyped_defs = true
