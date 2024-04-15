@@ -9,7 +9,9 @@ validation:
   unrecognized_links: warn
 
 nav:
-  - index.md
+  - Home:
+    - index.md
+    - getting-started.md
   - API Reference: reference/
 
 watch:
