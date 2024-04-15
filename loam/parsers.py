@@ -1,6 +1,6 @@
 """Parsers for your CLI arguments.
 
-These functions can be used as `from_toml` in :attr:`~loam.base.Entry`.
+These functions can be used as `from_toml` in [`Entry`][loam.base.Entry].
 """
 
 from __future__ import annotations
@@ -11,10 +11,10 @@ from typing import Union
 def strict_slice_parser(arg: object) -> slice:
     """Parse a string into a slice.
 
-    Note that this errors out on a single integer with no `:`.  If you
-    want to treat a single integer as a slice from 0 to that value, see
-    :func:`slice_parser`.  To treat a single integer as an integer, see
-    :func:`slice_or_int`.
+    Note that this errors out on a single integer with no `:`.  If you want to
+    treat a single integer as a slice from 0 to that value, see
+    [`slice_parser`][loam.parsers.slice_parser]. To treat a single integer as an
+    integer, see [`slice_or_int_parser`][loam.parsers.slice_or_int_parser].
     """
     soi = slice_or_int_parser(arg)
     if isinstance(soi, int):
@@ -25,9 +25,10 @@ def strict_slice_parser(arg: object) -> slice:
 def slice_parser(arg: object) -> slice:
     """Parse a string into a slice.
 
-    Note that this treats a single integer as a slice from 0 to that
-    value.  To error out on a single integer, use :func:`strict_slice_parser`.
-    To parse it as an integer, use :func:`slice_or_int_parser`.
+    Note that this treats a single integer as a slice from 0 to that value. To
+    error out on a single integer, use
+    [`strict_slice_parser`][loam.parsers.strict_slice_parser]. To parse it as an
+    integer, use [`slice_or_int_parser`][loam.parsers.slice_or_int_parser].
     """
     soi = slice_or_int_parser(arg)
     if isinstance(soi, int):
@@ -38,9 +39,9 @@ def slice_parser(arg: object) -> slice:
 def slice_or_int_parser(arg: object) -> Union[slice, int]:
     """Parse a string into a slice.
 
-    Note that this treats a single integer as an integer value.  To error out
-    on a single integer, use :func:`strict_slice_parser`.  To parse it as a
-    slice, use :func:`slice_parser`.
+    Note that this treats a single integer as an integer value. To error out on
+    a single integer, use [`strict_slice_parser`][loam.parsers.strict_slice_parser].
+    To parse it as a slice, use [`slice_parser`][loam.parsers.slice_parser].
     """
     if isinstance(arg, int):
         return arg

@@ -13,17 +13,17 @@ U = TypeVar("U")
 
 @dataclass(frozen=True)
 class TupleEntry(Generic[T]):
-    """Represent a tuple[T, ...] entry.
+    """Represent a `tuple[T, ...]` entry.
 
     It is able to:
 
-    - parse a TOML array [elt_a, elt_b, elt_c] into a tuple[T, ...] by feeding
-      each element to :attr:`inner_from_toml`.
-    - parse a string into a tuple[T, ...] by splitting the string with
-      :attr:`str_sep`, stripping each substrings, and feeding those to
-      :attr:`inner_from_toml` (which therefore should be able to parse strings
-      into T). Set :attr:`str_sep` to "" to split on whitespaces, and set it to
-      None to raise a TypeError when attempting to parse a string into a tuple.
+    - parse a TOML array `[elt_a, elt_b, elt_c]` into a `tuple[T, ...]` by feeding
+      each element to `inner_from_toml`.
+    - parse a string into a `tuple[T, ...]` by splitting the string with
+      `str_sep`, stripping each substrings, and feeding those to
+      `inner_from_toml` (which therefore should be able to parse strings
+      into `T`). Set `str_sep` to `""` to split on whitespaces, and set it to
+      `None` to raise a TypeError when attempting to parse a string into a tuple.
     - dump the tuple as a TOML array using `inner_to_toml` to convert each
       element into a type with a TOML representation.
 
@@ -59,9 +59,9 @@ class TupleEntry(Generic[T]):
         cli_short: Optional[str] = None,
         cli_zsh_comprule: Optional[str] = "",
     ) -> Tuple[T, ...]:
-        """Produce a :class:`dataclasses.Field` with desired options.
+        """Produce a `dataclasses.Field` with desired options.
 
-        See :class:`~loam.base.Entry` for an explanation on the parameters.
+        See [`Entry`][loam.base.Entry] for an explanation on the parameters.
         """
         return Entry(
             val=self.from_toml(default),
@@ -96,7 +96,7 @@ class TupleEntry(Generic[T]):
 
 @dataclass
 class MaybeEntry(Generic[T]):
-    """Represent an Optional[T] entry."""
+    """Represent an `Optional[T]` entry."""
 
     inner_from_toml: Callable[[Any], T]
     inner_to_toml: Optional[Callable[[T], object]] = None
@@ -111,9 +111,9 @@ class MaybeEntry(Generic[T]):
         cli_short: Optional[str] = None,
         cli_zsh_comprule: Optional[str] = "",
     ) -> Optional[T]:
-        """Produce a :class:`dataclasses.Field` with desired options.
+        """Produce a `dataclasses.Field` with desired options.
 
-        See :class:`~loam.base.Entry` for an explanation on the parameters.
+        See [`Entry`][loam.base.Entry] for an explanation on the parameters.
         """
         return Entry(
             val_factory=lambda: self.from_toml(default),
@@ -128,7 +128,7 @@ class MaybeEntry(Generic[T]):
         ).field()
 
     def from_toml(self, obj: object) -> Optional[T]:
-        """Build an Optional[T] from a TOML object."""
+        """Build an `Optional[T]` from a TOML object."""
         if obj is None or self.none_to_toml == obj:
             return None
         return self.inner_from_toml(obj)

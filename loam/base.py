@@ -31,9 +31,9 @@ class Entry(Generic[T]):
     """Metadata of configuration options.
 
     Attributes:
-        val: default value. Use :attr:`val_toml` or :attr:`val_factory` instead
+        val: default value. Use `val_toml` or `val_factory` instead
             if it is mutable.
-        val_toml: default value as a TOML value. :attr:`from_toml` is required.
+        val_toml: default value as a TOML value. `from_toml` is required.
             The call to the latter is wrapped in a function to avoid issues if
             the obtained value is mutable.
         val_factory: default value wrapped in a function, this is useful if the
@@ -46,13 +46,14 @@ class Entry(Generic[T]):
             implement all the cases you want to support and raise a `TypeError`
             in other cases.
         to_toml: function to cast the entry to a type that can be represented
-            as a TOML value. This is called when writing :class:`ConfigBase`
-            instances to a TOML file via :meth:`ConfigBase.to_file_`.
+            as a TOML value. This is called when writing
+            [`ConfigBase`][loam.base.ConfigBase] instances to a TOML file via
+            [`ConfigBase.to_file_`][loam.base.ConfigBase.to_file_].
         in_file: whether the option can be set in the config file.
         in_cli: whether the option is a command line argument.
         cli_short: short version of the command line argument.
         cli_kwargs: keyword arguments fed to
-            :meth:`argparse.ArgumentParser.add_argument` during the
+            `argparse.ArgumentParser.add_argument` during the
             construction of the command line arguments parser.
         cli_zsh_comprule: completion rule for ZSH shell.
     """
@@ -70,7 +71,7 @@ class Entry(Generic[T]):
     cli_zsh_comprule: Optional[str] = ""
 
     def field(self) -> T:
-        """Produce a :class:`dataclasses.Field` from the entry."""
+        """Produce a `dataclasses.Field` from the entry."""
         non_none_cout = (
             int(self.val is not None)
             + int(self.val_toml is not None)
@@ -109,7 +110,7 @@ def entry(
     cli_kwargs: Optional[Dict[str, Any]] = None,
     cli_zsh_comprule: Optional[str] = "",
 ) -> T:
-    """Build Entry(...).field()."""
+    """Shorthand notation for `Entry(...).field()`."""
     if cli_kwargs is None:
         cli_kwargs = {}
     return Entry(
@@ -132,10 +133,10 @@ class Meta(Generic[T]):
     """Group several metadata of configuration entry.
 
     Attributes:
-        fld: :class:`dataclasses.Field` object from the underlying metadata.
+        fld: `dataclasses.Field` object from the underlying metadata.
         entry: the metadata from the loam API.
         type_hint: type hint resolved as a class. If the type hint could not
-            be resolved as a class, this is merely :class:`object`.
+            be resolved as a class, this is merely `object`.
     """
 
     fld: Field[T]
@@ -147,7 +148,7 @@ class Meta(Generic[T]):
 class Section:
     """Base class for a configuration section.
 
-    This implements :meth:`__post_init__`. If your subclass also implement
+    This implements `__post_init__`. If your subclass also implement
     it, please call the parent implementation.
     """
 
@@ -175,8 +176,8 @@ class Section:
     def cast_and_set_(self, field_name: str, value_to_cast: object) -> None:
         """Set an option from the string representation of the value.
 
-        This uses :meth:`Entry.from_toml` (if present) to cast the given value.
-        If :meth:`Entry.from_toml` is not present and the type of
+        This uses `Entry.from_toml` (if present) to cast the given value.
+        If `Entry.from_toml` is not present and the type of
         `value_to_cast` do not match the type hint, this calls the type hint to
         attempt a cast. This should only be used when setting an option to a
         value whose type cannot be controlled. Wherever possible, directly set
