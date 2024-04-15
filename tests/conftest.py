@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-import pytest
+from pytest import fixture
 
 from loam.base import ConfigBase, Section, entry
 from loam.cli import CLIManager, Subcmd
@@ -30,12 +30,12 @@ class Conf(ConfigBase):
     sectionB: SecB
 
 
-@pytest.fixture
+@fixture
 def conf() -> Conf:
     return Conf.default_()
 
 
-@pytest.fixture(params=["subsA"])
+@fixture(params=["subsA"])
 def sub_cmds(request):
     subs = {}
     subs["subsA"] = {
@@ -46,12 +46,12 @@ def sub_cmds(request):
     return subs[request.param]
 
 
-@pytest.fixture
+@fixture
 def climan(conf, sub_cmds):
     return CLIManager(conf, **sub_cmds)
 
 
-@pytest.fixture
+@fixture
 def cfile(tmp_path):
     return tmp_path / "config.toml"
 
@@ -62,7 +62,7 @@ class SectionA(Section):
     some_str: str = "foo"
 
 
-@pytest.fixture
+@fixture
 def section_a() -> SectionA:
     return SectionA()
 
@@ -73,7 +73,7 @@ class SectionB(Section):
     some_str: str = entry(val="bar", in_file=False)
 
 
-@pytest.fixture
+@fixture
 def section_b() -> SectionB:
     return SectionB()
 
@@ -91,6 +91,6 @@ class MyConfig(ConfigBase):
     section_not_in_file: SectionNotInFile
 
 
-@pytest.fixture
+@fixture
 def my_config() -> MyConfig:
     return MyConfig.default_()
