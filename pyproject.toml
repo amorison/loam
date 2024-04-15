@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "loam"
 dynamic = ["version"]
 description = "Light configuration manager"
-readme = "README.rst"
+readme = "README.md"
 authors = [
     {name = "Adrien Morison", email = "adrien.morison@gmail.com"},
 ]
