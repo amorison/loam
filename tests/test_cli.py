@@ -1,69 +1,77 @@
+from __future__ import annotations
+
 from shlex import split
+from typing import TYPE_CHECKING
 
 import pytest
 
 import loam.cli
 import loam.error
 
+if TYPE_CHECKING:
+    from conftest import Conf
 
-def test_parse_no_args(conf, climan):
+    from loam.cli import CLIManager
+
+
+def test_parse_no_args(conf: Conf, climan: CLIManager) -> None:
     climan.parse_args([])
     assert conf == conf.default_()
 
 
-def test_parse_nosub_common_args(conf, climan):
+def test_parse_nosub_common_args(conf: Conf, climan: CLIManager) -> None:
     climan.parse_args(split("--optA 42"))
     assert conf.sectionA.optA == 42
     assert conf.sectionB.optA == 4
 
 
-def test_parse_short_nosub_common_args(conf, climan):
+def test_parse_short_nosub_common_args(conf: Conf, climan: CLIManager) -> None:
     climan.parse_args(split("-a 42"))
     assert conf.sectionA.optA == 42
     assert conf.sectionB.optA == 4
 
 
-def test_parse_switch_nosub_common_args(conf, climan):
+def test_parse_switch_nosub_common_args(conf: Conf, climan: CLIManager) -> None:
     climan.parse_args(split("-optBool"))
     assert conf.sectionA.optBool is False
     assert conf.sectionB.optBool is False
 
 
-def test_parse_switch_short_nosub_common_args(conf, climan):
+def test_parse_switch_short_nosub_common_args(conf: Conf, climan: CLIManager) -> None:
     climan.parse_args(split("-o"))
     assert conf.sectionA.optBool is False
     assert conf.sectionB.optBool is False
 
 
-def test_parse_sub_common_args(conf, climan):
+def test_parse_sub_common_args(conf: Conf, climan: CLIManager) -> None:
     climan.parse_args(split("sectionB --optA 42"))
     assert conf.sectionA.optA == 1
     assert conf.sectionB.optA == 42
 
 
-def test_parse_switch_sub_common_args(conf, climan):
+def test_parse_switch_sub_common_args(conf: Conf, climan: CLIManager) -> None:
     climan.parse_args(split("sectionB +optBool"))
     assert conf.sectionA.optBool is True
     assert conf.sectionB.optBool is True
 
 
-def test_parse_switch_short_sub_common_args(conf, climan):
+def test_parse_switch_short_sub_common_args(conf: Conf, climan: CLIManager) -> None:
     climan.parse_args(split("sectionB +o"))
     assert conf.sectionA.optBool is True
     assert conf.sectionB.optBool is True
 
 
-def test_parse_no_sub_only_args(conf, climan):
+def test_parse_no_sub_only_args(conf: Conf, climan: CLIManager) -> None:
     climan.parse_args(split("--optC 42 sectionB"))
     assert conf.sectionA.optC == 3
     assert conf.sectionB.optC == 6
 
 
-def test_parse_not_conf_cmd_args(climan):
+def test_parse_not_conf_cmd_args(climan: CLIManager) -> None:
     with pytest.raises(SystemExit):
         climan.parse_args(split("sectionB --optC 42"))
 
 
-def test_build_climan_invalid_sub(conf):
+def test_build_climan_invalid_sub(conf: Conf) -> None:
     with pytest.raises(loam.error.SubcmdError):
         loam.cli.CLIManager(conf, **{"1invalid_sub": loam.cli.Subcmd("")})

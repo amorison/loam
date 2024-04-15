@@ -47,3 +47,9 @@ python_files = ["test_*.py"]
 
 [tool.mypy]
 disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "pytest.*",
+]
+ignore_missing_imports = true

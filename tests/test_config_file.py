@@ -1,7 +1,16 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import toml
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
-def test_create_config(conf, cfile):
+    from conftest import Conf
+
+
+def test_create_config(conf: Conf, cfile: Path) -> None:
     conf.to_file_(cfile)
     conf_dict = toml.load(str(cfile))
     assert conf_dict == {
@@ -10,7 +19,7 @@ def test_create_config(conf, cfile):
     }
 
 
-def test_create_config_no_update(conf, cfile):
+def test_create_config_no_update(conf: Conf, cfile: Path) -> None:
     conf.sectionA.optA = 42
     conf.default_().to_file_(cfile)
     conf_dict = toml.load(str(cfile))
@@ -20,7 +29,7 @@ def test_create_config_no_update(conf, cfile):
     }
 
 
-def test_create_config_update(conf, cfile):
+def test_create_config_update(conf: Conf, cfile: Path) -> None:
     conf.sectionA.optA = 42
     conf.to_file_(cfile)
     conf_dict = toml.load(str(cfile))

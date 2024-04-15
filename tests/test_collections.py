@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
 from shlex import split as shsplit
@@ -11,23 +13,23 @@ from loam.collections import MaybeEntry, TupleEntry
 
 
 @pytest.fixture
-def tpl():
+def tpl() -> TupleEntry[int]:
     return TupleEntry(int)
 
 
 @pytest.fixture
-def maybe_int():
+def maybe_int() -> MaybeEntry[int]:
     return MaybeEntry(int, none_to_toml="none")
 
 
 @pytest.fixture
-def maybe_path():
+def maybe_path() -> MaybeEntry[Path]:
     return MaybeEntry(Path, str)
 
 
 @dataclass
 class Sec(Section):
-    tpl: Tuple[int] = TupleEntry(int).entry()
+    tpl: Tuple[int, ...] = TupleEntry(int).entry()
     mfloat: Optional[float] = MaybeEntry(float).entry()
     mpath: Optional[Path] = MaybeEntry(Path, str).entry()
 
@@ -43,83 +45,91 @@ def conf() -> Config:
 
 
 @pytest.fixture
-def climan(conf) -> CLIManager:
+def climan(conf: Config) -> CLIManager:
     return CLIManager(conf, bare_=Subcmd("", "sec"))
 
 
-def test_tuple_entry_int(tpl):
+def test_tuple_entry_int(tpl: TupleEntry[int]) -> None:
     assert tpl.from_toml("5, 6,7 ,1") == (5, 6, 7, 1)
     assert tpl.to_toml((3, 4, 5)) == (3, 4, 5)
 
 
-def test_tuple_entry_from_invalid_type(tpl):
+def test_tuple_entry_from_invalid_type(tpl: TupleEntry[int]) -> None:
     with pytest.raises(TypeError):
         tpl.from_toml(8)
 
 
-def test_tuple_entry_whitespace():
+def test_tuple_entry_whitespace() -> None:
     tpl = TupleEntry(inner_from_toml=int, str_sep="")
     assert tpl.from_toml("5  6 7\t1\n  42") == (5, 6, 7, 1, 42)
 
 
-def test_tuple_entry_from_arr_str(tpl):
+def test_tuple_entry_from_arr_str(tpl: TupleEntry[int]) -> None:
     assert tpl.from_toml(["5", "3", "42"]) == (5, 3, 42)
 
 
-def test_tuple_entry_from_str_no_sep():
+def test_tuple_entry_from_str_no_sep() -> None:
     tpl = TupleEntry(inner_from_toml=int, str_sep=None)
     with pytest.raises(TypeError):
         tpl.from_toml("42,41")
     tpl.from_toml([42, 41]) == (42, 41)
 
 
-def test_tuple_entry_path():
+def test_tuple_entry_path() -> None:
     root = Path("path")
     tpl = TupleEntry(inner_from_toml=Path, inner_to_toml=str)
     assert tpl.from_toml(["path/1", "path/2"]) == (root / "1", root / "2")
     assert tpl.to_toml((root, root / "subdir")) == ("path", "path/subdir")
 
 
-def test_tuple_entry_nested(tpl):
-    tpl = TupleEntry.wrapping(tpl, str_sep=".")
+def test_tuple_entry_nested(tpl: TupleEntry[int]) -> None:
+    tplw = TupleEntry.wrapping(tpl, str_sep=".")
     expected = ((3,), (4, 5), (6,))
-    assert tpl.from_toml("3.4,5.6") == expected
-    assert tpl.from_toml(["3", [4, 5], [6]]) == expected
-    assert tpl.from_toml(expected) == expected
-    assert tpl.to_toml(expected) == expected
+    assert tplw.from_toml("3.4,5.6") == expected
+    assert tplw.from_toml(["3", [4, 5], [6]]) == expected
+    assert tplw.from_toml(expected) == expected
+    assert tplw.to_toml(expected) == expected
 
 
-def test_tuple_entry_cli(conf, climan):
+def test_tuple_entry_cli(conf: Config, climan: CLIManager) -> None:
     assert conf.sec.tpl == ()
     climan.parse_args(shsplit("--tpl 1,2,3"))
     assert conf.sec.tpl == (1, 2, 3)
 
 
-def test_maybe_entry_from_none(maybe_path, maybe_int):
+def test_maybe_entry_from_none(
+    maybe_path: MaybeEntry[Path], maybe_int: MaybeEntry[int]
+) -> None:
     assert maybe_path.from_toml(None) is None
     assert maybe_path.from_toml("") is None
     assert maybe_int.from_toml(None) is None
     assert maybe_int.from_toml("none") is None
 
 
-def test_maybe_entry_from_val(maybe_path, maybe_int):
+def test_maybe_entry_from_val(
+    maybe_path: MaybeEntry[Path], maybe_int: MaybeEntry[int]
+) -> None:
     assert maybe_path.from_toml("foo/bar") == Path("foo/bar")
     assert maybe_path.from_toml(Path()) == Path()
     assert maybe_int.from_toml("2") == 2
     assert maybe_int.from_toml(42) == 42
 
 
-def test_maybe_entry_none_to_toml(maybe_path, maybe_int):
+def test_maybe_entry_none_to_toml(
+    maybe_path: MaybeEntry[Path], maybe_int: MaybeEntry[int]
+) -> None:
     assert maybe_path.to_toml(None) == ""
     assert maybe_int.to_toml(None) == "none"
 
 
-def test_maybe_entry_val_to_toml(maybe_path, maybe_int):
+def test_maybe_entry_val_to_toml(
+    maybe_path: MaybeEntry[Path], maybe_int: MaybeEntry[int]
+) -> None:
     assert maybe_path.to_toml(Path("foo/bar")) == "foo/bar"
     assert maybe_int.to_toml(5) == 5
 
 
-def test_maybe_entry_cli_empty(conf, climan):
+def test_maybe_entry_cli_empty(conf: Config, climan: CLIManager) -> None:
     conf.sec.mfloat = 1.0
     conf.sec.mpath = Path()
     climan.parse_args(shsplit("--mfloat --mpath"))
@@ -127,7 +137,7 @@ def test_maybe_entry_cli_empty(conf, climan):
     assert conf.sec.mpath is None
 
 
-def test_maybe_entry_cli_val(conf, climan):
+def test_maybe_entry_cli_val(conf: Config, climan: CLIManager) -> None:
     climan.parse_args(shsplit("--mfloat 3.14 --mpath foo/bar"))
     assert conf.sec.mfloat == 3.14
     assert conf.sec.mpath == Path("foo") / "bar"

@@ -3,7 +3,7 @@ import pytest
 from loam import parsers
 
 
-def test_slice_or_int_parser():
+def test_slice_or_int_parser() -> None:
     assert parsers.slice_or_int_parser(28) == 28
     assert parsers.slice_or_int_parser(slice(2, 28, 5)) == slice(2, 28, 5)
     assert parsers.slice_or_int_parser("42") == 42
@@ -18,7 +18,7 @@ def test_slice_or_int_parser():
         parsers.slice_or_int_parser(object())
 
 
-def test_strict_slice_parser():
+def test_strict_slice_parser() -> None:
     with pytest.raises(ValueError):
         parsers.strict_slice_parser(28)
     assert parsers.strict_slice_parser(slice(2, 28, 5)) == slice(2, 28, 5)
@@ -33,7 +33,7 @@ def test_strict_slice_parser():
         parsers.strict_slice_parser(object())
 
 
-def test_slice_parser():
+def test_slice_parser() -> None:
     assert parsers.slice_parser(28) == slice(28)
     assert parsers.slice_parser(slice(2, 28, 5)) == slice(2, 28, 5)
     assert parsers.slice_parser("42") == slice(42)

@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
 
-from pytest import fixture
+from pytest import FixtureRequest, fixture
 
 from loam.base import ConfigBase, Section, entry
 from loam.cli import CLIManager, Subcmd
@@ -36,23 +38,23 @@ def conf() -> Conf:
 
 
 @fixture(params=["subsA"])
-def sub_cmds(request):
+def sub_cmds(request: FixtureRequest) -> dict[str, Subcmd]:
     subs = {}
     subs["subsA"] = {
         "common_": Subcmd("subsA loam test"),
-        "bare_": Subcmd(None, "sectionA"),
+        "bare_": Subcmd("bare command help", "sectionA"),
         "sectionB": Subcmd("sectionB subcmd help"),
     }
     return subs[request.param]
 
 
 @fixture
-def climan(conf, sub_cmds):
+def climan(conf: Conf, sub_cmds: dict[str, Subcmd]) -> CLIManager:
     return CLIManager(conf, **sub_cmds)
 
 
 @fixture
-def cfile(tmp_path):
+def cfile(tmp_path: Path) -> Path:
     return tmp_path / "config.toml"
 
 
