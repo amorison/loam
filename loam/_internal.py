@@ -18,8 +18,8 @@ if typing.TYPE_CHECKING:
 class Switch(argparse.Action):
     """Inherited from argparse.Action, store True/False to a +/-arg.
 
-    The :func:`switch_opt` function allows you to easily create a
-    :class:`~loam.tools.ConfOpt` using this action.
+    The `switch_opt` function allows you to easily create a
+    [loam.base.Entry] using this action.
     """
 
     def __call__(

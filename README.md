@@ -1,10 +1,4 @@
-.. image:: https://readthedocs.org/projects/loam/badge/?version=latest
-   :target: http://loam.readthedocs.io/en/latest/?badge=latest
-   :alt: Documentation Status
-
-.. image:: https://badge.fury.io/py/loam.svg
-   :target: https://badge.fury.io/py/loam
-   :alt: PyPI version
+[![PyPI - Version](https://img.shields.io/pypi/v/loam)](https://pypi.org/project/loam/)
 
 loam
 ====

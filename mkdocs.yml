@@ -1,0 +1,70 @@
+site_name: loam
+repo_url: https://github.com/amorison/loam
+repo_name: amorison/loam
+copyright: "© 2018 - present, Adrien Morison"
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+
+nav:
+  - Home:
+    - index.md
+    - getting-started.md
+  - API Reference: reference/
+
+watch:
+  - loam
+
+plugins:
+  - search
+  - include-markdown
+  - gen-files:
+      scripts:
+        - scripts/gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            members_order: source
+            show_source: false
+            show_signature_annotations: true
+            separate_signature: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.superfences
+
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - navigation.indexes
+    - navigation.tabs
+    - search.suggest
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  icon:
+    repo: fontawesome/brands/github

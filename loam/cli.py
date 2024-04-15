@@ -1,4 +1,5 @@
 """Definition of CLI manager."""
+
 from __future__ import annotations
 
 import argparse
@@ -60,7 +61,7 @@ class CLIManager:
     """CLI manager.
 
     Args:
-        config_: the :class:`~loam.base.ConfigBase` holding option definitions.
+        config_: the [`ConfigBase`][loam.base.ConfigBase] holding option definitions.
         common_: special subcommand, used to define the general description
             of the CLI tool as well as configuration sections used by every
             subcommand.
@@ -118,7 +119,7 @@ class CLIManager:
         """List of config sections used by a command.
 
         Args:
-            cmd: command name, set to ``None`` or ``''`` for the bare command.
+            cmd: command name, set to `None` or `""` for the bare command.
 
         Returns:
             list of configuration sections used by that command.
@@ -207,11 +208,10 @@ class CLIManager:
 
         Args:
             arglist: list of arguments to parse. If set to None,
-                ``sys.argv[1:]`` is used.
+                `sys.argv[1:]` is used.
 
         Returns:
-            the argument namespace returned by the
-            :class:`argparse.ArgumentParser`.
+            the argument namespace returned by the `argparse.ArgumentParser`.
         """
         args = self._parser.parse_args(args=arglist)
         sub_cmd = args.loam_sub_name
@@ -294,7 +294,7 @@ class CLIManager:
             cmd: command name that should be completed.
             cmds: extra command names that should be completed.
             sourceable: if True, the generated file will contain an explicit
-                call to ``compdef``, which means it can be sourced to activate
+                call to `compdef`, which means it can be sourced to activate
                 CLI completion.
             force_grouping: if True, assume zsh supports grouping of options.
                 Otherwise, loam will attempt to check whether zsh >= 5.4.

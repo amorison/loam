@@ -24,7 +24,7 @@ def path_entry(
 ) -> Path:
     """Define a path option.
 
-    This creates a path option. See :class:`loam.base.Entry` for the meaning of
+    This creates a path option. See [`Entry`][loam.base.Entry] for the meaning of
     the arguments. By default, the zsh completion rule completes any file. You
     can switch this to only directories with the `cli_zsh_only_dirs` option, or
     set your own completion rule with `cli_zsh_comprule`.
@@ -50,12 +50,12 @@ def switch_opt(default: bool, shortname: Optional[str], doc: str) -> bool:
     """Define a switchable option.
 
     This creates a boolean option. If you use it in your CLI, it can be
-    switched on and off by prepending + or - to its name: +opt / -opt.
+    switched on and off by prepending `+` or `-` to its name: `+opt` / `-opt`.
 
     Args:
         default: the default value of the swith option.
         shortname: short name of the option, no shortname will be used if set
-            to None.
+            to `None`.
         doc: short description of the option.
     """
     return Entry(
@@ -70,10 +70,10 @@ def switch_opt(default: bool, shortname: Optional[str], doc: str) -> bool:
 def command_flag(doc: str, shortname: Optional[str] = None) -> bool:
     """Define a command line flag.
 
-    The corresponding option is set to true if it is passed as a command line
-    option.  This is similar to :func:`switch_opt`, except the option is not
-    available from config files.  There is therefore no need for a mechanism to
-    switch it off from the command line.
+    The corresponding option is set to `True` if it is passed as a command line
+    option. This is similar to [`switch_opt`][loam.tools.switch_opt], except the
+    option is not available from config files. There is therefore no need for a
+    mechanism to switch it off from the command line.
 
     Args:
         doc: short description of the option.
