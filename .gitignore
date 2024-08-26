@@ -3,7 +3,6 @@ __pycache__/
 /.tox/
 /.coverage
 /build
-/loam/_version.py
 /loam.egg-info/
 /docs/_build/
 /uv.lock
