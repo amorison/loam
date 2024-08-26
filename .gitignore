@@ -6,3 +6,4 @@ __pycache__/
 /loam/_version.py
 /loam.egg-info/
 /docs/_build/
+/uv.lock

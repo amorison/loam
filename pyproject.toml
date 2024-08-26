@@ -53,3 +53,13 @@ module = [
     "pytest.*",
 ]
 ignore_missing_imports = true
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.2",
+    "pytest-cov>=5.0.0",
+    "ruff>=0.6.2",
+    "mypy>=1.11.1",
+    # type stubs for mypy
+    "types-toml>=0.10.8.20240310",
+]
