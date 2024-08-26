@@ -36,7 +36,7 @@ include = ["loam"]
 namespaces = false
 
 [tool.setuptools.package-data]
-stagpy = ["py.typed"]
+loam = ["py.typed"]
 
 [tool.setuptools_scm]
 write_to = "loam/_version.py"
