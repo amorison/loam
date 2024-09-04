@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=61"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
 
 [project]
 name = "loam"
@@ -31,12 +31,8 @@ dependencies = [
     "toml>=0.10.2",
 ]
 
-[tool.setuptools.packages.find]
+[tool.hatch.build.targets.sdist]
 include = ["loam"]
-namespaces = false
-
-[tool.setuptools.package-data]
-loam = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
