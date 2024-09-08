@@ -15,7 +15,7 @@ jobs:
       id-token: write
     environment:
       name: pypi
-      url: https://pypi.org/p/stagpy
+      url: https://pypi.org/p/loam
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
