@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling>=1.25"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.7.20"]
+build-backend = "uv_build"
 
 [project]
 name = "loam"
@@ -32,8 +32,8 @@ dependencies = [
     "toml>=0.10.2",
 ]
 
-[tool.hatch.build.targets.sdist]
-include = ["loam"]
+[tool.uv.build-backend]
+module-root = ""
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
