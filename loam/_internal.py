@@ -31,9 +31,7 @@ class Switch(argparse.Action):
     ) -> None:
         """Set args attribute to True or False."""
         if option_string is None:
-            raise ValueError(
-                "Switch action is not suitable for " "positional arguments."
-            )
+            raise ValueError("Switch action is not suitable for positional arguments.")
         setattr(namespace, self.dest, bool("-+".index(option_string[0])))
 
 
