@@ -13,7 +13,8 @@ authors = [
 maintainers = [
     {name = "Adrien Morison", email = "adrien.morison@gmail.com"},
 ]
-license = {file = "LICENSE"}
+license = "MIT"
+license-files = ["LICENSE"]
 urls = {homepage = "https://github.com/amorison/loam"}
 classifiers = [
     "Development Status :: 4 - Beta",
