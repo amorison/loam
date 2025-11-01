@@ -72,7 +72,7 @@ def test_tuple_entry_from_str_no_sep() -> None:
     tpl = TupleEntry(inner_from_toml=int, str_sep=None)
     with pytest.raises(TypeError):
         tpl.from_toml("42,41")
-    tpl.from_toml([42, 41]) == (42, 41)
+    assert tpl.from_toml([42, 41]) == (42, 41)
 
 
 def test_tuple_entry_path() -> None:
