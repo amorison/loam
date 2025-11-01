@@ -32,6 +32,15 @@ dependencies = [
     "toml>=0.10.2",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.14.3",
+    "mypy>=1.18.2",
+    "types-toml>=0.10.8.20240310",
+]
+
 [tool.uv.build-backend]
 module-root = ""
 
@@ -47,12 +56,3 @@ module = [
     "pytest.*",
 ]
 ignore_missing_imports = true
-
-[tool.uv]
-dev-dependencies = [
-    "pytest>=8.4.2",
-    "pytest-cov>=7.0.0",
-    "ruff>=0.14.3",
-    "mypy>=1.18.2",
-    "types-toml>=0.10.8.20240310",
-]
