@@ -41,9 +41,8 @@ class SectionContext:
     It is reusable but not reentrant.
 
     Args:
-        section (Section): configuration section to be managed.
-        options (Mapping): mapping between option names and their values in the
-            context.
+        section: configuration section to be managed.
+        options: mapping between option names and their values in the context.
     """
 
     def __init__(self, section: Section, options: Mapping[str, object]):
