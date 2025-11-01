@@ -46,8 +46,8 @@ class SectionContext:
     """
 
     def __init__(self, section: Section, options: Mapping[str, object]):
-        self._section = section
-        self._options = options
+        self._section: Section = section
+        self._options: Mapping[str, object] = options
         self._old_values: dict[str, object] = {}
 
     def __enter__(self) -> None:

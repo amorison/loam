@@ -13,10 +13,9 @@ if TYPE_CHECKING:
 
 
 class MyMut:
-    def __init__(self, inner_list: list):
-        if not isinstance(inner_list, list):
-            raise TypeError
-        self.inner_list = inner_list
+    def __init__(self, inner_list: list[float]):
+        assert isinstance(inner_list, list)
+        self.inner_list: list[float] = inner_list
 
     @staticmethod
     def from_toml(s: object) -> MyMut:

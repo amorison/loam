@@ -53,9 +53,9 @@ class Subcmd:
     """
 
     def __init__(self, help_msg: str, *sections: str, **defaults: object):
-        self.help = help_msg
-        self.sections = sections
-        self.defaults = defaults
+        self.help: str = help_msg
+        self.sections: tuple[str, ...] = sections
+        self.defaults: dict[str, object] = defaults
 
 
 class CLIManager:
@@ -81,15 +81,15 @@ class CLIManager:
         bare_: Subcmd | None = None,
         **subcmds: Subcmd,
     ):
-        self._conf = config_
-        self._subcmds = {}
+        self._conf: ConfigBase = config_
+        self._subcmds: dict[str, Subcmd] = {}
         for sub_name, sub_meta in subcmds.items():
             if sub_name.isidentifier():
                 self._subcmds[sub_name] = sub_meta
             else:
                 raise error.SubcmdError(sub_name)
-        self._common = common_ if common_ is not None else Subcmd("")
-        self._bare = bare_
+        self._common: Subcmd = common_ if common_ is not None else Subcmd("")
+        self._bare: Subcmd | None = bare_
         # dict of dict [command][option] = section
         self._opt_cmds: dict[str, dict[str, str]] = {}
         # same as above but for bare command only [option] = section
@@ -99,7 +99,7 @@ class CLIManager:
         for cmd_name in self.subcmds:
             self._opt_cmds[cmd_name] = {}
             self._cmd_opts_solver(cmd_name)
-        self._parser = self._build_parser()
+        self._parser: ArgumentParser = self._build_parser()
 
     @property
     def common(self) -> Subcmd:
