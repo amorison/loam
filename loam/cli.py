@@ -16,7 +16,7 @@ if typing.TYPE_CHECKING:
     from argparse import ArgumentParser, Namespace
     from collections.abc import Mapping
     from os import PathLike
-    from typing import Any, TextIO
+    from typing import TextIO
 
     from .base import ConfigBase, Section
 
@@ -52,7 +52,7 @@ class Subcmd:
         defaults: default value of options associated to the subcommand.
     """
 
-    def __init__(self, help_msg: str, *sections: str, **defaults: Any):
+    def __init__(self, help_msg: str, *sections: str, **defaults: object):
         self.help = help_msg
         self.sections = sections
         self.defaults = defaults

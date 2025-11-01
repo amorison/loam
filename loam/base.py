@@ -149,7 +149,7 @@ class Section:
     """
 
     @classmethod
-    def _type_hints(cls) -> dict[str, Any]:
+    def _type_hints(cls) -> dict[str, object]:
         return get_type_hints(cls)
 
     def __post_init__(self) -> None:
@@ -194,7 +194,7 @@ class Section:
             value = value_to_cast
         setattr(self, field_name, value)
 
-    def context_(self, **options: Any) -> AbstractContextManager[None]:
+    def context_(self, **options: object) -> AbstractContextManager[None]:
         """Enter a context with locally changed option values.
 
         This context is reusable but not reentrant.
@@ -215,7 +215,7 @@ class ConfigBase:
     """Base class for a full configuration."""
 
     @classmethod
-    def _type_hints(cls) -> dict[str, Any]:
+    def _type_hints(cls) -> dict[str, object]:
         return get_type_hints(cls)
 
     @classmethod
@@ -247,7 +247,7 @@ class ConfigBase:
         }
         self.update_from_dict_(pars)
 
-    def update_from_dict_(self, options: Mapping[str, Mapping[str, Any]]) -> None:
+    def update_from_dict_(self, options: Mapping[str, Mapping[str, object]]) -> None:
         """Update configuration from a dictionary."""
         for sec, opts in options.items():
             section: Section = getattr(self, sec)
@@ -260,7 +260,7 @@ class ConfigBase:
             raise RuntimeError(f"{path} already exists")
         path.parent.mkdir(parents=True, exist_ok=True)
         sections = fields(self)
-        to_dump: dict[str, dict[str, Any]] = {}
+        to_dump: dict[str, dict[str, object]] = {}
         for sec in sections:
             to_dump[sec.name] = {}
             section: Section = getattr(self, sec.name)

@@ -11,7 +11,6 @@ import typing
 if typing.TYPE_CHECKING:
     from argparse import ArgumentParser, Namespace
     from collections.abc import Mapping
-    from typing import Any
 
     from .base import Section
 
@@ -27,7 +26,7 @@ class Switch(argparse.Action):
         self,
         parser: ArgumentParser,
         namespace: Namespace,
-        values: Any,
+        values: object,
         option_string: str | None = None,
     ) -> None:
         """Set args attribute to True or False."""
@@ -47,16 +46,16 @@ class SectionContext:
             context.
     """
 
-    def __init__(self, section: Section, options: Mapping[str, Any]):
+    def __init__(self, section: Section, options: Mapping[str, object]):
         self._section = section
         self._options = options
-        self._old_values: dict[str, Any] = {}
+        self._old_values: dict[str, object] = {}
 
     def __enter__(self) -> None:
         self._old_values = {opt: getattr(self._section, opt) for opt in self._options}
         self._section.update_from_dict_(self._options)
 
-    def __exit__(self, e_type: type[BaseException] | None, *_: Any) -> bool:
+    def __exit__(self, e_type: type[BaseException] | None, *_: object) -> bool:
         self._section.update_from_dict_(self._old_values)
         return e_type is None
 
