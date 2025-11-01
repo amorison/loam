@@ -10,17 +10,16 @@ from .base import Entry
 
 if typing.TYPE_CHECKING:
     from os import PathLike
-    from typing import Optional, Union
 
 
 def path_entry(
-    path: Union[str, PathLike],
+    path: str | PathLike,
     doc: str,
     in_file: bool = True,
     in_cli: bool = True,
-    cli_short: Optional[str] = None,
+    cli_short: str | None = None,
     cli_zsh_only_dirs: bool = False,
-    cli_zsh_comprule: Optional[str] = None,
+    cli_zsh_comprule: str | None = None,
 ) -> Path:
     """Define a path option.
 
@@ -46,7 +45,7 @@ def path_entry(
     ).field()
 
 
-def switch_opt(default: bool, shortname: Optional[str], doc: str) -> bool:
+def switch_opt(default: bool, shortname: str | None, doc: str) -> bool:
     """Define a switchable option.
 
     This creates a boolean option. If you use it in your CLI, it can be
@@ -67,7 +66,7 @@ def switch_opt(default: bool, shortname: Optional[str], doc: str) -> bool:
     ).field()
 
 
-def command_flag(doc: str, shortname: Optional[str] = None) -> bool:
+def command_flag(doc: str, shortname: str | None = None) -> bool:
     """Define a command line flag.
 
     The corresponding option is set to `True` if it is passed as a command line

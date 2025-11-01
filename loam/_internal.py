@@ -10,7 +10,7 @@ import typing
 
 if typing.TYPE_CHECKING:
     from argparse import ArgumentParser, Namespace
-    from typing import Any, Dict, Mapping, Optional, Tuple, Type
+    from typing import Any, Mapping
 
     from .base import Section
 
@@ -27,7 +27,7 @@ class Switch(argparse.Action):
         parser: ArgumentParser,
         namespace: Namespace,
         values: Any,
-        option_string: Optional[str] = None,
+        option_string: str | None = None,
     ) -> None:
         """Set args attribute to True or False."""
         if option_string is None:
@@ -49,18 +49,18 @@ class SectionContext:
     def __init__(self, section: Section, options: Mapping[str, Any]):
         self._section = section
         self._options = options
-        self._old_values: Dict[str, Any] = {}
+        self._old_values: dict[str, Any] = {}
 
     def __enter__(self) -> None:
         self._old_values = {opt: getattr(self._section, opt) for opt in self._options}
         self._section.update_from_dict_(self._options)
 
-    def __exit__(self, e_type: Optional[Type[BaseException]], *_: Any) -> bool:
+    def __exit__(self, e_type: type[BaseException] | None, *_: Any) -> bool:
         self._section.update_from_dict_(self._old_values)
         return e_type is None
 
 
-def zsh_version() -> Tuple[int, ...]:
+def zsh_version() -> tuple[int, ...]:
     """Try to guess zsh version, return (0, 0) on failure."""
     try:
         out = subprocess.run(

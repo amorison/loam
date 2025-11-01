@@ -9,13 +9,9 @@ from typing import (
     Any,
     Callable,
     ContextManager,
-    Dict,
     Generic,
     Mapping,
-    Optional,
-    Type,
     TypeVar,
-    Union,
     get_type_hints,
 )
 
@@ -58,17 +54,17 @@ class Entry(Generic[T]):
         cli_zsh_comprule: completion rule for ZSH shell.
     """
 
-    val: Optional[T] = None
-    val_toml: Optional[str] = None
-    val_factory: Optional[Callable[[], T]] = None
+    val: T | None = None
+    val_toml: str | None = None
+    val_factory: Callable[[], T] | None = None
     doc: str = ""
-    from_toml: Optional[Callable[[object], T]] = None
-    to_toml: Optional[Callable[[T], object]] = None
+    from_toml: Callable[[object], T] | None = None
+    to_toml: Callable[[T], object] | None = None
     in_file: bool = True
     in_cli: bool = True
-    cli_short: Optional[str] = None
-    cli_kwargs: Dict[str, Any] = field(default_factory=dict)
-    cli_zsh_comprule: Optional[str] = ""
+    cli_short: str | None = None
+    cli_kwargs: dict[str, Any] = field(default_factory=dict)
+    cli_zsh_comprule: str | None = ""
 
     def field(self) -> T:
         """Produce a `dataclasses.Field` from the entry."""
@@ -98,17 +94,17 @@ class Entry(Generic[T]):
 
 
 def entry(
-    val: Optional[T] = None,
-    val_toml: Optional[str] = None,
-    val_factory: Optional[Callable[[], T]] = None,
+    val: T | None = None,
+    val_toml: str | None = None,
+    val_factory: Callable[[], T] | None = None,
     doc: str = "",
-    from_toml: Optional[Callable[[object], T]] = None,
-    to_toml: Optional[Callable[[T], object]] = None,
+    from_toml: Callable[[object], T] | None = None,
+    to_toml: Callable[[T], object] | None = None,
     in_file: bool = True,
     in_cli: bool = True,
-    cli_short: Optional[str] = None,
-    cli_kwargs: Optional[Dict[str, Any]] = None,
-    cli_zsh_comprule: Optional[str] = "",
+    cli_short: str | None = None,
+    cli_kwargs: dict[str, Any] | None = None,
+    cli_zsh_comprule: str | None = "",
 ) -> T:
     """Shorthand notation for `Entry(...).field()`."""
     if cli_kwargs is None:
@@ -141,7 +137,7 @@ class Meta(Generic[T]):
 
     fld: Field[T]
     entry: Entry[T]
-    type_hint: Type[T]
+    type_hint: type[T]
 
 
 @dataclass
@@ -153,11 +149,11 @@ class Section:
     """
 
     @classmethod
-    def _type_hints(cls) -> Dict[str, Any]:
+    def _type_hints(cls) -> dict[str, Any]:
         return get_type_hints(cls)
 
     def __post_init__(self) -> None:
-        self._loam_meta: Dict[str, Meta] = {}
+        self._loam_meta: dict[str, Meta] = {}
         thints = self._type_hints()
         for fld in fields(self):
             meta = fld.metadata.get("loam_entry", Entry())
@@ -219,11 +215,11 @@ class ConfigBase:
     """Base class for a full configuration."""
 
     @classmethod
-    def _type_hints(cls) -> Dict[str, Any]:
+    def _type_hints(cls) -> dict[str, Any]:
         return get_type_hints(cls)
 
     @classmethod
-    def default_(cls: Type[TConfig]) -> TConfig:
+    def default_(cls: type[TConfig]) -> TConfig:
         """Create a configuration with default values."""
         thints = cls._type_hints()
         sections = {}
@@ -237,7 +233,7 @@ class ConfigBase:
             sections[fld.name] = thint()
         return cls(**sections)
 
-    def update_from_file_(self, path: Union[str, PathLike]) -> None:
+    def update_from_file_(self, path: str | PathLike) -> None:
         """Update configuration from toml file."""
         pars = toml.load(Path(path))
         # only keep entries for which in_file is True
@@ -257,14 +253,14 @@ class ConfigBase:
             section: Section = getattr(self, sec)
             section.update_from_dict_(opts)
 
-    def to_file_(self, path: Union[str, PathLike], exist_ok: bool = True) -> None:
+    def to_file_(self, path: str | PathLike, exist_ok: bool = True) -> None:
         """Write configuration in toml file."""
         path = Path(path)
         if not exist_ok and path.is_file():
             raise RuntimeError(f"{path} already exists")
         path.parent.mkdir(parents=True, exist_ok=True)
         sections = fields(self)
-        to_dump: Dict[str, Dict[str, Any]] = {}
+        to_dump: dict[str, dict[str, Any]] = {}
         for sec in sections:
             to_dump[sec.name] = {}
             section: Section = getattr(self, sec.name)

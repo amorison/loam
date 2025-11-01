@@ -15,7 +15,7 @@ from . import _internal, error
 if typing.TYPE_CHECKING:
     from argparse import ArgumentParser, Namespace
     from os import PathLike
-    from typing import Any, Dict, List, Mapping, Optional, TextIO, Union
+    from typing import Any, Mapping, TextIO
 
     from .base import ConfigBase, Section
 
@@ -23,7 +23,7 @@ if typing.TYPE_CHECKING:
 BLK = " \\\n"  # cutting line in scripts
 
 
-def _names(section: Section, option: str) -> List[str]:
+def _names(section: Section, option: str) -> list[str]:
     """List of cli strings for a given option."""
     entry = section.meta_(option).entry
     option = option.replace("_", "-")
@@ -76,8 +76,8 @@ class CLIManager:
     def __init__(
         self,
         config_: ConfigBase,
-        common_: Optional[Subcmd] = None,
-        bare_: Optional[Subcmd] = None,
+        common_: Subcmd | None = None,
+        bare_: Subcmd | None = None,
         **subcmds: Subcmd,
     ):
         self._conf = config_
@@ -90,9 +90,9 @@ class CLIManager:
         self._common = common_ if common_ is not None else Subcmd("")
         self._bare = bare_
         # dict of dict [command][option] = section
-        self._opt_cmds: Dict[str, Dict[str, str]] = {}
+        self._opt_cmds: dict[str, dict[str, str]] = {}
         # same as above but for bare command only [option] = section
-        self._opt_bare: Dict[str, str] = {}
+        self._opt_bare: dict[str, str] = {}
         if self.bare is not None:
             self._cmd_opts_solver(None)
         for cmd_name in self.subcmds:
@@ -106,7 +106,7 @@ class CLIManager:
         return self._common
 
     @property
-    def bare(self) -> Optional[Subcmd]:
+    def bare(self) -> Subcmd | None:
         """Subcmd used when the CLI tool is invoked without subcommand."""
         return self._bare
 
@@ -115,7 +115,7 @@ class CLIManager:
         """Subcommands description."""
         return MappingProxyType(self._subcmds)
 
-    def sections_list(self, cmd: Optional[str] = None) -> List[str]:
+    def sections_list(self, cmd: str | None = None) -> list[str]:
         """List of config sections used by a command.
 
         Args:
@@ -135,7 +135,7 @@ class CLIManager:
             sections.append(cmd)
         return sections
 
-    def _cmd_opts_solver(self, cmd_name: Optional[str]) -> None:
+    def _cmd_opts_solver(self, cmd_name: str | None) -> None:
         """Scan options related to one command and enrich _opt_cmds."""
         sections = self.sections_list(cmd_name)
         cmd_dict = self._opt_cmds[cmd_name] if cmd_name else self._opt_bare
@@ -203,7 +203,7 @@ class CLIManager:
 
         return main_parser
 
-    def parse_args(self, arglist: Optional[List[str]] = None) -> Namespace:
+    def parse_args(self, arglist: list[str] | None = None) -> Namespace:
         """Parse arguments and update options accordingly.
 
         Args:
@@ -228,7 +228,7 @@ class CLIManager:
         return args
 
     def _zsh_comp_command(
-        self, zcf: TextIO, cmd: Optional[str], grouping: bool, add_help: bool = True
+        self, zcf: TextIO, cmd: str | None, grouping: bool, add_help: bool = True
     ) -> None:
         """Write zsh _arguments compdef for a given command.
 
@@ -281,7 +281,7 @@ class CLIManager:
 
     def zsh_complete(
         self,
-        path: Union[str, PathLike],
+        path: str | PathLike,
         cmd: str,
         *cmds: str,
         sourceable: bool = False,
@@ -333,9 +333,7 @@ class CLIManager:
             if sourceable:
                 print(f"\ncompdef _{cmd} {cmd}", *cmds, file=zcf)
 
-    def _bash_comp_command(
-        self, cmd: Optional[str], add_help: bool = True
-    ) -> List[str]:
+    def _bash_comp_command(self, cmd: str | None, add_help: bool = True) -> list[str]:
         """Build a list of all options for a given command.
 
         Args:
@@ -352,7 +350,7 @@ class CLIManager:
             out.extend(_names(section, opt))
         return out
 
-    def bash_complete(self, path: Union[str, PathLike], cmd: str, *cmds: str) -> None:
+    def bash_complete(self, path: str | PathLike, cmd: str, *cmds: str) -> None:
         """Write bash complete script.
 
         Args:

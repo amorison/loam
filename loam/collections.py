@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable, Generic, Optional, Tuple, TypeVar
+from typing import Any, Callable, Generic, TypeVar
 
 from .base import Entry
 
@@ -32,13 +32,13 @@ class TupleEntry(Generic[T]):
     """
 
     inner_from_toml: Callable[[Any], T]
-    inner_to_toml: Optional[Callable[[T], object]] = None
-    str_sep: Optional[str] = ","
+    inner_to_toml: Callable[[T], object] | None = None
+    str_sep: str | None = ","
 
     @staticmethod
     def wrapping(
-        tuple_entry: TupleEntry[U], str_sep: Optional[str]
-    ) -> TupleEntry[Tuple[U, ...]]:
+        tuple_entry: TupleEntry[U], str_sep: str | None
+    ) -> TupleEntry[tuple[U, ...]]:
         """Produce a tuple entry wrapping another one.
 
         It is the user responsibility to check that separators are different in
@@ -56,9 +56,9 @@ class TupleEntry(Generic[T]):
         doc: str = "",
         in_file: bool = True,
         in_cli: bool = True,
-        cli_short: Optional[str] = None,
-        cli_zsh_comprule: Optional[str] = "",
-    ) -> Tuple[T, ...]:
+        cli_short: str | None = None,
+        cli_zsh_comprule: str | None = "",
+    ) -> tuple[T, ...]:
         """Produce a `dataclasses.Field` with desired options.
 
         See [`Entry`][loam.base.Entry] for an explanation on the parameters.
@@ -75,7 +75,7 @@ class TupleEntry(Generic[T]):
             cli_zsh_comprule=cli_zsh_comprule,
         ).field()
 
-    def from_toml(self, obj: object) -> Tuple[T, ...]:
+    def from_toml(self, obj: object) -> tuple[T, ...]:
         """Build a tuple from a TOML object."""
         if isinstance(obj, str):
             sep = self.str_sep
@@ -87,7 +87,7 @@ class TupleEntry(Generic[T]):
             return tuple(map(self.inner_from_toml, obj))
         raise TypeError(f"obj should be a str, tuple, or list; got a {obj.__class__}")
 
-    def to_toml(self, val: Tuple[T, ...]) -> Tuple[object, ...]:
+    def to_toml(self, val: tuple[T, ...]) -> tuple[object, ...]:
         """Transform into a TOML array."""
         if self.inner_to_toml is None:
             return val
@@ -99,7 +99,7 @@ class MaybeEntry(Generic[T]):
     """Represent an `Optional[T]` entry."""
 
     inner_from_toml: Callable[[Any], T]
-    inner_to_toml: Optional[Callable[[T], object]] = None
+    inner_to_toml: Callable[[T], object] | None = None
     none_to_toml: object = ""
 
     def entry(
@@ -108,9 +108,9 @@ class MaybeEntry(Generic[T]):
         doc: str = "",
         in_file: bool = True,
         in_cli: bool = True,
-        cli_short: Optional[str] = None,
-        cli_zsh_comprule: Optional[str] = "",
-    ) -> Optional[T]:
+        cli_short: str | None = None,
+        cli_zsh_comprule: str | None = "",
+    ) -> T | None:
         """Produce a `dataclasses.Field` with desired options.
 
         See [`Entry`][loam.base.Entry] for an explanation on the parameters.
@@ -127,13 +127,13 @@ class MaybeEntry(Generic[T]):
             cli_zsh_comprule=cli_zsh_comprule,
         ).field()
 
-    def from_toml(self, obj: object) -> Optional[T]:
+    def from_toml(self, obj: object) -> T | None:
         """Build an `Optional[T]` from a TOML object."""
         if obj is None or self.none_to_toml == obj:
             return None
         return self.inner_from_toml(obj)
 
-    def to_toml(self, val: Optional[T]) -> object:
+    def to_toml(self, val: T | None) -> object:
         """Transform into a TOML object."""
         if val is None:
             return self.none_to_toml

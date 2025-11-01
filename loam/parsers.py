@@ -5,8 +5,6 @@ These functions can be used as `from_toml` in [`Entry`][loam.base.Entry].
 
 from __future__ import annotations
 
-from typing import Union
-
 
 def strict_slice_parser(arg: object) -> slice:
     """Parse a string into a slice.
@@ -36,7 +34,7 @@ def slice_parser(arg: object) -> slice:
     return soi
 
 
-def slice_or_int_parser(arg: object) -> Union[slice, int]:
+def slice_or_int_parser(arg: object) -> slice | int:
     """Parse a string into a slice.
 
     Note that this treats a single integer as an integer value. To error out on
