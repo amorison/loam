@@ -188,7 +188,7 @@ class Section:
             except Exception:
                 raise TypeError(
                     f"Couldn't cast {value_to_cast!r} to a {meta.type_hint}, "
-                    f"you might need to specify `from_toml` for {field_name}."
+                    + f"you might need to specify `from_toml` for {field_name}."
                 )
         else:
             value = value_to_cast
@@ -228,7 +228,7 @@ class ConfigBase:
             if not (isinstance(thint, type) and issubclass(thint, Section)):
                 raise TypeError(
                     f"Could not resolve type hint of {fld.name} to a Section "
-                    f"(got {thint})"
+                    + f"(got {thint})"
                 )
             sections[fld.name] = thint()
         return cls(**sections)
