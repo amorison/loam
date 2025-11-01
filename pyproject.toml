@@ -1,5 +1,5 @@
 [build-system]
-requires = ["uv_build>=0.7.20"]
+requires = ["uv_build>=0.9.7"]
 build-backend = "uv_build"
 
 [project]
@@ -48,10 +48,9 @@ ignore_missing_imports = true
 
 [tool.uv]
 dev-dependencies = [
-    "pytest>=8.3.2",
-    "pytest-cov>=5.0.0",
-    "ruff>=0.6.2",
-    "mypy>=1.11.1",
-    # type stubs for mypy
+    "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.14.3",
+    "mypy>=1.18.2",
     "types-toml>=0.10.8.20240310",
 ]
