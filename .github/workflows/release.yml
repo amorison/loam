@@ -18,7 +18,7 @@ jobs:
       url: https://pypi.org/p/loam
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: curl -LsSf https://astral.sh/uv/install.sh | sh
       - run: uv build
       - uses: pypa/gh-action-pypi-publish@release/v1
