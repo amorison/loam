@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -75,7 +75,7 @@ def test_cast_mutable_protected() -> None:
 def test_type_hint_not_a_class() -> None:
     @dataclass
     class MySection(Section):
-        maybe_n: Optional[int] = entry(val_factory=lambda: None, from_toml=int)  # type: ignore
+        maybe_n: int | None = entry(val_factory=lambda: None, from_toml=int)  # type: ignore
 
     assert MySection().maybe_n is None
     assert MySection("42").maybe_n == "42"  # type: ignore

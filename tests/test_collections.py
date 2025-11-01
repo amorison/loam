@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from shlex import split as shsplit
-from typing import Optional, Tuple
+from typing import Tuple
 
 import pytest
 
@@ -30,8 +30,8 @@ def maybe_path() -> MaybeEntry[Path]:
 @dataclass
 class Sec(Section):
     tpl: Tuple[int, ...] = TupleEntry(int).entry()
-    mfloat: Optional[float] = MaybeEntry(float).entry()
-    mpath: Optional[Path] = MaybeEntry(Path, str).entry()
+    mfloat: float | None = MaybeEntry(float).entry()
+    mpath: Path | None = MaybeEntry(Path, str).entry()
 
 
 @dataclass
