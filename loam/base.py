@@ -153,7 +153,7 @@ class Section:
         return get_type_hints(cls)
 
     def __post_init__(self) -> None:
-        self._loam_meta: dict[str, Meta] = {}
+        self._loam_meta: dict[str, Meta[object]] = {}  # type: ignore
         thints = self._type_hints()
         for fld in fields(self):
             meta = fld.metadata.get("loam_entry", Entry())
@@ -165,7 +165,7 @@ class Section:
             if not isinstance(current_val, thint):
                 self.cast_and_set_(fld.name, current_val)
 
-    def meta_(self, entry_name: str) -> Meta:
+    def meta_(self, entry_name: str) -> Meta[object]:
         """Metadata for the given entry name."""
         return self._loam_meta[entry_name]
 
@@ -184,7 +184,7 @@ class Section:
             value = meta.entry.from_toml(value_to_cast)
         elif not isinstance(value_to_cast, meta.type_hint):
             try:
-                value = meta.type_hint(value_to_cast)
+                value = meta.type_hint(value_to_cast)  # type: ignore
             except Exception:
                 raise TypeError(
                     f"Couldn't cast {value_to_cast!r} to a {meta.type_hint}, "
@@ -233,7 +233,7 @@ class ConfigBase:
             sections[fld.name] = thint()
         return cls(**sections)
 
-    def update_from_file_(self, path: str | PathLike) -> None:
+    def update_from_file_(self, path: str | PathLike[str]) -> None:
         """Update configuration from toml file."""
         pars = toml.load(Path(path))
         # only keep entries for which in_file is True
@@ -253,7 +253,7 @@ class ConfigBase:
             section: Section = getattr(self, sec)
             section.update_from_dict_(opts)
 
-    def to_file_(self, path: str | PathLike, exist_ok: bool = True) -> None:
+    def to_file_(self, path: str | PathLike[str], exist_ok: bool = True) -> None:
         """Write configuration in toml file."""
         path = Path(path)
         if not exist_ok and path.is_file():

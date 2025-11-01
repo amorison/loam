@@ -282,7 +282,7 @@ class CLIManager:
 
     def zsh_complete(
         self,
-        path: str | PathLike,
+        path: str | PathLike[str],
         cmd: str,
         *cmds: str,
         sourceable: bool = False,
@@ -351,7 +351,7 @@ class CLIManager:
             out.extend(_names(section, opt))
         return out
 
-    def bash_complete(self, path: str | PathLike, cmd: str, *cmds: str) -> None:
+    def bash_complete(self, path: str | PathLike[str], cmd: str, *cmds: str) -> None:
         """Write bash complete script.
 
         Args:

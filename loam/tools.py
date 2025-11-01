@@ -13,7 +13,7 @@ if typing.TYPE_CHECKING:
 
 
 def path_entry(
-    path: str | PathLike,
+    path: str | PathLike[str],
     doc: str,
     in_file: bool = True,
     in_cli: bool = True,
