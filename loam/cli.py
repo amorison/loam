@@ -14,8 +14,9 @@ from . import _internal, error
 
 if typing.TYPE_CHECKING:
     from argparse import ArgumentParser, Namespace
+    from collections.abc import Mapping
     from os import PathLike
-    from typing import Any, Mapping, TextIO
+    from typing import Any, TextIO
 
     from .base import ConfigBase, Section
 

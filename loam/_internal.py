@@ -10,7 +10,8 @@ import typing
 
 if typing.TYPE_CHECKING:
     from argparse import ArgumentParser, Namespace
-    from typing import Any, Mapping
+    from collections.abc import Mapping
+    from typing import Any
 
     from .base import Section
 

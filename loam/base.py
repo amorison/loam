@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from contextlib import AbstractContextManager
 from dataclasses import Field, dataclass, field, fields
 from os import PathLike
 from pathlib import Path
 from typing import (
     Any,
     Callable,
-    ContextManager,
     Generic,
-    Mapping,
     TypeVar,
     get_type_hints,
 )
@@ -194,7 +194,7 @@ class Section:
             value = value_to_cast
         setattr(self, field_name, value)
 
-    def context_(self, **options: Any) -> ContextManager[None]:
+    def context_(self, **options: Any) -> AbstractContextManager[None]:
         """Enter a context with locally changed option values.
 
         This context is reusable but not reentrant.
