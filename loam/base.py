@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from collections.abc import Mapping
 from contextlib import AbstractContextManager
 from dataclasses import Field, dataclass, field, fields
@@ -15,9 +16,14 @@ from typing import (
     get_type_hints,
 )
 
-import toml
+import tomli_w
 
 from . import _internal
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
 
 T = TypeVar("T")
 
@@ -235,7 +241,8 @@ class ConfigBase:
 
     def update_from_file_(self, path: str | PathLike[str]) -> None:
         """Update configuration from toml file."""
-        pars = toml.load(Path(path))
+        with Path(path).open("rb") as tomlf:
+            pars = tomllib.load(tomlf)
         # only keep entries for which in_file is True
         pars = {
             sec_name: {
@@ -274,5 +281,5 @@ class ConfigBase:
                 to_dump[sec.name][fld.name] = value
             if not to_dump[sec.name]:
                 del to_dump[sec.name]
-        with path.open("w") as pf:
-            toml.dump(to_dump, pf)
+        with path.open("wb") as pf:
+            tomli_w.dump(to_dump, pf)
